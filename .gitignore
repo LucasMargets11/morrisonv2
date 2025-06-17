@@ -1,0 +1,41 @@
+# Dependencies
+node_modules
+__pycache__
+*.pyc
+.env
+
+# Build
+dist
+build
+*.egg-info
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Media
+media/
+uploads/
+
+# Database
+*.sqlite3
+*.db
+
+# System
+.DS_Store
+Thumbs.db
