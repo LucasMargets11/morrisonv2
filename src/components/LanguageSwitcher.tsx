@@ -1,43 +1,72 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+
+const flags: { [key: string]: string } = {
+  es: 'https://flagcdn.com/w40/es.png',
+  en: 'https://flagcdn.com/w40/gb.png',
+  pt: 'https://flagcdn.com/w40/pt.png',
+};
 
 const LanguageSwitcher: React.FC = () => {
   const { language, setLanguage } = useLanguage();
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelect = (lang: string) => {
+    setLanguage(lang);
+    setOpen(false);
+  };
+
+  const availableLanguages = Object.entries(flags).filter(([key]) => key !== language);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="relative flex items-center" ref={wrapperRef}>
+      {/* Bandera actual */}
       <button
-        onClick={() => setLanguage('es')}
-        className={`flex items-center ${language === 'es' ? 'opacity-100' : 'opacity-70 hover:opacity-100'} transition-opacity`}
+        onClick={() => setOpen(!open)}
+        className="w-6 h-6 flex items-center justify-center"
       >
         <img
-          src="https://flagcdn.com/w40/es.png"
-          alt="Español"
-          className="w-5 h-5 rounded-sm object-cover"
+          src={flags[language]}
+          alt={language}
+          className="w-full h-full object-cover rounded-sm filter brightness-90 contrast-90 saturate-75"
         />
       </button>
-      
-      <button
-        onClick={() => setLanguage('en')}
-        className={`flex items-center ${language === 'en' ? 'opacity-100' : 'opacity-70 hover:opacity-100'} transition-opacity`}
+
+      {/* Menú con animación horizontal y filtros */}
+      <div
+        className={`ml-2 flex gap-2 items-center transition-all duration-200 ease-out ${
+          open ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+        }`}
       >
-        <img
-          src="https://flagcdn.com/w40/gb.png"
-          alt="English"
-          className="w-5 h-5 rounded-sm object-cover"
-        />
-      </button>
-      
-      <button
-        onClick={() => setLanguage('pt')}
-        className={`flex items-center ${language === 'pt' ? 'opacity-100' : 'opacity-70 hover:opacity-100'} transition-opacity`}
-      >
-        <img
-          src="https://flagcdn.com/w40/pt.png"
-          alt="Português"
-          className="w-5 h-5 rounded-sm object-cover"
-        />
-      </button>
+        {availableLanguages.map(([lang, url], index) => (
+          <button
+            key={lang}
+            onClick={() => handleSelect(lang)}
+            style={{
+              transitionDelay: open ? `${index * 100}ms` : '0ms',
+            }}
+            className="w-6 h-6 transform transition duration-300 ease-out hover:scale-105"
+          >
+            <img
+              src={url}
+              alt={lang}
+              className="w-full h-full object-cover rounded-sm filter brightness-90 contrast-90 saturate-75 hover:filter-none"
+            />
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

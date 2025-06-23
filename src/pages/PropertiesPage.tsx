@@ -5,6 +5,9 @@ import PropertyCard from '../components/UI/PropertyCard';
 import { Property } from '../types';
 import { MapPin, Search, Home as HomeIcon } from 'lucide-react';
 import Button from '../components/UI/Button';
+import PropertyMap from '../components/UI/PropertyMap';
+
+const GOOGLE_MAPS_API_KEY = 'AIzaSyAhKUEMZevObTmkKtml47NvHQFkDKyZt7o'; // pon tu key aquí
 
 const PropertiesPage: React.FC = () => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
@@ -213,19 +216,9 @@ const PropertiesPage: React.FC = () => {
           {/* Map Section */}
           <div className="w-full lg:w-2/5 lg:sticky lg:top-24 h-[calc(100vh-6rem)]">
             <div className="bg-white rounded-lg shadow-md p-4 h-full">
-              <div className="relative w-full h-full rounded-lg overflow-hidden">
+              <div className="relative w-full h-full min-h-[400px] rounded-lg overflow-hidden">
                 {selectedProperty ? (
-                  <iframe
-                    src={`https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q=${
-                      selectedProperty.address},${selectedProperty.city},${selectedProperty.state}
-                    }`}
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    allowFullScreen
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  />
+                  <PropertyMap property={selectedProperty} apiKey={GOOGLE_MAPS_API_KEY} />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center bg-gray-100/80">
                     <div className="text-center">
