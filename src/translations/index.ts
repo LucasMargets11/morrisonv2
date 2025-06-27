@@ -22,6 +22,8 @@ type TranslationKey =
   | 'hero.filters.anyType'
   | 'hero.filters.anyBedrooms'
   | 'hero.filters.search'
+  | 'hero.search.selectDates'
+  | 'hero.search.guests'
 
   // Properties
   | 'properties.title'
@@ -139,6 +141,8 @@ const translations: Record<Language, Translations> = {
     'hero.filters.anyType': 'Cualquier Tipo',
     'hero.filters.anyBedrooms': 'Habitaciones',
     'hero.filters.search': 'Buscar',
+    'hero.search.selectDates': 'Selecciona fechas',
+    'hero.search.guests': 'Huéspedes',
 
     // Properties
     'properties.title': 'Propiedades Disponibles',
@@ -252,6 +256,8 @@ const translations: Record<Language, Translations> = {
     'hero.filters.anyType': 'Any Type',
     'hero.filters.anyBedrooms': 'Bedrooms',
     'hero.filters.search': 'Search',
+    'hero.search.selectDates': 'Select dates',
+    'hero.search.guests': 'Guests',
 
     // Properties
     'properties.title': 'Available Properties',
@@ -365,6 +371,8 @@ const translations: Record<Language, Translations> = {
     'hero.filters.anyType': 'Qualquer Tipo',
     'hero.filters.anyBedrooms': 'Quartos',
     'hero.filters.search': 'Buscar',
+    'hero.search.selectDates': 'Selecione datas',
+    'hero.search.guests': 'Hóspedes',
 
     // Properties
     'properties.title': 'Imóveis Disponíveis',

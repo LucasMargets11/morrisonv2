@@ -20,7 +20,6 @@ const Header: React.FC = () => {
   const t = useTranslation(language);
   const navigate = useNavigate();
 
-  // Verificar autenticación inicial
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -32,18 +31,15 @@ const Header: React.FC = () => {
         setLoading(false);
       }
     };
-
     checkAuth();
   }, []);
 
-  // Detectar scroll para cambiar estilo
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 30);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Cerrar dropdown al hacer click fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const dropdown = document.getElementById('user-dropdown');
@@ -76,7 +72,7 @@ const Header: React.FC = () => {
     logout();
     setUser(null);
     setDropdownOpen(false);
-    navigate('/'); // Redirige al home después del logout
+    navigate('/');
   };
 
   const toggleDropdown = () => setDropdownOpen(open => !open);
@@ -98,24 +94,24 @@ const Header: React.FC = () => {
       >
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center">
-            {/* Logo y título */}
+            {/* Logo */}
             <Link to="/" className="flex items-center">
               <img
-                src="/logo_transparent.png"
+                src="/logo_transparent para web-01.svg"
                 alt="GrupoBairen"
                 className="w-8 h-8 transition-filter duration-300"
-                style={{ filter: isScrolled ? 'none' : 'invert(1)' }}
+                style={{ filter: isScrolled ? 'none' : '' }}
               />
               <span
                 className={`ml-2 text-xl font-bold transition-colors duration-300 ${
                   isScrolled ? 'text-gray-900' : 'text-white'
                 }`}
               >
-                GrupoBairen
+                
               </span>
             </Link>
 
-            {/* Botón menú móvil */}
+            {/* Mobile Menu Button */}
             <button
               className="md:hidden"
               onClick={() => setMobileMenuOpen(open => !open)}
@@ -127,7 +123,7 @@ const Header: React.FC = () => {
               )}
             </button>
 
-            {/* Navegación de escritorio */}
+            {/* Navigation */}
             <nav className="hidden md:flex items-center space-x-1">
               <NavLink
                 to="/"
@@ -183,13 +179,11 @@ const Header: React.FC = () => {
                   {t('nav.admin')}
                 </NavLink>
               )}
-              <div className="ml-2">
-                <LanguageSwitcher />
-              </div>
             </nav>
 
-            {/* Usuario / Auth */}
+            {/* Language + User/Auth */}
             <div className="hidden md:flex items-center space-x-4">
+              <LanguageSwitcher />
               {user ? (
                 <div className="relative">
                   <button

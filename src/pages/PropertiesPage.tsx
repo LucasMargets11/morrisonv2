@@ -6,10 +6,15 @@ import { Property } from '../types';
 import { MapPin, Search, Home as HomeIcon } from 'lucide-react';
 import Button from '../components/UI/Button';
 import PropertyMap from '../components/UI/PropertyMap';
+import { useLanguage } from '../contexts/LanguageContext';
+import { useTranslation } from '../translations';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyAhKUEMZevObTmkKtml47NvHQFkDKyZt7o'; // pon tu key aquí
 
 const PropertiesPage: React.FC = () => {
+  const { language } = useLanguage();
+  const t = useTranslation(language);
+
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [priceRange, setPriceRange] = useState<string>('all');
@@ -108,37 +113,45 @@ const PropertiesPage: React.FC = () => {
                 <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search location..."
+                  placeholder={t('hero.search.placeholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-
-              <select
-                value={priceRange}
-                onChange={(e) => setPriceRange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <div>
+                <select
+                  value={priceRange}
+                  onChange={(e) => setPriceRange(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">{t('hero.filters.anyPrice')}</option>
+                  <option value="under-500k">Under $500k</option>
+                  <option value="500k-1m">$500k - $1M</option>
+                  <option value="1m-2m">$1M - $2M</option>
+                  <option value="over-2m">Over $2M</option>
+                </select>
+              </div>
+              <div>
+                <select
+                  value={propertyType}
+                  onChange={(e) => setPropertyType(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">{t('hero.filters.anyType')}</option>
+                  <option value="house">House</option>
+                  <option value="apartment">Apartment</option>
+                  <option value="duplex">Duplex</option>
+                  <option value="land">Land</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end mt-4">
+              <button
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
               >
-                <option value="all">Any Price</option>
-                <option value="under-500k">Under $500k</option>
-                <option value="500k-1m">$500k - $1M</option>
-                <option value="1m-2m">$1M - $2M</option>
-                <option value="over-2m">Over $2M</option>
-              </select>
-
-              <select
-                value={propertyType}
-                onChange={(e) => setPropertyType(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">Any Type</option>
-                <option value="house">House</option>
-                <option value="apartment">Apartment</option>
-                <option value="condo">Condo</option>
-                <option value="townhouse">Townhouse</option>
-                <option value="land">Land</option>
-              </select>
+                {t('hero.filters.search')}
+              </button>
             </div>
           </div>
         </div>

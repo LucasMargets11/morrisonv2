@@ -8,12 +8,17 @@ import CTASection from '../components/CTASection';
 import { useQuery } from '@tanstack/react-query';
 import { adminApi } from '../lib/admin';
 import { Property } from '../types/index';
+import { useLanguage } from '../contexts/LanguageContext';
+import { useTranslation } from '../translations';
 
 const HomePage: React.FC = () => {
   const { data: properties = [], isLoading, isError } = useQuery<Property[], Error>({
     queryKey: ['properties'],
     queryFn: adminApi.getProperties,
   });
+
+  const { language } = useLanguage();
+  const t = useTranslation(language);
 
   if (isLoading) {
     return <p className="text-center py-8">Cargando propiedades destacadas...</p>;
@@ -27,11 +32,18 @@ const HomePage: React.FC = () => {
     <div className="pt-0">
       <Hero />
       <div className="bg-white">
-        <FeaturedSection properties={properties} />
+        <FeaturedSection properties={properties as Property[]} />
         <StatsSection />
         <TestimonialsSection />
         <AgentsSection />
         <CTASection />
+      </div>
+      <div>
+        <input placeholder={t('hero.search.selectDates')} />
+        <select>
+          <option>{t('hero.search.guests')}</option>
+        </select>
+        <div>Idioma actual: {language}</div>
       </div>
     </div>
   );
