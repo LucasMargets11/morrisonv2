@@ -93,7 +93,7 @@ const Header: React.FC = () => {
         }`}
       >
         <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center relative">
             {/* Logo */}
             <Link to="/" className="flex items-center">
               <img
@@ -111,20 +111,8 @@ const Header: React.FC = () => {
               </span>
             </Link>
 
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden"
-              onClick={() => setMobileMenuOpen(open => !open)}
-            >
-              {mobileMenuOpen ? (
-                <X size={24} className={isScrolled ? 'text-gray-900' : 'text-white'} />
-              ) : (
-                <Menu size={24} className={isScrolled ? 'text-gray-900' : 'text-white'} />
-              )}
-            </button>
-
-            {/* Navigation */}
-            <nav className="hidden md:flex items-center space-x-1">
+            {/* Nav centrado */}
+            <nav className="hidden md:flex items-center space-x-1 absolute left-1/2 -translate-x-1/2">
               <NavLink
                 to="/"
                 end
@@ -181,7 +169,7 @@ const Header: React.FC = () => {
               )}
             </nav>
 
-            {/* Language + User/Auth */}
+            {/* Idioma y usuario */}
             <div className="hidden md:flex items-center space-x-4">
               <LanguageSwitcher />
               {user ? (
