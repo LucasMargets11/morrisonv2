@@ -113,17 +113,17 @@ const Header: React.FC = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center">
               <img
-                src="/logo_transparent.png"
+                src="/logo_transparent para web-01.svg"
                 alt="GrupoBairen"
                 className="w-8 h-8 transition-filter duration-300"
-                style={{ filter: isScrolled ? 'none' : 'invert(1)' }}
+                style={{ filter: isScrolled ? 'none' : 'invert(0)' }}
               />
               <span
                 className={`ml-2 text-xl font-bold transition-colors duration-300 ${
                   isScrolled ? 'text-gray-900' : 'text-white'
                 }`}
               >
-                GrupoBairen
+                Grupo Bairen
               </span>
             </Link>
 
