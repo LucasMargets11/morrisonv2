@@ -23,11 +23,23 @@ const Header: React.FC = () => {
   // Verificar autenticación inicial
   useEffect(() => {
     const checkAuth = async () => {
+      const token = localStorage.getItem('access_token');
+      
+      // Solo verificar autenticación si hay un token guardado
+      if (!token) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
       try {
         const response = await authApi.getMe();
         setUser(response.data);
       } catch {
         setUser(null);
+        // Limpiar tokens inválidos
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
       } finally {
         setLoading(false);
       }

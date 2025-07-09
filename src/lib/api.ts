@@ -58,6 +58,11 @@ export const authApi = {
     localStorage.setItem('refresh_token', response.data.refresh);
     return response.data;
   },
+  
+  getMe: async () => {
+    const response = await api.get('/users/me/');
+    return response;
+  },
 };
 
 export const logout = () => {
