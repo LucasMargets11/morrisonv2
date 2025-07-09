@@ -1,18 +1,20 @@
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from './contexts/LanguageContext';
-import { useEffect } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
 import PropertiesPage from './pages/PropertiesPage';
-import PropertyDetailsPage from './pages/PropertyDetailsPage';
+import PropertyDetailsPage from './pages/PropertyDetailsPage'; // <-- Cambiado
+import AgentsPage from './pages/AgentsPage';
+import ContactPage from './pages/ContactPage';
+
+// Admin Pages
+import AdminLoginPage from './pages/admin/AdminLoginPage';
+import ProtectedRoute from './components/admin/ProtectedRoute';
 import PropertyListPage from './pages/admin/PropertyListPage';
 import PropertyFormPage from './pages/admin/PropertyFormPage';
-import GeneralCalendarPage from './pages/admin/GeneralCalendarPage';
-import ContactPage from './pages/ContactPage';
-import AgentsPage from './pages/AgentsPage';
-import AboutPage from './pages/AboutPage';
 
 const queryClient = new QueryClient();
 
@@ -29,24 +31,42 @@ function App() {
     <LanguageProvider>
       <QueryClientProvider client={queryClient}>
         <Router>
-          <div className="flex flex-col min-h-screen">
-            <Header />
-            <main className="flex-grow">
-              <ScrollToTop />
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/properties" element={<PropertiesPage />} />
-                <Route path="/property/:id" element={<PropertyDetailsPage />} />
-                <Route path="/admin/properties" element={<PropertyListPage />} />
-                <Route path="/admin/properties/new" element={<PropertyFormPage />} />
-                <Route path="/admin/properties/:id/edit" element={<PropertyFormPage />} />
-                <Route path="/admin/calendar" element={<GeneralCalendarPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/agents" element={<AgentsPage />} />
-                <Route path="/about" element={<AboutPage />} />
-              </Routes>
-            </main>
-            <Footer />
+          <ScrollToTop />
+          <div className="min-h-screen flex flex-col">
+            <Routes>
+              {/* Admin Login (sin header/footer) */}
+              <Route path="/admin/login" element={<AdminLoginPage />} />
+              
+              {/* Rutas con Header/Footer */}
+              <Route path="/*" element={
+                <>
+                  <Header />
+                  <main className="flex-1">
+                    <Routes>
+                      {/* Rutas públicas */}
+                      <Route path="/" element={<HomePage />} />
+                      <Route path="/properties" element={<PropertiesPage />} />
+                      <Route path="/property/:id" element={<PropertyDetailsPage />} /> {/* <-- Cambiado */}
+                      <Route path="/agents" element={<AgentsPage />} />
+                      <Route path="/contact" element={<ContactPage />} />
+                      
+                      {/* Rutas protegidas de admin */}
+                      <Route path="/admin/*" element={
+                        <ProtectedRoute>
+                          <Routes>
+                            <Route path="properties" element={<PropertyListPage />} />
+                            <Route path="properties/new" element={<PropertyFormPage />} />
+                            <Route path="properties/:id/edit" element={<PropertyFormPage />} />
+                            {/* Agregar más rutas de admin aquí */}
+                          </Routes>
+                        </ProtectedRoute>
+                      } />
+                    </Routes>
+                  </main>
+                  <Footer />
+                </>
+              } />
+            </Routes>
           </div>
         </Router>
       </QueryClientProvider>

@@ -1,52 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { User, Menu, X, LogOut, LayoutDashboard, ChevronDown } from 'lucide-react';
+import { Menu, X, ChevronDown, User, LogOut, LayoutDashboard } from 'lucide-react';
 import Button from './UI/Button';
-import LoginModal from './Auth/LoginModal';
 import LanguageSwitcher from './LanguageSwitcher';
-import { authApi, logout } from '../lib/api';
+import { useAuth } from '../hooks/useAuth';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from '../translations';
 
 const Header: React.FC = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [loginModalOpen, setLoginModalOpen] = useState(false);
-  type UserType = { email: string } | null;
-  const [user, setUser] = useState<UserType>(null);
-  const [loading, setLoading] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  
+  const { user, loading, logout } = useAuth();
   const { language } = useLanguage();
   const t = useTranslation(language);
   const navigate = useNavigate();
 
-  // Verificar autenticación inicial
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('access_token');
-      
-      // Solo verificar autenticación si hay un token guardado
-      if (!token) {
-        setUser(null);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const response = await authApi.getMe();
-        setUser(response.data);
-      } catch {
-        setUser(null);
-        // Limpiar tokens inválidos
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
+  console.log('Header - User:', user);
+  console.log('Header - Loading:', loading);
+  console.log('Header - Is Staff:', user?.is_staff);
+  console.log('Header - Role:', user?.role);
 
   // Detectar scroll para cambiar estilo
   useEffect(() => {
@@ -74,21 +48,10 @@ const Header: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogin = async (email: string, password: string) => {
-    try {
-      const response = await authApi.login(email, password);
-      setUser(response.user);
-      setLoginModalOpen(false);
-    } catch (error) {
-      throw error;
-    }
-  };
-
   const handleLogout = () => {
     logout();
-    setUser(null);
     setDropdownOpen(false);
-    navigate('/'); // Redirige al home después del logout
+    navigate('/');
   };
 
   const toggleDropdown = () => setDropdownOpen(open => !open);
@@ -113,17 +76,17 @@ const Header: React.FC = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center">
               <img
-                src="/logo_transparent.png"
+                src="/logo_transparent para web-01.svg"
                 alt="GrupoBairen"
                 className="w-8 h-8 transition-filter duration-300"
-                style={{ filter: isScrolled ? 'none' : 'invert(1)' }}
+                style={{ filter: isScrolled ? 'none' : 'invert(0)' }}
               />
               <span
                 className={`ml-2 text-xl font-bold transition-colors duration-300 ${
                   isScrolled ? 'text-gray-900' : 'text-white'
                 }`}
               >
-                GrupoBairen
+                Grupo Bairen
               </span>
             </Link>
 
@@ -139,7 +102,7 @@ const Header: React.FC = () => {
               )}
             </button>
 
-            {/* Navigation */}
+            {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-1">
               <NavLink
                 to="/"
@@ -159,14 +122,6 @@ const Header: React.FC = () => {
                 {t('nav.properties')}
               </NavLink>
               <NavLink
-                to="/agents"
-                className={({ isActive }) =>
-                  `${navLinkClass} ${isActive ? activeNavClass : inactiveNavClass}`
-                }
-              >
-                {t('nav.agents')}
-              </NavLink>
-              <NavLink
                 to="/about"
                 className={({ isActive }) =>
                   `${navLinkClass} ${isActive ? activeNavClass : inactiveNavClass}`
@@ -182,81 +137,84 @@ const Header: React.FC = () => {
               >
                 {t('nav.contact')}
               </NavLink>
-              {user && (
-                <NavLink
-                  to="/admin/properties"
-                  className={({ isActive }) =>
-                    `${navLinkClass} ${
-                      isActive ? activeNavClass : inactiveNavClass
-                    } flex items-center`
-                  }
-                >
-                  <LayoutDashboard size={16} className="mr-1" />
-                  {t('nav.admin')}
-                </NavLink>
-              )}
+              
               <div className="ml-2">
                 <LanguageSwitcher />
               </div>
             </nav>
 
-            {/* Language + User/Auth */}
+            {/* Right Section: Solo Panel Admin + User (si está autenticado) */}
             <div className="hidden md:flex items-center space-x-4">
-              {user ? (
-                <div className="relative">
-                  <button
-                    id="user-dropdown-button"
-                    onClick={toggleDropdown}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                      isScrolled
-                        ? 'text-gray-800 hover:bg-gray-100'
-                        : 'text-white hover:bg-white/10'
-                    }`}
-                  >
-                    <User size={18} />
-                    <span className="max-w-[150px] truncate">{user.email}</span>
-                    <ChevronDown
-                      size={16}
-                      className={`transition-transform duration-200 ${
-                        dropdownOpen ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </button>
-                  {dropdownOpen && (
-                    <div
-                      id="user-dropdown"
-                      className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg py-2 z-[var(--z-dropdown)]"
+              {loading ? (
+                <div className="w-8 h-8 animate-pulse bg-gray-300 rounded-full"></div>
+              ) : user ? (
+                <div className="flex items-center space-x-4">
+                  {/* Panel Admin - Solo si es admin */}
+                  {(user.is_staff || user.role === 'admin') && (
+                    <NavLink
+                      to="/admin/properties"
+                      className={({ isActive }) =>
+                        `${navLinkClass} ${
+                          isActive ? activeNavClass : inactiveNavClass
+                        } flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                          isScrolled 
+                            ? 'hover:bg-gray-100' 
+                            : 'hover:bg-white/10'
+                        }`
+                      }
                     >
-                      <div className="px-4 py-2 border-b border-gray-100">
-                        <p className="text-sm text-gray-600">Signed in as</p>
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {user.email}
-                        </p>
-                      </div>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center"
-                      >
-                        <LogOut size={16} className="mr-2" />
-                        {t('auth.signOut')}
-                      </button>
-                    </div>
+                      <LayoutDashboard size={16} />
+                      <span className="font-medium">Admin</span>
+                    </NavLink>
                   )}
+                  
+                  {/* User Dropdown */}
+                  <div className="relative">
+                    <button
+                      id="user-dropdown-button"
+                      onClick={toggleDropdown}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                        isScrolled
+                          ? 'text-gray-800 hover:bg-gray-100'
+                          : 'text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <User size={18} />
+                      <span className="max-w-[150px] truncate text-sm font-medium">
+                        {user.first_name || user.email}
+                      </span>
+                      <ChevronDown
+                        size={16}
+                        className={`transition-transform duration-200 ${
+                          dropdownOpen ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
+
+                    {dropdownOpen && (
+                      <div
+                        id="user-dropdown"
+                        className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg py-2 z-[var(--z-dropdown)]"
+                      >
+                        <div className="px-4 py-2 border-b border-gray-100">
+                          <p className="text-sm text-gray-600">Signed in as</p>
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {user.first_name || user.email}
+                          </p>
+                        </div>
+                        <button
+                          onClick={handleLogout}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                        >
+                          <LogOut size={16} className="mr-2" />
+                          {t('auth.signOut')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <Button
-                  variant="text"
-                  className={`${
-                    isScrolled
-                      ? 'text-gray-800 hover:bg-gray-100'
-                      : 'text-white hover:bg-white/10'
-                  } px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2`}
-                  onClick={() => setLoginModalOpen(true)}
-                >
-                  <User size={18} />
-                  {t('auth.signIn')}
-                </Button>
-              )}
+              ) : null}
+              {/* Sin usuario autenticado: no mostrar nada */}
             </div>
           </div>
         </div>
@@ -289,17 +247,6 @@ const Header: React.FC = () => {
                 {t('nav.properties')}
               </NavLink>
               <NavLink
-                to="/agents"
-                className={({ isActive }) =>
-                  `py-3 border-b border-gray-100 ${
-                    isActive ? 'text-blue-900 font-medium' : 'text-gray-800'
-                  }`
-                }
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {t('nav.agents')}
-              </NavLink>
-              <NavLink
                 to="/about"
                 className={({ isActive }) =>
                   `py-3 border-b border-gray-100 ${
@@ -321,7 +268,9 @@ const Header: React.FC = () => {
               >
                 {t('nav.contact')}
               </NavLink>
-              {user && (
+              
+              {/* Mobile Panel Admin */}
+              {user && (user.is_staff || user.role === 'admin') && (
                 <NavLink
                   to="/admin/properties"
                   className={({ isActive }) =>
@@ -332,43 +281,27 @@ const Header: React.FC = () => {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <LayoutDashboard size={16} className="mr-2" />
-                  {t('nav.admin')}
+                  Admin
                 </NavLink>
               )}
+              
               <div className="py-3 border-b border-gray-100">
                 <LanguageSwitcher />
               </div>
-              <div className="flex mt-4">
-                {user ? (
+              
+              {/* Mobile User Actions - Solo si está autenticado */}
+              {user && (
+                <div className="flex mt-4">
                   <Button variant="outline" size="sm" className="flex-1" onClick={handleLogout}>
                     <LogOut size={16} className="mr-1" />
                     {t('auth.signOut')}
                   </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      setLoginModalOpen(true);
-                    }}
-                  >
-                    <User size={16} className="mr-1" />
-                    {t('auth.signIn')}
-                  </Button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         )}
       </header>
-
-      <LoginModal
-        isOpen={loginModalOpen}
-        onClose={() => setLoginModalOpen(false)}
-        onLogin={handleLogin}
-      />
     </div>
   );
 };

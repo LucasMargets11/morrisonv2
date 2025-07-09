@@ -18,14 +18,18 @@ api.interceptors.response.use(
     if (
       status === 401 &&
       !originalRequest._retry &&
-      localStorage.getItem('refresh_token')
+      localStorage.getItem('refresh_token') &&
+      !originalRequest.url?.includes('/login/') // No intentar refresh en login
     ) {
       originalRequest._retry = true;
       const refreshToken = localStorage.getItem('refresh_token');
 
       if (!refreshToken) {
         localStorage.clear();
-        window.location.href = '/login';
+        // Solo redirigir a login admin si estamos en rutas admin
+        if (window.location.pathname.startsWith('/admin')) {
+          window.location.href = '/admin/login';
+        }
         return Promise.reject(err);
       }
 
@@ -42,7 +46,10 @@ api.interceptors.response.use(
 
       } catch (refreshError) {
         localStorage.clear();
-        window.location.href = '/login';
+        // Solo redirigir a login admin si estamos en rutas admin
+        if (window.location.pathname.startsWith('/admin')) {
+          window.location.href = '/admin/login';
+        }
         return Promise.reject(refreshError);
       }
     }
@@ -69,13 +76,11 @@ export const logout = () => {
   localStorage.removeItem('access_token');
   localStorage.removeItem('refresh_token');
   localStorage.clear();
-  window.location.href = '/'; // Redirige al home, 
 };
 
 export const deleteProperty = async (id: number) => {
   try {
     await api.delete(`/properties/${id}/`);
-    // Opcional: redirige o actualiza la lista
     alert('Propiedad eliminada');
   } catch (error) {
     alert('Error al eliminar la propiedad');

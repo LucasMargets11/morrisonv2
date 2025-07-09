@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { Language, useLanguage } from '../contexts/LanguageContext';
 
 const flags: { [key: string]: string } = {
   es: 'https://flagcdn.com/w40/es.png',
@@ -24,7 +24,7 @@ const LanguageSwitcher: React.FC = () => {
   }, []);
 
   const handleSelect = (lang: string) => {
-    setLanguage(lang);
+    setLanguage(lang as Language);
     setOpen(false);
   };
 
