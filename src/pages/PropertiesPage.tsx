@@ -16,7 +16,7 @@ const PropertiesPage: React.FC = () => {
   const t = useTranslation(language);
 
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [zone, setZone] = useState(''); // city
   const [priceRange, setPriceRange] = useState<string>('all');
   const [propertyType, setPropertyType] = useState<string>('all');
   const [bedroomCount, setBedroomCount] = useState<string>('all');
@@ -53,17 +53,18 @@ const PropertiesPage: React.FC = () => {
         typeof p.year_built === 'string' ? parseInt(p.year_built) : p.year_built,
       location: { lat: 0, lng: 0 },
       property_type: p.property_type,
+      latitude: p.latitude,
+      longitude: p.longitude,
     })),
   [properties]);
 
-  // Filter logic
+  // Filtros útiles
   const filteredProperties = useMemo(() => {
     return mappedProperties.filter((property) => {
-      const matchesSearch =
-        property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        property.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        property.city.toLowerCase().includes(searchTerm.toLowerCase());
+      // Filtro de zona (city)
+      const matchesZone = !zone || property.city === zone;
 
+      // Filtro de precio
       const matchesPriceRange =
         priceRange === 'all' || (() => {
           const price = property.price || 0;
@@ -76,16 +77,32 @@ const PropertiesPage: React.FC = () => {
           }
         })();
 
+      // Filtro de tipo de alquiler
       const matchesType =
         propertyType === 'all' || property.property_type === propertyType;
+
+      // Filtro de huéspedes
       const matchesBedrooms =
         bedroomCount === 'all' || (property.bedrooms || 0) >= parseInt(bedroomCount);
 
       return (
-        matchesSearch && matchesPriceRange && matchesType && matchesBedrooms
+        matchesZone &&
+        matchesPriceRange &&
+        matchesType &&
+        matchesBedrooms
       );
     });
-  }, [mappedProperties, searchTerm, priceRange, propertyType, bedroomCount]);
+  }, [mappedProperties, zone, priceRange, propertyType, bedroomCount]);
+
+  // Ciudades y tipos únicos para los selects
+  const uniqueCities = useMemo(
+    () => Array.from(new Set(mappedProperties.map((p) => p.city).filter(Boolean))),
+    [mappedProperties]
+  );
+  const uniqueTypes = useMemo(
+    () => Array.from(new Set(mappedProperties.map((p) => p.property_type).filter(Boolean))),
+    [mappedProperties]
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -107,51 +124,80 @@ const PropertiesPage: React.FC = () => {
           </p>
 
           {/* Search Bar */}
-          <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative">
-                <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder={t('hero.search.placeholder')}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <select
-                  value={priceRange}
-                  onChange={(e) => setPriceRange(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="all">{t('hero.filters.anyPrice')}</option>
-                  <option value="under-500k">Under $500k</option>
-                  <option value="500k-1m">$500k - $1M</option>
-                  <option value="1m-2m">$1M - $2M</option>
-                  <option value="over-2m">Over $2M</option>
-                </select>
-              </div>
-              <div>
-                <select
-                  value={propertyType}
-                  onChange={(e) => setPropertyType(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="all">{t('hero.filters.anyType')}</option>
-                  <option value="house">House</option>
-                  <option value="apartment">Apartment</option>
-                  <option value="duplex">Duplex</option>
-                  <option value="land">Land</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex justify-end mt-4">
-              <button
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
+          <div className="w-full max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-4 flex flex-col md:flex-row gap-4 mt-8">
+            {/* Zona (city) */}
+            <div className="flex-1">
+              <label className="block text-gray-700 text-sm mb-1" htmlFor="zone-select">
+                Zona
+              </label>
+              <select
+                id="zone-select"
+                value={zone}
+                onChange={e => setZone(e.target.value)}
+                className="w-full px-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {t('hero.filters.search')}
-              </button>
+                <option value="">Todas las zonas</option>
+                {uniqueCities.map(city => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Precio */}
+            <div className="flex-1">
+              <label className="block text-gray-700 text-sm mb-1" htmlFor="price-select">
+                Precio
+              </label>
+              <select
+                id="price-select"
+                value={priceRange}
+                onChange={e => setPriceRange(e.target.value)}
+                className="w-full px-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">Cualquier precio</option>
+                <option value="under-500k">Menos de $500k</option>
+                <option value="500k-1m">$500k - $1M</option>
+                <option value="1m-2m">$1M - $2M</option>
+                <option value="over-2m">Más de $2M</option>
+              </select>
+            </div>
+
+            {/* Tipo de alquiler */}
+            <div className="flex-1">
+              <label className="block text-gray-700 text-sm mb-1" htmlFor="rent-type-select">
+                Tipo de alquiler
+              </label>
+              <select
+                id="rent-type-select"
+                value={propertyType}
+                onChange={e => setPropertyType(e.target.value)}
+                className="w-full px-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">Todos</option>
+                {uniqueTypes.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Huéspedes */}
+            <div className="flex-1">
+              <label className="block text-gray-700 text-sm mb-1" htmlFor="guests-select">
+                Huéspedes
+              </label>
+              <select
+                id="guests-select"
+                value={bedroomCount}
+                onChange={e => setBedroomCount(e.target.value)}
+                className="w-full px-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">Cualquier cantidad</option>
+                <option value="1">1+ Huésped</option>
+                <option value="2">2+ Huéspedes</option>
+                <option value="3">3+ Huéspedes</option>
+                <option value="4">4+ Huéspedes</option>
+                <option value="5">5+ Huéspedes</option>
+              </select>
             </div>
           </div>
         </div>
@@ -169,23 +215,10 @@ const PropertiesPage: React.FC = () => {
           </div>
 
           <div className="flex gap-4 mt-4 md:mt-0">
-            <select
-              value={bedroomCount}
-              onChange={(e) => setBedroomCount(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">Any Bedrooms</option>
-              <option value="1">1+ Bed</option>
-              <option value="2">2+ Beds</option>
-              <option value="3">3+ Beds</option>
-              <option value="4">4+ Beds</option>
-              <option value="5">5+ Beds</option>
-            </select>
-
             <Button
               variant="outline"
               onClick={() => {
-                setSearchTerm('');
+                setZone('');
                 setPriceRange('all');
                 setPropertyType('all');
                 setBedroomCount('all');
@@ -230,16 +263,20 @@ const PropertiesPage: React.FC = () => {
           <div className="w-full lg:w-2/5 lg:sticky lg:top-24 h-[calc(100vh-6rem)]">
             <div className="bg-white rounded-lg shadow-md p-4 h-full">
               <div className="relative w-full h-full min-h-[400px] rounded-lg overflow-hidden">
-                {selectedProperty ? (
-                  <PropertyMap property={selectedProperty} apiKey={GOOGLE_MAPS_API_KEY} />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100/80">
-                    <div className="text-center">
-                      <MapPin size={32} className="mx-auto mb-2 text-gray-400" />
-                      <p className="text-gray-600">Select a property to view its location</p>
-                    </div>
-                  </div>
-                )}
+                <PropertyMap
+                  apiKey={GOOGLE_MAPS_API_KEY}
+                  locations={filteredProperties.map(p => ({
+                    id: p.id,
+                    address: `${p.address}, ${p.city}`,
+                    price: p.price,
+                    title: p.title,
+                    imageUrl: p.images[0] || '',
+                    zone: p.city,
+                    propertyType: p.property_type,
+                    latitude: p.latitude!,
+                    longitude: p.longitude!,
+                  }))}
+                />
               </div>
             </div>
           </div>

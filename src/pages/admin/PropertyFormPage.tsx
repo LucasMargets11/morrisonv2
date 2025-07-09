@@ -7,7 +7,7 @@ import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
 import { adminApi } from '../../lib/admin';
 import Button from '../../components/UI/Button';
 import PropertyCalendar from '../../components/admin/PropertyCalendar';
-import { Property } from '../../types/admin';
+import { Property, PropertyImage } from '../../types/admin';
 
 type PropertyFormData = Omit<Property, 'id' | 'created_at' | 'updated_at' | 'media'>;
 
@@ -18,6 +18,7 @@ const PropertyFormPage: React.FC = () => {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [images, setImages] = useState<(string | PropertyImage)[]>([]);
 
   const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<PropertyFormData>();
 
@@ -33,6 +34,7 @@ const PropertyFormPage: React.FC = () => {
         ...property,
         features: property.features || [],
       });
+      setImages(property.images || []);
     }
   }, [property, reset]);
 
@@ -106,8 +108,41 @@ const PropertyFormPage: React.FC = () => {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleRemoveImage = (idx: number) => {
+    const newImages = images.filter((_, i) => i !== idx);
+    setImages(newImages);
+    setValue('images', newImages.filter(img => typeof img !== 'string') as PropertyFormData['images']);
+  };
+
+  const handleMoveImage = (from: number, to: number) => {
+    const newImages = [...images];
+    const [moved] = newImages.splice(from, 1);
+    newImages.splice(to, 0, moved);
+    setImages(newImages);
+    setValue('images', newImages.filter(img => typeof img !== 'string') as PropertyFormData['images']);
+  };
+
+  const handleSetMainImage = (idx: number) => {
+    const newImages = [...images];
+    const [main] = newImages.splice(idx, 1);
+    newImages.unshift(main);
+    setImages(newImages);
+    setValue('images', newImages.filter(img => typeof img !== 'string') as PropertyFormData['images']);
+  };
+
   const onSubmit = async (data: PropertyFormData) => {
     try {
+      // Ordena las imágenes y marca la primera como principal
+      const orderedImages = images.map((img, idx) => {
+        if (typeof img === 'string') {
+          return { image: img, is_primary: idx === 0, order: idx };
+        } else {
+          return { ...img, is_primary: idx === 0, order: idx };
+        }
+      });
+      // Sobrescribe el campo images en data
+      data.images = orderedImages as any;
+
       if (id) {
         await updateMutation.mutateAsync(data);
       } else {
@@ -180,6 +215,7 @@ const PropertyFormPage: React.FC = () => {
                 <option value="condo">Condo</option>
                 <option value="townhouse">Townhouse</option>
                 <option value="land">Land</option>
+                <option value="temporal">Temporal</option> 
               </select>
               {errors.property_type && (
                 <p className="mt-1 text-sm text-red-600">{errors.property_type.message}</p>
@@ -236,11 +272,17 @@ const PropertyFormPage: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 City
               </label>
-              <input
-                type="text"
+              <select
                 {...register('city', { required: 'City is required' })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              >
+                <option value="">Select city</option>
+                <option value="Recoleta">Recoleta</option>
+                <option value="Palermo">Palermo</option>
+                <option value="Belgrano">Belgrano</option>
+                <option value="San Telmo">San Telmo</option>
+                <option value="Microcentro">Microcentro</option>
+              </select>
               {errors.city && (
                 <p className="mt-1 text-sm text-red-600">{errors.city.message}</p>
               )}
@@ -377,6 +419,74 @@ const PropertyFormPage: React.FC = () => {
                 ))}
               </div>
             )}
+
+            {/* Galería de imágenes ya subidas */}
+            {images && images.length > 0 && (
+              <div className="mt-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Galería de imágenes (máx. 6)
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {images.slice(0, 6).map((img, idx) => (
+                    <div
+                      key={(typeof img === 'string' ? img : img.id) || idx}
+                      className={`relative border rounded-lg overflow-hidden group ${idx === 0 ? 'ring-2 ring-blue-500' : ''}`}
+                    >
+                      <img
+                        src={typeof img === 'string' ? img : img.image}
+                        alt={`Imagen ${idx + 1}`}
+                        className="w-full h-32 object-cover"
+                      />
+                      {/* Botón para eliminar */}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(idx)}
+                        className="absolute top-2 right-2 bg-white/80 rounded-full p-1 hover:bg-red-100 transition"
+                        title="Eliminar imagen"
+                      >
+                        <X size={16} className="text-red-500" />
+                      </button>
+                      {/* Botón para mover a la izquierda */}
+                      {idx > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleMoveImage(idx, idx - 1)}
+                          className="absolute bottom-2 left-2 bg-white/80 rounded-full p-1 hover:bg-gray-100 transition"
+                          title="Mover a la izquierda"
+                        >
+                          ←
+                        </button>
+                      )}
+                      {/* Botón para mover a la derecha */}
+                      {idx < images.length - 1 && idx < 5 && (
+                        <button
+                          type="button"
+                          onClick={() => handleMoveImage(idx, idx + 1)}
+                          className="absolute bottom-2 right-2 bg-white/80 rounded-full p-1 hover:bg-gray-100 transition"
+                          title="Mover a la derecha"
+                        >
+                          →
+                        </button>
+                      )}
+                      {/* Botón para marcar como principal */}
+                      {idx !== 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleSetMainImage(idx)}
+                          className="absolute top-2 left-2 bg-blue-500 text-white rounded-full px-2 py-1 text-xs font-bold shadow hover:bg-blue-600 transition"
+                          title="Marcar como principal"
+                        >
+                          Principal
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Usa los botones para cambiar el orden. La primera imagen es la principal.
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-4">
@@ -410,6 +520,8 @@ const PropertyFormPage: React.FC = () => {
           <PropertyCalendar property={property} />
         </div>
       )}
+
+      
     </div>
   );
 };

@@ -1,5 +1,4 @@
 export interface Property {
-  media: any;
   id: string;
   title: string;
   description: string;

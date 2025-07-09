@@ -7,6 +7,8 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'your-secret-key-here')
+GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', 'AIzaSyAhKUEMZevObTmkKtml47NvHQFkDKyZt7o')
+USE_GEOCODING = os.environ.get('USE_GEOCODING', 'true').lower() == 'true'
 
 DEBUG = True
 

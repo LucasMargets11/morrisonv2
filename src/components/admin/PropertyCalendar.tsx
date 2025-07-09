@@ -185,8 +185,8 @@ const PropertyCalendar: React.FC<PropertyCalendarProps> = ({ property }) => {
   const maintenance: MaintenanceEvent[] = Array.isArray(calendarData.maintenance) ? calendarData.maintenance : [];
   const blocks: any[] = Array.isArray(calendarData.blocks) ? calendarData.blocks : [];
   const { data: pricing = [] } = useQuery<PropertyPricing[]>({
-    queryKey: ['pricing', property],
-    queryFn: () => adminApi.getPricing(Number(property)),
+    queryKey: ['pricing', property.id],
+    queryFn: () => adminApi.getPricing(Number(property.id)),
   });
 
   // Mutation: invalidate with object style

@@ -10,6 +10,7 @@ class Property(models.Model):
         ('condo', 'Condo'),
         ('townhouse', 'Townhouse'),
         ('land', 'Land'),
+        ('temporal', 'Temporal'),
     ]
 
     STATUS_CHOICES = [
@@ -35,6 +36,9 @@ class Property(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    
 
     class Meta:
         ordering = ['-created_at']
@@ -44,10 +48,11 @@ class PropertyImage(models.Model):
     property = models.ForeignKey(Property, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='properties/')
     is_primary = models.BooleanField(default=False)
+    order = models.PositiveIntegerField(default=0)  # <-- agrega esto
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-is_primary', 'created_at']
+        ordering = ['order','-is_primary', 'id']  # <-- así siempre respeta el orden
 
 class PropertyFeature(models.Model):
     property = models.ForeignKey(Property, related_name='features', on_delete=models.CASCADE)

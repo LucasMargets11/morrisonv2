@@ -69,7 +69,7 @@ const PropertyListPage: React.FC = () => {
 
   const handleToggleFeatured = (propertyId: string, newValue: boolean) => {
     if (newValue && featuredCount >= 3) return;
-    adminApi.updatePropertyFeatured(propertyId, { is_featured: newValue }).then(() => {
+    adminApi.updatePropertyFeatured(Number(propertyId), { is_featured: newValue }).then(() => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'properties'] });
     });
   };
@@ -169,8 +169,9 @@ const PropertyListPage: React.FC = () => {
             {filtered.map(p => (
               <tr key={p.id} className="border-b hover:bg-gray-50">
                 <td className="px-4 py-4 flex items-center gap-3">
-                  {p.media?.[0]?.url ? (
-                    <img src={p.media[0].url} alt={p.title} className="w-10 h-10 rounded object-cover" />
+                  {p.images?.[0]?.image ? (
+                    
+                    <img src={p.images[0].image} alt={p.title} className="w-10 h-10 rounded object-cover" />
                   ) : (
                     <div className="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
                       <Home size={16} className="text-gray-400" />
