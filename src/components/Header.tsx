@@ -98,7 +98,7 @@ const Header: React.FC = () => {
       >
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center">
-            {/* Logo y título */}
+            {/* Logo */}
             <Link to="/" className="flex items-center">
               <img
                 src="/logo_transparent.png"
@@ -115,7 +115,7 @@ const Header: React.FC = () => {
               </span>
             </Link>
 
-            {/* Botón menú móvil */}
+            {/* Mobile Menu Button */}
             <button
               className="md:hidden"
               onClick={() => setMobileMenuOpen(open => !open)}
@@ -127,7 +127,7 @@ const Header: React.FC = () => {
               )}
             </button>
 
-            {/* Navegación de escritorio */}
+            {/* Navigation */}
             <nav className="hidden md:flex items-center space-x-1">
               <NavLink
                 to="/"
@@ -188,7 +188,7 @@ const Header: React.FC = () => {
               </div>
             </nav>
 
-            {/* Usuario / Auth */}
+            {/* Language + User/Auth */}
             <div className="hidden md:flex items-center space-x-4">
               {user ? (
                 <div className="relative">
