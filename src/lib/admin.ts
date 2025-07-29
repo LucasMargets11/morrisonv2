@@ -3,17 +3,21 @@ import api from './api';
 
 export const adminApi = {
   // Properties
-  async getProperties(): Promise<Property[]> {
+  async getProperties(filters: Record<string, string | number> = {}): Promise<Property[]> {
     try {
-      const response = await api.get('/properties/');
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value && value !== 'all') params.append(key, String(value));
+      });
+      const response = await api.get(`/properties/?${params.toString()}`);
       const results = Array.isArray(response.data)
         ? response.data
         : Array.isArray(response.data.results)
           ? response.data.results
           : [];
-      return results.map((p: any) => ({
+      return results.map((p: Property) => ({
         ...p,
-        status: p.status, // asegúrate que es el string correcto
+        status: p.status,
       }));
     } catch (error) {
       console.error('Error fetching properties:', error);
@@ -52,7 +56,7 @@ export const adminApi = {
     const formData = new FormData();
     Object.entries(property).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        formData.append(key, value as any);
+        formData.append(key, String(value));
       }
     });
     // Si tienes archivos para actualizar, agrégalos aquí (opcional)
@@ -70,7 +74,7 @@ export const adminApi = {
     const formData = new FormData();
     Object.entries(property).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        formData.append(key, value as any);
+        formData.append(key, String(value));
       }
     });
     if (files && files.length > 0) {
@@ -128,7 +132,16 @@ export const adminApi = {
     return res.data;
   },
 
-  async createPricing(data: any): Promise<any> {
+  async createPricing(data: {
+    property: number;
+    start_date: string;
+    end_date: string;
+    price: number;
+    min_nights: number;
+    max_nights: number;
+    price_type: string;
+    currency: string;
+  }): Promise<PropertyPricing> {
     const res = await api.post(`/properties/${data.property}/pricing/`, {
       property: data.property,
       start_date: data.start_date,
@@ -151,7 +164,7 @@ export const adminApi = {
     total_amount: number;
     special_requests: string;
     currency: string;
-  }): Promise<any> {
+  }): Promise<Booking> {
     // Replace with your actual API call
     return fetch('/api/admin/bookings', {
       method: 'POST',
@@ -167,13 +180,14 @@ export const adminApi = {
     property: string;
     check_in_date: string;
     check_out_date: string;
-    guest?: any;
+    guest?: string; // Replace 'string' with the appropriate type or interface if available
     guest_count: number;
     total_amount: number;
     special_requests?: string;
     reason?: string;
-  }): Promise<any> {
-    return api.post('/bookings/blocks/', data);
+  }): Promise<Block> {
+    const response = await api.post('/bookings/blocks/', data);
+    return response.data;
   },
 
   async getBlocks(): Promise<Block[]> {

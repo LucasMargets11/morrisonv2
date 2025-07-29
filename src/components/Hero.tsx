@@ -5,10 +5,12 @@ import { useTranslation } from '../translations';
 import Calendar from './Calendar';
 import dayjs from 'dayjs';
 import { adminApi } from '../lib/admin'; // Asegúrate de importar tu API
+import { useNavigate } from 'react-router-dom';
 
 const Hero: React.FC = () => {
   const { language } = useLanguage();
   const t = useTranslation(language);
+  const navigate = useNavigate();
 
   // Date selection state
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -104,6 +106,19 @@ const Hero: React.FC = () => {
     setSelectedDates({ startDate: null, endDate: null });
   };
 
+  // Botón de búsqueda: redirige a /properties con filtros en query params
+  const handleSearch = () => {
+    const params = new URLSearchParams({
+      search: searchValue,
+      start: selectedDates.startDate ? dayjs(selectedDates.startDate).format('YYYY-MM-DD') : '',
+      end: selectedDates.endDate ? dayjs(selectedDates.endDate).format('YYYY-MM-DD') : '',
+      adults: adultsCount.toString(),
+      children: childrenCount.toString(),
+      babies: babiesCount.toString(),
+    });
+    navigate(`/properties?${params.toString()}`);
+  };
+
   return (
     <div className="relative h-screen -mt-[var(--header-height)]">
       {/* Background video */}
@@ -190,7 +205,7 @@ const Hero: React.FC = () => {
           </button>
 
           {/* Search button */}
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 transition-colors">
+          <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 transition-colors" onClick={handleSearch}>
             {t('hero.filters.search')}
           </button>
         </div>

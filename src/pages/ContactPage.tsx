@@ -145,10 +145,11 @@ const ContactPage: React.FC = () => {
                   </label>
                   <select
                     {...register('investmentType')}
-                    className="w-full px-3 py-1.5 bg-white/10 border border-white/20 rounded text-white focus:outline-none focus:ring-2 focus:ring-white/50 text-sm"
+                    className="w-full px-3 py-1.5 bg-gray-800 border border-white/20 rounded text-white focus:outline-none focus:ring-2 focus:ring-white/50 text-sm appearance-none"
+                    style={{ colorScheme: 'dark' }}
                   >
-                    <option value="vivienda">Quiero una vivienda</option>
-                    <option value="inversion">Busco invertir</option>
+                    <option value="vivienda" className="bg-gray-800 text-white">Quiero una vivienda</option>
+                    <option value="inversion" className="bg-gray-800 text-white">Busco invertir</option>
                   </select>
                 </div>
 

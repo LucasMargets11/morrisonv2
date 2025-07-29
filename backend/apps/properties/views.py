@@ -17,35 +17,23 @@ class PropertyViewSet(viewsets.ModelViewSet):
     parser_classes = [parsers.JSONParser, parsers.MultiPartParser, parsers.FormParser]
 
     def get_queryset(self):
-        queryset = Property.objects.all()
-        user = self.request.user
-
-        # Si es admin, ve todo
-        if user.is_authenticated and user.is_staff:
-            pass  # queryset = Property.objects.all() ya lo trae todo
-        elif user.is_authenticated:
-            queryset = queryset.filter(Q(status='published') | Q(created_by=user))
-        else:
-            queryset = queryset.filter(status='published')
-
-        # Filtros por query params
-        property_type = self.request.query_params.get('type')
-        min_price = self.request.query_params.get('min_price')
-        max_price = self.request.query_params.get('max_price')
-        bedrooms = self.request.query_params.get('bedrooms')
-        city = self.request.query_params.get('city')
-
-        if property_type:
-            queryset = queryset.filter(property_type=property_type)
-        if min_price:
-            queryset = queryset.filter(price__gte=min_price)
-        if max_price:
-            queryset = queryset.filter(price__lte=max_price)
-        if bedrooms:
-            queryset = queryset.filter(bedrooms__gte=bedrooms)
-        if city:
-            queryset = queryset.filter(city__icontains=city)
-
+        queryset = super().get_queryset()
+        search = self.request.query_params.get('search')
+        start = self.request.query_params.get('start')
+        end = self.request.query_params.get('end')
+        adults = self.request.query_params.get('adults')
+        children = self.request.query_params.get('children')
+        babies = self.request.query_params.get('babies')
+        # Aplica los filtros según los parámetros recibidos
+        if search:
+            queryset = queryset.filter(
+                Q(city__icontains=search) |
+                Q(address__icontains=search) |
+                Q(zone__icontains=search)
+            )
+        if adults:
+            queryset = queryset.filter(bedrooms__gte=int(adults))
+        # Agrega más filtros según tu modelo y lógica
         return queryset
 
     def perform_create(self, serializer):

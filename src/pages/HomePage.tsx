@@ -35,15 +35,8 @@ const HomePage: React.FC = () => {
         <FeaturedSection properties={properties as Property[]} />
         <StatsSection />
         <TestimonialsSection />
-        <AgentsSection />
-        <CTASection />
-      </div>
-      <div>
-        <input placeholder={t('hero.search.selectDates')} />
-        <select>
-          <option>{t('hero.search.guests')}</option>
-        </select>
-        <div>Idioma actual: {language}</div>
+        <AgentsSection /> 
+        <CTASection /> 
       </div>
     </div>
   );
