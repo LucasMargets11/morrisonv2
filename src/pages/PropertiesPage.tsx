@@ -200,6 +200,11 @@ const PropertiesPage: React.FC = () => {
     ? suggestions.filter(s => s.toLowerCase().includes(searchInput.toLowerCase())).slice(0, 5)
     : [];
 
+  // Estado para huéspedes
+  const [adultsCount, setAdultsCount] = useState(Number(adults) > 0 ? Number(adults) : 1);
+  const [childrenCount, setChildrenCount] = useState(Number(children) || 0);
+  const [babiesCount, setBabiesCount] = useState(Number(babies) || 0);
+
   const openCalendar = () => {
     setIsCalendarOpen(true);
     setModalOpen(true);
@@ -431,6 +436,7 @@ const PropertiesPage: React.FC = () => {
               >
                 <X size={24} className="text-gray-500" />
               </button>
+<<<<<<< HEAD
               <h2 className="text-xl font-bold text-gray-900 mb-6">Huéspedes</h2>
               
               {/* Bebés */}
@@ -453,6 +459,66 @@ const PropertiesPage: React.FC = () => {
                   >
                     +
                   </button>
+=======
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Huéspedes</h2>
+              <div className="space-y-4">
+                {/* Bebés */}
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700">Bebés</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setBabiesCount(Math.max(0, babiesCount - 1))}
+                      className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50"
+                    >
+                      -
+                    </button>
+                    <span className="text-gray-700 min-w-[20px] text-center">{babiesCount}</span>
+                    <button
+                      onClick={() => setBabiesCount(babiesCount + 1)}
+                      className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                {/* Niños */}
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700">Niños</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setChildrenCount(Math.max(0, childrenCount - 1))}
+                      className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50"
+                    >
+                      -
+                    </button>
+                    <span className="text-gray-700 min-w-[20px] text-center">{childrenCount}</span>
+                    <button
+                      onClick={() => setChildrenCount(childrenCount + 1)}
+                      className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                {/* Adultos */}
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700">Adultos</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setAdultsCount(Math.max(1, adultsCount - 1))}
+                      className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50"
+                    >
+                      -
+                    </button>
+                    <span className="text-gray-700 min-w-[20px] text-center">{adultsCount}</span>
+                    <button
+                      onClick={() => setAdultsCount(adultsCount + 1)}
+                      className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50"
+                    >
+                      +
+                    </button>
+                  </div>
+>>>>>>> e5cc11ab4d7c79f81ca908e67c163ec47ade64de
                 </div>
               </div>
 
@@ -505,6 +571,7 @@ const PropertiesPage: React.FC = () => {
 
               <button
                 onClick={() => {
+<<<<<<< HEAD
                   const params = new URLSearchParams(location.search);
                   params.set('adults', tempAdultsCount.toString());
                   params.set('children', tempChildrenCount.toString());
@@ -513,6 +580,17 @@ const PropertiesPage: React.FC = () => {
                   setIsGuestModalOpen(false);
                 }}
                 className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+=======
+                  // Actualiza los filtros en la URL
+                  const params = new URLSearchParams(location.search);
+                  params.set('adults', adultsCount.toString());
+                  params.set('children', childrenCount.toString());
+                  params.set('babies', babiesCount.toString());
+                  window.history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
+                  setIsGuestModalOpen(false);
+                }}
+                className="w-full py-2 bg-blue-600 text-white rounded-lg font-semibold mt-6"
+>>>>>>> e5cc11ab4d7c79f81ca908e67c163ec47ade64de
               >
                 Confirmar
               </button>
