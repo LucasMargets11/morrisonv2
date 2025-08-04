@@ -9,6 +9,12 @@ import PropertiesPage from './pages/PropertiesPage';
 import PropertyDetailsPage from './pages/PropertyDetailsPage'; // <-- Cambiado
 import AgentsPage from './pages/AgentsPage';
 import ContactPage from './pages/ContactPage';
+import AboutPage from './pages/AboutPage';
+import PrivacyPage from './pages/PrivacyPage';
+import TermsPage from './pages/TermsPage';
+import FAQPage from './pages/FAQPage';
+import TestimonialsPage from './pages/TestimonialsPage';
+import CareersPage from './pages/CareersPage';
 
 // Admin Pages
 import AdminLoginPage from './pages/admin/AdminLoginPage';
@@ -116,6 +122,12 @@ function HeaderFooterLayout() {
           <Route path="/property/:id" element={<PropertyDetailsPage />} />
           <Route path="/agents" element={<AgentsPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/testimonials" element={<TestimonialsPage />} />
+          <Route path="/careers" element={<CareersPage />} />
           
           {/* Rutas protegidas de admin */}
           <Route path="/admin/*" element={

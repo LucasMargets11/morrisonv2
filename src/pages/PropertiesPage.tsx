@@ -1,4 +1,4 @@
-import React, { useMemo, useState, createContext, useContext } from 'react';
+import React, { useMemo, useState, createContext, useContext, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { adminApi } from '../lib/admin';
 import PropertyCard from '../components/UI/PropertyCard';
@@ -147,11 +147,58 @@ const PropertiesPage: React.FC = () => {
   const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [tempBedroomCount, setTempBedroomCount] = useState(parseInt(bedroomCount) || 1);
+  const [tempAdultsCount, setTempAdultsCount] = useState(parseInt(adults) || 1);
+  const [tempChildrenCount, setTempChildrenCount] = useState(parseInt(children) || 0);
+  const [tempBabiesCount, setTempBabiesCount] = useState(parseInt(babies) || 0);
   const [tempDates, setTempDates] = useState<{ startDate: Date | null; endDate: Date | null }>({
     startDate: start ? new Date(start) : null,
     endDate: end ? new Date(end) : null,
   });
+  const [searchInput, setSearchInput] = useState(search);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Load suggestions for search
+  useEffect(() => {
+    if (mappedProperties.length > 0) {
+      const unique = Array.from(
+        new Set(
+          mappedProperties.flatMap((p) => [
+            p.title,
+            p.address,
+            p.city,
+            `${p.address}, ${p.city}`,
+          ]).filter(Boolean)
+        )
+      );
+      setSuggestions(unique);
+    }
+  }, [mappedProperties]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchInput(value);
+  };
+
+  const handleSearchSubmit = () => {
+    const params = new URLSearchParams(location.search);
+    if (searchInput.trim()) {
+      params.set('search', searchInput.trim());
+    } else {
+      params.delete('search');
+    }
+    window.history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
+  };
+
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit();
+    }
+  };
+
+  const filteredSuggestions = searchInput.length > 1 
+    ? suggestions.filter(s => s.toLowerCase().includes(searchInput.toLowerCase())).slice(0, 5)
+    : [];
 
   const openCalendar = () => {
     setIsCalendarOpen(true);
@@ -169,6 +216,8 @@ const PropertiesPage: React.FC = () => {
     setIsGuestModalOpen(false);
     setModalOpen(false);
   };
+
+  const totalGuests = tempAdultsCount + tempChildrenCount + tempBabiesCount;
 
   return (
     <ModalContext.Provider value={{ modalOpen, setModalOpen }}>
@@ -192,22 +241,40 @@ const PropertiesPage: React.FC = () => {
 
             {/* Modern Search Bar */}
             <div className="w-full max-w-4xl mx-auto bg-white/90 rounded-2xl shadow-2xl p-2 flex flex-col md:flex-row items-stretch gap-2 md:gap-0 mt-8">
-              {/* Zona (city) */}
-              <div className="flex-1 flex items-center gap-2 px-3 py-2">
+              {/* Búsqueda - Reemplaza la zona select */}
+              <div className="flex-1 flex items-center gap-2 px-3 py-2 relative">
                 <span className="text-blue-700">
                   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/></svg>
                 </span>
-                <select
-                  id="zone-select"
-                  value={zone}
-                  onChange={e => setZone(e.target.value)}
-                  className="w-full bg-transparent text-gray-900 border-none focus:ring-0 text-base"
-                >
-                  <option value="">Todas las zonas</option>
-                  {uniqueCities.map(city => (
-                    <option key={city} value={city}>{city}</option>
-                  ))}
-                </select>
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={handleSearchChange}
+                  onKeyPress={handleSearchKeyPress}
+                  onFocus={() => setShowSuggestions(filteredSuggestions.length > 0)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
+                  placeholder="Buscar por dirección, nombre o zona..."
+                  className="w-full bg-transparent text-gray-900 border-none focus:ring-0 text-base placeholder-gray-500"
+                />
+                {showSuggestions && filteredSuggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-20 mt-1">
+                    {filteredSuggestions.map((suggestion, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setSearchInput(suggestion);
+                          setShowSuggestions(false);
+                          const params = new URLSearchParams(location.search);
+                          params.set('search', suggestion);
+                          window.history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-blue-50 text-gray-700 first:rounded-t-lg last:rounded-b-lg"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               {/* Precio */}
               <div className="flex-1 flex items-center gap-2 px-3 py-2 border-t md:border-t-0 md:border-l border-gray-200">
@@ -254,14 +321,17 @@ const PropertiesPage: React.FC = () => {
                   onClick={openGuests}
                   className="w-full text-left bg-transparent text-gray-900 border-none focus:ring-0 text-base px-0 py-0"
                 >
-                  {bedroomCount === 'all' ? 'Cualquier cantidad' : `${bedroomCount}+ Huéspedes`}
+                  {totalGuests === 1 ? '1 Huésped' : `${totalGuests} Huéspedes`}
                 </button>
               </div>
               {/* Botón buscar */}
               <div className="flex items-center px-3 py-2 border-t md:border-t-0 md:border-l border-gray-200">
                 <Button
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl shadow"
-                  onClick={() => window.scrollTo({ top: 600, behavior: 'smooth' })}
+                  onClick={() => {
+                    handleSearchSubmit();
+                    window.scrollTo({ top: 600, behavior: 'smooth' });
+                  }}
                 >
                   Buscar
                 </Button>
@@ -278,17 +348,18 @@ const PropertiesPage: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-900">
                 {isLoading ? 'Loading...' : `${mappedProperties.length} Available Properties`}
               </h2>
-              <p className="text-gray-600 mt-1">Showing results for your search</p>
+              <p className="text-gray-600 mt-1">
+                {search ? `Showing results for "${search}"` : 'Showing results for your search'}
+              </p>
             </div>
 
             <div className="flex gap-4 mt-4 md:mt-0">
               <Button
                 variant="outline"
                 onClick={() => {
-                  setZone('');
-                  setPriceRange('all');
-                  setPropertyType('all');
-                  setBedroomCount('all');
+                  setSearchInput('');
+                  const params = new URLSearchParams();
+                  window.history.replaceState({}, '', `${location.pathname}`);
                 }}
               >
                 Clear Filters
@@ -351,8 +422,8 @@ const PropertiesPage: React.FC = () => {
 
         {/* Modal de huéspedes */}
         {isGuestModalOpen && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/40">
-            <div className="relative w-full max-w-xs mx-auto bg-white rounded-xl shadow-2xl p-6 flex flex-col">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+            <div className="relative w-full max-w-sm mx-auto bg-white rounded-xl shadow-2xl p-6 flex flex-col">
               <button
                 onClick={closeGuests}
                 className="absolute right-4 top-4 p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
@@ -360,31 +431,88 @@ const PropertiesPage: React.FC = () => {
               >
                 <X size={24} className="text-gray-500" />
               </button>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Huéspedes</h2>
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-gray-700">Cantidad</span>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Huéspedes</h2>
+              
+              {/* Bebés */}
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <span className="text-gray-900 font-medium">Bebés</span>
+                  <p className="text-sm text-gray-500">Menores de 2 años</p>
+                </div>
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={() => setTempBedroomCount(Math.max(1, tempBedroomCount - 1))}
-                    className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50"
+                    onClick={() => setTempBabiesCount(Math.max(0, tempBabiesCount - 1))}
+                    className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
                   >
                     -
                   </button>
-                  <span className="text-gray-700 min-w-[20px] text-center">{tempBedroomCount}</span>
+                  <span className="text-gray-700 min-w-[20px] text-center">{tempBabiesCount}</span>
                   <button
-                    onClick={() => setTempBedroomCount(tempBedroomCount + 1)}
+                    onClick={() => setTempBabiesCount(tempBabiesCount + 1)}
                     className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50"
                   >
                     +
                   </button>
                 </div>
               </div>
+
+              {/* Niños */}
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <span className="text-gray-900 font-medium">Niños</span>
+                  <p className="text-sm text-gray-500">Edades 2-12</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setTempChildrenCount(Math.max(0, tempChildrenCount - 1))}
+                    className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50"
+                  >
+                    -
+                  </button>
+                  <span className="text-gray-700 min-w-[20px] text-center">{tempChildrenCount}</span>
+                  <button
+                    onClick={() => setTempChildrenCount(tempChildrenCount + 1)}
+                    className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {/* Adultos */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <span className="text-gray-900 font-medium">Adultos</span>
+                  <p className="text-sm text-gray-500">Mayores de 13 años</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setTempAdultsCount(Math.max(1, tempAdultsCount - 1))}
+                    className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                    disabled={tempAdultsCount <= 1}
+                  >
+                    -
+                  </button>
+                  <span className="text-gray-700 min-w-[20px] text-center">{tempAdultsCount}</span>
+                  <button
+                    onClick={() => setTempAdultsCount(tempAdultsCount + 1)}
+                    className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
               <button
                 onClick={() => {
-                  setBedroomCount(tempBedroomCount.toString());
+                  const params = new URLSearchParams(location.search);
+                  params.set('adults', tempAdultsCount.toString());
+                  params.set('children', tempChildrenCount.toString());
+                  params.set('babies', tempBabiesCount.toString());
+                  window.history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
                   setIsGuestModalOpen(false);
                 }}
-                className="w-full py-2 bg-blue-600 text-white rounded-lg font-semibold"
+                className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
               >
                 Confirmar
               </button>
@@ -394,37 +522,11 @@ const PropertiesPage: React.FC = () => {
 
         {/* Modal de calendario */}
         {isCalendarOpen && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/40">
-            <div className="relative w-full max-w-md mx-auto bg-white rounded-xl shadow-2xl p-4 md:p-6 flex flex-col">
-              <button
-                onClick={closeCalendar}
-                className="absolute right-4 top-4 p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors md:hidden"
-                aria-label="Cerrar calendario"
-              >
-                <X size={24} className="text-gray-500" />
-              </button>
-                <Calendar
-                monthsToShow={2}
-                onClose={() => setIsCalendarOpen(false)}
-                onDateSelect={setTempDates}
-              />
-              <button
-                onClick={() => {
-                  // Actualiza los filtros en la URL
-                  const params = new URLSearchParams(location.search);
-                  if (tempDates.startDate) params.set('start', tempDates.startDate.toISOString().split('T')[0]);
-                  else params.delete('start');
-                  if (tempDates.endDate) params.set('end', tempDates.endDate.toISOString().split('T')[0]);
-                  else params.delete('end');
-                  window.history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
-                  setIsCalendarOpen(false);
-                }}
-                className="mt-4 w-full py-2 bg-blue-600 text-white rounded-lg font-semibold md:hidden"
-              >
-                Confirmar fechas
-              </button>
-            </div>
-          </div>
+          <Calendar
+            monthsToShow={2}
+            onClose={() => setIsCalendarOpen(false)}
+            onDateSelect={setTempDates}
+          />
         )}
       </div>
     </ModalContext.Provider>

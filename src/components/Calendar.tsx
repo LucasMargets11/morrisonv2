@@ -86,13 +86,8 @@ const Calendar: React.FC<CalendarProps> = ({ monthsToShow = 2, onClose, onDateSe
   };
 
   return (
-    <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-4">
-      <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm" 
-        onClick={onClose}
-      />
-      
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-4xl mx-auto">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
+      <div className="relative w-full max-w-2xl mx-auto bg-white rounded-xl shadow-2xl p-6 flex flex-col max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <button
             onClick={onClose}

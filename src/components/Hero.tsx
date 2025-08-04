@@ -108,15 +108,28 @@ const Hero: React.FC = () => {
 
   // Botón de búsqueda: redirige a /properties con filtros en query params
   const handleSearch = () => {
-    const params = new URLSearchParams({
-      search: searchValue,
-      start: selectedDates.startDate ? dayjs(selectedDates.startDate).format('YYYY-MM-DD') : '',
-      end: selectedDates.endDate ? dayjs(selectedDates.endDate).format('YYYY-MM-DD') : '',
-      adults: adultsCount.toString(),
-      children: childrenCount.toString(),
-      babies: babiesCount.toString(),
-    });
-    navigate(`/properties?${params.toString()}`);
+    const params = new URLSearchParams();
+    
+    if (searchValue.trim()) {
+      params.set('search', searchValue.trim());
+    }
+    if (selectedDates.startDate) {
+      params.set('start', dayjs(selectedDates.startDate).format('YYYY-MM-DD'));
+    }
+    if (selectedDates.endDate) {
+      params.set('end', dayjs(selectedDates.endDate).format('YYYY-MM-DD'));
+    }
+    if (adultsCount > 0) {
+      params.set('adults', adultsCount.toString());
+    }
+    if (childrenCount > 0) {
+      params.set('children', childrenCount.toString());
+    }
+    if (babiesCount > 0) {
+      params.set('babies', babiesCount.toString());
+    }
+    
+    navigate(`/properties${params.toString() ? `?${params.toString()}` : ''}`);
   };
 
   return (
@@ -201,7 +214,7 @@ const Hero: React.FC = () => {
             className="px-6 py-4 flex items-center gap-2 border-l border-gray-200 hover:bg-gray-50 transition-colors"
           >
             <Users size={20} className="text-gray-400" />
-            <span className="text-gray-700">{totalGuests} Invitados</span>
+            <span className="text-gray-700">{totalGuests === 1 ? '1 Huésped' : `${totalGuests} Huéspedes`}</span>
           </button>
 
           {/* Search button */}
@@ -213,7 +226,7 @@ const Hero: React.FC = () => {
 
       {/* Guests Modal */}
       {isGuestModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-[var(--z-modal)]">
+        <div className="fixed inset-0 flex items-center justify-center z-[9999]">
           {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm"
@@ -228,10 +241,13 @@ const Hero: React.FC = () => {
               <X size={24} className="text-gray-500" />
             </button>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Invitados</h2>
-            <div className="space-y-4">
+            <div className="space-y-6">
               {/* Bebés */}
               <div className="flex items-center justify-between">
-                <span className="text-gray-700">Bebés</span>
+                <div>
+                  <span className="text-gray-900 font-medium">Bebés</span>
+                  <p className="text-sm text-gray-500">Menores de 2 años</p>
+                </div>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setBabiesCount(Math.max(0, babiesCount - 1))}
@@ -250,7 +266,10 @@ const Hero: React.FC = () => {
               </div>
               {/* Niños */}
               <div className="flex items-center justify-between">
-                <span className="text-gray-700">Niños</span>
+                <div>
+                  <span className="text-gray-900 font-medium">Niños</span>
+                  <p className="text-sm text-gray-500">Edades 2-12</p>
+                </div>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setChildrenCount(Math.max(0, childrenCount - 1))}
@@ -269,11 +288,15 @@ const Hero: React.FC = () => {
               </div>
               {/* Adultos */}
               <div className="flex items-center justify-between">
-                <span className="text-gray-700">Adultos</span>
+                <div>
+                  <span className="text-gray-900 font-medium">Adultos</span>
+                  <p className="text-sm text-gray-500">Mayores de 13 años</p>
+                </div>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setAdultsCount(Math.max(1, adultsCount - 1))}
-                    className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50"
+                    className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                    disabled={adultsCount <= 1}
                   >
                     -
                   </button>

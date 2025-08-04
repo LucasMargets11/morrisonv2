@@ -1,164 +1,144 @@
 import React from 'react';
-import { Users, Award, Target, Building2, Clock, Shield } from 'lucide-react';
+import { Award, Users, Home, TrendingUp, CheckCircle } from 'lucide-react';
 import Button from '../components/UI/Button';
 
 const AboutPage: React.FC = () => {
+  const stats = [
+    { icon: Home, value: '500+', label: 'Propiedades Vendidas' },
+    { icon: Users, value: '1000+', label: 'Clientes Satisfechos' },
+    { icon: Award, value: '15+', label: 'Años de Experiencia' },
+    { icon: TrendingUp, value: '95%', label: 'Éxito en Ventas' },
+  ];
+
+  const values = [
+    {
+      title: 'Transparencia',
+      description: 'Información clara y honesta en cada transacción.',
+    },
+    {
+      title: 'Experiencia',
+      description: 'Más de 15 años en el mercado inmobiliario local.',
+    },
+    {
+      title: 'Confianza',
+      description: 'Relaciones duraderas basadas en la confianza mutua.',
+    },
+    {
+      title: 'Innovación',
+      description: 'Tecnología de vanguardia para mejores resultados.',
+    },
+  ];
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="relative h-[500px] bg-gradient-to-r from-blue-900 to-blue-700">
+      <div className="relative h-96 bg-gradient-to-r from-blue-900 to-blue-700">
         <div className="absolute inset-0">
-          <img 
-            src="https://images.pexels.com/photos/1546168/pexels-photo-1546168.jpeg"
-            alt="Modern building"
-            className="w-full h-full object-cover opacity-20"
+          <img
+            src="https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg"
+            alt="Equipo Grupo Bairen"
+            className="w-full h-full object-cover opacity-30"
           />
         </div>
-        <div className="relative container mx-auto px-4 h-full flex flex-col items-center justify-center text-white text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Building Dreams Since 2010
-          </h1>
-          <p className="text-xl max-w-2xl mx-auto mb-8">
-            Premier Estates is more than just a real estate company. We're your partner in finding the perfect place to call home.
-          </p>
-          <Button variant="secondary" size="lg">
-            View Our Properties
-          </Button>
+        <div className="relative container mx-auto px-4 h-full flex items-center">
+          <div className="text-white max-w-2xl">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Sobre Grupo Bairen
+            </h1>
+            <p className="text-xl">
+              Tu socio de confianza en el mercado inmobiliario de Posadas y zona
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Mission & Vision */}
-      <section className="py-20 bg-white">
+      {/* Stats Section */}
+      <div className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => {
+              const Icon = stat.icon;
+              return (
+                <div key={index} className="text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                    <Icon className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <div className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</div>
+                  <div className="text-gray-600">{stat.label}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Story Section */}
+      <div className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Mission & Vision</h2>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                At Premier Estates, our mission is to transform the real estate experience through innovation, integrity, and exceptional service. We believe everyone deserves their dream home, and we're here to make that dream a reality.
-              </p>
-              <p className="text-gray-600 leading-relaxed">
-                Our vision is to be the most trusted name in real estate, known for our commitment to excellence, personalized service, and the successful outcomes we deliver for our clients.
-              </p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                Nuestra Historia
+              </h2>
+              <div className="space-y-4 text-gray-600">
+                <p>
+                  Fundado en 2008, Grupo Bairen nació con la visión de transformar 
+                  la experiencia inmobiliaria en Posadas, Misiones. Lo que comenzó 
+                  como un pequeño emprendimiento familiar, hoy se ha convertido en 
+                  una de las inmobiliarias más confiables de la región.
+                </p>
+                <p>
+                  Nuestra pasión por las propiedades y el compromiso con nuestros 
+                  clientes nos ha permitido crecer constantemente, siempre manteniendo 
+                  los valores que nos definen: honestidad, profesionalismo y 
+                  dedicación personalizada.
+                </p>
+                <p>
+                  Especializados en alquileres temporales y venta de propiedades, 
+                  hemos desarrollado un profundo conocimiento del mercado local 
+                  que nos permite ofrecer el mejor asesoramiento a nuestros clientes.
+                </p>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <Target className="text-blue-600 mb-4" size={32} />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Our Mission</h3>
-                <p className="text-gray-600">Transform real estate through innovation and integrity</p>
-              </div>
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <Award className="text-blue-600 mb-4" size={32} />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Our Vision</h3>
-                <p className="text-gray-600">Become the most trusted name in real estate</p>
-              </div>
+            <div>
+              <img
+                src="https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg"
+                alt="Oficina Grupo Bairen"
+                className="rounded-lg shadow-lg w-full"
+              />
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Core Values */}
-      <section className="py-20 bg-gray-50">
+      {/* Values Section */}
+      <div className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Our Core Values</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-lg shadow-sm text-center">
-              <Shield className="mx-auto text-blue-600 mb-4" size={32} />
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Integrity</h3>
-              <p className="text-gray-600">
-                We conduct our business with the highest ethical standards, ensuring transparency and trust in every transaction.
-              </p>
-            </div>
-            <div className="bg-white p-8 rounded-lg shadow-sm text-center">
-              <Users className="mx-auto text-blue-600 mb-4" size={32} />
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Client Focus</h3>
-              <p className="text-gray-600">
-                Our clients' needs and goals are at the heart of everything we do, driving our commitment to exceptional service.
-              </p>
-            </div>
-            <div className="bg-white p-8 rounded-lg shadow-sm text-center">
-              <Building2 className="mx-auto text-blue-600 mb-4" size={32} />
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Excellence</h3>
-              <p className="text-gray-600">
-                We strive for excellence in every aspect of our work, from property selection to client communication.
-              </p>
-            </div>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Nuestros Valores
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Los principios que guían cada una de nuestras acciones y decisiones
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {values.map((value, index) => (
+              <div key={index} className="text-center">
+                <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {value.title}
+                </h3>
+                <p className="text-gray-600">
+                  {value.description}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
-      </section>
-
-      {/* History Timeline */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Our Journey</h2>
-          <div className="max-w-3xl mx-auto">
-            <div className="space-y-12">
-              <div className="flex gap-6">
-                <div className="flex-none">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Clock className="text-blue-600" size={24} />
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">2010 - Foundation</h3>
-                  <p className="text-gray-600">
-                    Premier Estates was founded with a vision to revolutionize the real estate industry through innovative solutions and exceptional service.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex gap-6">
-                <div className="flex-none">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Building2 className="text-blue-600" size={24} />
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">2015 - Expansion</h3>
-                  <p className="text-gray-600">
-                    Expanded our operations to multiple cities and established our reputation as a leading luxury real estate agency.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex gap-6">
-                <div className="flex-none">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Award className="text-blue-600" size={24} />
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">2020 - Innovation</h3>
-                  <p className="text-gray-600">
-                    Launched our digital platform and virtual touring capabilities, setting new standards in the industry.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action */}
-      <section className="py-20 bg-blue-900 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Find Your Dream Home?</h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Let our experienced team guide you through your real estate journey
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button variant="secondary" size="lg">
-              Browse Properties
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg"
-              className="border-white text-white hover:bg-white/10"
-            >
-              Contact Us
-            </Button>
-          </div>
-        </div>
-      </section>
+      </div>
     </div>
   );
 };
