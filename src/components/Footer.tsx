@@ -22,7 +22,7 @@ const Footer: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
           {/* Company Info */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 min-w-[180px]">
             <div className="flex items-center mb-4">
               <img
                 src="/logo_transparent para web-01.svg"
@@ -196,30 +196,12 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Certifications */}
-        <div className="border-t border-gray-700 pt-8 mb-8">
-          <div className="flex flex-wrap items-center justify-center gap-6 text-center">
-            <div className="flex items-center text-gray-400">
-              <Award size={20} className="mr-2" />
-              <span className="text-sm">Matriculado CUCICBA</span>
-            </div>
-            <div className="flex items-center text-gray-400">
-              <Award size={20} className="mr-2" />
-              <span className="text-sm">Miembro CPI Misiones</span>
-            </div>
-            <div className="flex items-center text-gray-400">
-              <Award size={20} className="mr-2" />
-              <span className="text-sm">15+ Años Experiencia</span>
-            </div>
-          </div>
-        </div>
-
         <hr className="border-gray-700 mb-8" />
 
         <div className="flex flex-col md:flex-row justify-between items-center text-gray-500 text-sm">
           <p>© {new Date().getFullYear()} Grupo Bairen. Todos los derechos reservados.</p>
           <p className="mt-2 md:mt-0">
-            Desarrollado con ❤️ en Posadas, Misiones
+            Desarrollado por Lucas Margets
           </p>
         </div>
       </div>

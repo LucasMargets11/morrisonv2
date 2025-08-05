@@ -340,7 +340,7 @@ const Hero: React.FC = () => {
       {/* Calendar Modal */}
       {isCalendarOpen && (
         <Calendar
-          monthsToShow={2}
+          monthsToShow={window.innerWidth < 640 ? 1 : 2}
           onClose={toggleCalendar}
           onDateSelect={setSelectedDates}
         />

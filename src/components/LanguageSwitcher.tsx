@@ -35,7 +35,8 @@ const LanguageSwitcher: React.FC = () => {
       {/* Bandera actual */}
       <button
         onClick={() => setOpen(!open)}
-        className="w-6 h-6 flex items-center justify-center"
+        className="w-8 h-8 md:w-6 md:h-6 flex items-center justify-center p-1 md:p-0 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+        aria-label="Cambiar idioma"
       >
         <img
           src={flags[language]}
@@ -49,6 +50,7 @@ const LanguageSwitcher: React.FC = () => {
         className={`ml-2 flex gap-2 items-center transition-all duration-200 ease-out ${
           open ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
         }`}
+        style={{ minWidth: open ? '90px' : '0', padding: open ? '4px 0' : '0' }}
       >
         {availableLanguages.map(([lang, url], index) => (
           <button
@@ -57,7 +59,8 @@ const LanguageSwitcher: React.FC = () => {
             style={{
               transitionDelay: open ? `${index * 100}ms` : '0ms',
             }}
-            className="w-6 h-6 transform transition duration-300 ease-out hover:scale-105"
+            className="w-8 h-8 md:w-6 md:h-6 transform transition duration-300 ease-out hover:scale-110 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label={`Seleccionar idioma ${lang}`}
           >
             <img
               src={url}
