@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import dayjs from 'dayjs';
+import 'dayjs/locale/es';
 import { X } from 'lucide-react';
+
+// Configurar dayjs en español
+dayjs.locale('es');
 
 interface CalendarProps {
   monthsToShow?: number;
@@ -80,41 +84,41 @@ const Calendar: React.FC<CalendarProps> = ({ monthsToShow = 2, onClose, onDateSe
   };
 
   const formatDateRange = () => {
-    if (!startDate) return 'Select your dates';
-    if (!endDate) return `${dayjs(startDate).format('MMM D')} - Select end date`;
-    return `${dayjs(startDate).format('MMM D')} - ${dayjs(endDate).format('MMM D')}`;
+    if (!startDate) return 'Selecciona tus fechas';
+    if (!endDate) return `${dayjs(startDate).format('D MMM')} - Selecciona fecha fin`;
+    return `${dayjs(startDate).format('D MMM')} - ${dayjs(endDate).format('D MMM')}`;
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40">
-      <div className="relative w-full max-w-2xl mx-auto bg-white rounded-xl shadow-2xl p-6 flex flex-col max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-2xl overflow-hidden">
+        <div className="p-4 md:p-6">
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
-            aria-label="Close calendar"
+            className="absolute right-3 top-3 p-1.5 hover:bg-gray-100 rounded-full transition-colors z-10"
+            aria-label="Cerrar calendario"
           >
-            <X size={24} className="text-gray-500" />
+            <X size={20} className="text-gray-500" />
           </button>
 
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Select dates</h2>
-            <p className="text-gray-600">{formatDateRange()}</p>
+          <div className="mb-6">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">Selecciona las fechas</h2>
+            <p className="text-gray-600 text-sm">{formatDateRange()}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {Array.from({ length: monthsToShow }, (_, i) => {
               const { monthLabel, days, weeks } = generateMonth(i);
 
               return (
-                <div key={i} className="min-w-[280px]">
-                  <h3 className="text-center font-semibold mb-6 text-gray-900">{monthLabel}</h3>
+                <div key={i} className="w-full">
+                  <h3 className="text-center font-semibold mb-4 text-gray-900 capitalize">{monthLabel}</h3>
                   <div 
                     className="grid grid-cols-7 gap-1 text-center"
-                    style={{ gridTemplateRows: `auto repeat(${weeks}, minmax(36px, 1fr))` }}
+                    style={{ gridTemplateRows: `auto repeat(${weeks}, minmax(32px, 1fr))` }}
                   >
-                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d) => (
-                      <div key={d} className="text-sm font-medium text-gray-500 h-8 flex items-center justify-center">{d}</div>
+                    {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((d) => (
+                      <div key={d} className="text-xs font-semibold text-gray-600 h-8 flex items-center justify-center">{d}</div>
                     ))}
                     {days.map((day, idx) => {
                       const isDisabled = day ? dayjs(day).isBefore(today, 'day') : false;
@@ -122,11 +126,11 @@ const Calendar: React.FC<CalendarProps> = ({ monthsToShow = 2, onClose, onDateSe
                         <div
                           key={idx}
                           className={`
-                            h-9 w-9 flex items-center justify-center text-sm rounded-full mx-auto
+                            h-8 w-8 flex items-center justify-center text-sm rounded-md mx-auto transition-all duration-200
                             ${!day ? 'invisible' : ''}
-                            ${isDisabled ? 'text-gray-300 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-100'}
-                            ${isSelected(day) ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}
-                            ${isInRange(day) ? 'bg-blue-50 text-blue-600' : ''}
+                            ${isDisabled ? 'text-gray-300 cursor-not-allowed' : 'cursor-pointer hover:bg-blue-50 hover:scale-105'}
+                            ${isSelected(day) ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md scale-105' : ''}
+                            ${isInRange(day) ? 'bg-blue-100 text-blue-700' : ''}
                           `}
                           onClick={() => day && !isDisabled && handleSelectDate(day)}
                         >
@@ -140,18 +144,18 @@ const Calendar: React.FC<CalendarProps> = ({ monthsToShow = 2, onClose, onDateSe
             })}
           </div>
 
-          <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
+          <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
             <button 
               onClick={clearDates} 
-              className="text-sm font-medium text-gray-600 hover:text-gray-900 underline"
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
             >
-              Clear dates
+              Limpiar fechas
             </button>
             <button 
               onClick={onClose}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+              className="bg-blue-600 text-white px-6 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
             >
-              Apply dates
+              Aplicar fechas
             </button>
           </div>
         </div>

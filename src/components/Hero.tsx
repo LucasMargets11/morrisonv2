@@ -156,14 +156,15 @@ const Hero: React.FC = () => {
           {t('hero.subtitle')}
         </p>
 
-        <div className="flex items-stretch bg-white rounded-full shadow-lg overflow-hidden w-full max-w-4xl">
+        {/* Desktop layout */}
+        <div className="hidden md:flex items-stretch bg-white rounded-full shadow-lg overflow-hidden w-full max-w-4xl">
           {/* Search input */}
           <div className="flex-1 flex flex-col relative pl-6">
             <div className="flex items-center">
               <Search size={20} className="text-gray-400" />
               <input
                 type="text"
-                list="search-options"            // ← aquí enlazas el datalist
+                list="search-options"
                 value={searchValue}
                 onChange={handleSearchChange}
                 onFocus={() => setShowSuggestions(filteredSuggestions.length > 0)}
@@ -221,6 +222,82 @@ const Hero: React.FC = () => {
           <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 transition-colors" onClick={handleSearch}>
             {t('hero.filters.search')}
           </button>
+        </div>
+
+        {/* Mobile layout */}
+        <div className="md:hidden w-full max-w-sm mx-auto space-y-4">
+          {/* Top row: Calendar and Guests buttons */}
+          <div className="flex gap-3">
+            {/* Date picker trigger */}
+            <button
+              onClick={toggleCalendar}
+              className="flex-1 bg-white rounded-xl shadow-lg px-4 py-4 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
+            >
+              <CalendarIcon size={20} className="text-gray-400" />
+              <span className="text-gray-700 text-sm font-medium">{formatDateRange()}</span>
+            </button>
+
+            {/* Guests trigger */}
+            <button
+              onClick={toggleGuestModal}
+              className="flex-1 bg-white rounded-xl shadow-lg px-4 py-4 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
+            >
+              <Users size={20} className="text-gray-400" />
+              <span className="text-gray-700 text-sm font-medium">{totalGuests === 1 ? '1 Huésped' : `${totalGuests} Huéspedes`}</span>
+            </button>
+          </div>
+
+          {/* Bottom row: Search input and button */}
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="flex flex-col relative">
+              <div className="flex items-center px-4 py-4">
+                <Search size={20} className="text-gray-400 mr-3" />
+                <input
+                  type="text"
+                  list="search-options-mobile"
+                  value={searchValue}
+                  onChange={handleSearchChange}
+                  onFocus={() => setShowSuggestions(filteredSuggestions.length > 0)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
+                  placeholder={t('hero.search.placeholder')}
+                  className="flex-1 focus:outline-none text-gray-700"
+                  autoComplete="off"
+                  disabled={loadingSuggestions}
+                />
+                <datalist id="search-options-mobile">
+                  {suggestions.map((s, idx) => (
+                    <option key={idx} value={s} />
+                  ))}
+                </datalist>
+              </div>
+              {showSuggestions && filteredSuggestions.length > 0 && (
+                <ul className="absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-20">
+                  {filteredSuggestions.map((s, idx) => (
+                    <li
+                      key={idx}
+                      className="px-4 py-3 hover:bg-blue-50 cursor-pointer text-gray-700 border-b border-gray-100 last:border-b-0"
+                      onMouseDown={() => handleSuggestionClick(s)}
+                    >
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {loadingSuggestions && (
+                <div className="absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-20 px-4 py-3 text-gray-500">
+                  Cargando sugerencias...
+                </div>
+              )}
+              
+              {/* Search button */}
+              <button 
+                className="bg-blue-600 hover:bg-blue-700 text-white py-4 transition-colors font-medium" 
+                onClick={handleSearch}
+              >
+                {t('hero.filters.search')}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
