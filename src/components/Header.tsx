@@ -56,11 +56,13 @@ const Header: React.FC = () => {
 
   const toggleDropdown = () => setDropdownOpen(open => !open);
 
-  const navLinkClass = 'text-sm font-medium px-3 py-2 transition-colors duration-200';
-  const activeNavClass = 'text-blue-900';
+  const navLinkClass = 'text-sm font-medium px-3 py-2 transition-all duration-200 transform';
+  const activeNavClass = isScrolled 
+    ? 'text-blue-900 scale-125 font-semibold' 
+    : 'text-white scale-125 font-semibold';
   const inactiveNavClass = isScrolled
-    ? 'text-gray-800 hover:text-blue-900'
-    : 'text-white hover:text-blue-100';
+    ? 'text-gray-800 hover:text-blue-900 hover:scale-110'
+    : 'text-white hover:text-blue-100 hover:scale-110';
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[var(--z-header)]">
@@ -227,8 +229,8 @@ const Header: React.FC = () => {
                 to="/"
                 end
                 className={({ isActive }) =>
-                  `py-3 border-b border-gray-100 ${
-                    isActive ? 'text-blue-900 font-medium' : 'text-gray-800'
+                  `py-3 border-b border-gray-100 transition-all duration-200 ${
+                    isActive ? 'text-blue-900 font-semibold transform scale-110' : 'text-gray-800 hover:text-blue-900'
                   }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
@@ -238,8 +240,8 @@ const Header: React.FC = () => {
               <NavLink
                 to="/properties"
                 className={({ isActive }) =>
-                  `py-3 border-b border-gray-100 ${
-                    isActive ? 'text-blue-900 font-medium' : 'text-gray-800'
+                  `py-3 border-b border-gray-100 transition-all duration-200 ${
+                    isActive ? 'text-blue-900 font-semibold transform scale-110' : 'text-gray-800 hover:text-blue-900'
                   }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
@@ -249,8 +251,8 @@ const Header: React.FC = () => {
               <NavLink
                 to="/about"
                 className={({ isActive }) =>
-                  `py-3 border-b border-gray-100 ${
-                    isActive ? 'text-blue-900 font-medium' : 'text-gray-800'
+                  `py-3 border-b border-gray-100 transition-all duration-200 ${
+                    isActive ? 'text-blue-900 font-semibold transform scale-110' : 'text-gray-800 hover:text-blue-900'
                   }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
@@ -260,8 +262,8 @@ const Header: React.FC = () => {
               <NavLink
                 to="/contact"
                 className={({ isActive }) =>
-                  `py-3 border-b border-gray-100 ${
-                    isActive ? 'text-blue-900 font-medium' : 'text-gray-800'
+                  `py-3 border-b border-gray-100 transition-all duration-200 ${
+                    isActive ? 'text-blue-900 font-semibold transform scale-110' : 'text-gray-800 hover:text-blue-900'
                   }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
@@ -274,8 +276,8 @@ const Header: React.FC = () => {
                 <NavLink
                   to="/admin/properties"
                   className={({ isActive }) =>
-                    `py-3 border-b border-gray-100 flex items-center ${
-                      isActive ? 'text-blue-900 font-medium' : 'text-gray-800'
+                    `py-3 border-b border-gray-100 flex items-center transition-all duration-200 ${
+                      isActive ? 'text-blue-900 font-semibold transform scale-110' : 'text-gray-800 hover:text-blue-900'
                     }`
                   }
                   onClick={() => setMobileMenuOpen(false)}

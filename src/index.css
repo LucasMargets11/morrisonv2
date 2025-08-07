@@ -1,76 +1,181 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* CSS Variables */
 :root {
   --header-height: 80px;
-  --z-base: 1;
-  --z-dropdown: 1000;
-  --z-sticky: 1100;
-  --z-header: 1200;
-  --z-modal: 1300;
-  --z-tooltip: 1400;
+  --z-header: 50;
+  --z-dropdown: 60;
+  --z-modal: 9999;
 }
 
-.scrolled {
-  --header-height: 64px;
+/* Base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.perspective-1000 {
-  perspective: 1000px;
-  transform-style: preserve-3d;
+body {
+  font-family: 'Lato', sans-serif;
+  font-weight: 400; /* Regular weight por defecto */
+  line-height: 1.6;
+  color: #333;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom DatePicker Styles */
-.react-datepicker {
-  @apply font-sans border-0 shadow-lg !important;
+/* Header específicamente usa Lora Regular */
+header, 
+header * {
+  font-family: 'Lora', serif;
+  font-weight: 400; /* Regular weight */
 }
 
-.react-datepicker__month-container {
-  @apply bg-white rounded-lg overflow-hidden !important;
+/* Solo h1 usa Lora Regular */
+h1 {
+  font-family: 'Lora', serif;
+  font-weight: 400; /* Regular weight */
+  line-height: 1.2;
+  letter-spacing: 0;
 }
 
-.react-datepicker__header {
-  @apply bg-gray-50 border-b border-gray-200 !important;
+/* El resto de headings usa Lato Regular */
+h2, h3, h4, h5, h6 {
+  font-family: 'Lato', sans-serif;
+  font-weight: 400; /* Regular weight para headings */
+  line-height: 1.2;
 }
 
-.react-datepicker__current-month {
-  @apply text-gray-900 font-semibold py-2 !important;
+/* Todos los elementos de texto usan Lato Regular por defecto */
+p, span, div, label, button, input, select, textarea, a {
+  font-family: 'Lato', sans-serif;
+  font-weight: 400; /* Regular weight por defecto */
 }
 
-.react-datepicker__day-name {
-  @apply text-gray-500 font-medium !important;
+/* Elementos que necesitan más peso */
+.font-normal {
+  font-weight: 400 !important;
 }
 
-.react-datepicker__day {
-  @apply text-gray-700 rounded-full hover:bg-blue-50 hover:text-blue-600 transition-colors !important;
+.font-medium {
+  font-weight: 500 !important;
 }
 
-.react-datepicker__day--selected,
-.react-datepicker__day--in-range {
-  @apply bg-blue-600 text-white hover:bg-blue-700 hover:text-white !important;
+.font-semibold {
+  font-weight: 600 !important;
 }
 
-.react-datepicker__day--keyboard-selected {
-  @apply bg-blue-100 text-blue-600 hover:bg-blue-200 !important;
+.font-bold {
+  font-weight: 700 !important;
 }
 
-.react-datepicker__day--in-selecting-range {
-  @apply bg-blue-100 text-blue-600 !important;
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
 }
 
-.react-datepicker__day--disabled {
-  @apply text-gray-300 hover:bg-transparent cursor-not-allowed !important;
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
 }
 
-.react-datepicker__navigation {
-  @apply top-3 !important;
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
 }
 
-.react-datepicker__navigation-icon::before {
-  @apply border-gray-400 !important;
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
-.react-datepicker__day--outside-month {
-  @apply text-gray-300 !important;
+/* Utility classes */
+.font-cormorant {
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.font-lato {
+  font-family: 'Lato', sans-serif;
+}
+
+.font-lato-regular {
+  font-family: 'Lato', sans-serif;
+  font-weight: 400;
+}
+
+.font-lora {
+  font-family: 'Lora', serif;
+}
+
+/* Override any default system fonts */
+.text-sm, .text-base, .text-lg, .text-xl, .text-2xl, .text-3xl, .text-4xl, .text-5xl, .text-6xl {
+  font-family: 'Lato', sans-serif;
+  font-weight: 400; /* Regular por defecto */
+}
+
+/* Específicamente para h1 mantener Lora */
+h1.text-sm, h1.text-base, h1.text-lg, h1.text-xl, h1.text-2xl, h1.text-3xl, h1.text-4xl, h1.text-5xl, h1.text-6xl {
+  font-family: 'Lora', serif;
+  font-weight: 400;
+}
+
+/* Ajustes específicos para mejor legibilidad con Lato Regular */
+h2 {
+  font-weight: 500; /* Medium para h2 para mejor jerarquía */
+  letter-spacing: -0.02em;
+}
+
+h3, h4 {
+  font-weight: 500; /* Medium para mejor jerarquía */
+}
+
+/* Texto pequeño mantiene peso regular */
+.text-xs, .text-sm {
+  font-weight: 400; /* Regular para texto pequeño */
+}
+
+/* Botones con peso regular */
+button {
+  font-weight: 400;
+}
+
+/* Asegurar que el header mantenga Lora */
+.header-text {
+  font-family: 'Lora', serif;
+  font-weight: 400;
+}
+
+/* Elementos que necesitan ser más visibles */
+strong, b {
+  font-weight: 700;
+}
+
+/* Links y elementos importantes */
+a {
+  font-weight: 400;
+}
+
+/* Navegación del header usa Lora */
+header nav a {
+  font-family: 'Lora', serif;
+  font-weight: 400;
+}
+
+/* Formularios */
+input, select, textarea {
+  font-weight: 400;
+}
+
+/* Labels */
+label {
+  font-weight: 400;
+}
+
+/* Para elementos del header que no son navegación, mantener Lato */
+header button, header input, header select {
+  font-family: 'Lato', sans-serif;
+  font-weight: 400;
 }

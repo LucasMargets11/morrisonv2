@@ -219,7 +219,7 @@ const Hero: React.FC = () => {
           </button>
 
           {/* Search button */}
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 transition-colors" onClick={handleSearch}>
+          <button className="bg-blue-900 hover:bg-blue-700 text-white px-8 py-4 transition-colors" onClick={handleSearch}>
             {t('hero.filters.search')}
           </button>
         </div>

@@ -245,9 +245,9 @@ const PropertiesPage: React.FC = () => {
             </p>
 
             {/* Modern Search Bar */}
-            <div className="w-full bg-white/90 rounded-2xl shadow-2xl p-3 flex flex-col md:flex-row items-stretch gap-2 md:gap-0 mt-4 md:mt-8">
+            <div className="w-full bg-white/95 rounded-2xl shadow-2xl p-3 flex flex-col md:flex-row items-stretch gap-2 md:gap-0 mt-4 md:mt-8" style={{ filter: 'drop-shadow(0 15px 35px rgba(0, 0, 0, 0.2))' }}>
               {/* Búsqueda - Reemplaza la zona select */}
-              <div className="flex-1 flex items-center gap-2 px-2 py-2 relative">
+              <div className="flex-1 flex items-center gap-2 px-2 py-2 relative border-r md:border-r border-gray-200 md:border-b-0 border-b">
                 <span className="text-blue-700">
                   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z"/></svg>
                 </span>
@@ -282,7 +282,7 @@ const PropertiesPage: React.FC = () => {
                 )}
               </div>
               {/* Precio */}
-              <div className="flex-1 flex items-center gap-2 px-2 py-2 border-t md:border-t-0 md:border-l border-gray-200">
+              <div className="flex-1 flex items-center gap-2 px-2 py-2 border-r md:border-r border-gray-200 md:border-b-0 border-b">
                 <span className="text-blue-700">
                   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 8v8m0 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
                 </span>
@@ -300,7 +300,7 @@ const PropertiesPage: React.FC = () => {
                 </select>
               </div>
               {/* Fechas (modal trigger) */}
-              <div className="flex-1 flex items-center gap-2 px-2 py-2 border-t md:border-t-0 md:border-l border-gray-200">
+              <div className="flex-1 flex items-center gap-2 px-2 py-2 border-r md:border-r border-gray-200 md:border-b-0 border-b">
                 <span className="text-blue-700">
                   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 8v8m0 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
                 </span>
@@ -315,7 +315,7 @@ const PropertiesPage: React.FC = () => {
                 </button>
               </div>
               {/* Huéspedes (modal trigger) */}
-              <div className="flex-1 flex items-center gap-2 px-2 py-2 border-t md:border-t-0 md:border-l border-gray-200">
+              <div className="flex-1 flex items-center gap-2 px-2 py-2 border-r md:border-r border-gray-200 md:border-b-0 border-b">
                 <span className="text-blue-700">
                   <Users size={20} />
                 </span>
@@ -328,7 +328,7 @@ const PropertiesPage: React.FC = () => {
                 </button>
               </div>
               {/* Botón buscar */}
-              <div className="flex items-center px-2 py-2 border-t md:border-t-0 md:border-l border-gray-200">
+              <div className="flex items-center px-2 py-2">
                 <Button
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl shadow w-full md:w-auto"
                   onClick={() => {
