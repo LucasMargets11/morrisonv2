@@ -237,15 +237,15 @@ const PropertiesPage: React.FC = () => {
             />
           </div>
           <div className="relative w-full max-w-4xl mx-auto px-4 h-full flex flex-col items-center justify-center text-white z-10">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center drop-shadow-lg">
+            <h1 className="text-3xl md:text-5xl font-bold mb-8 md:mb-4 text-center drop-shadow-lg">
               Encontrá tu alquiler soñado
             </h1>
-            <p className="text-lg md:text-xl text-center mb-6 md:mb-8 max-w-2xl">
-              Discover exceptional properties that match your lifestyle and aspirations
+            <p className="hidden md:block text-lg md:text-xl text-center mb-6 md:mb-8 max-w-3xl">
+              Descubre propiedades excepcionales que se adaptan a tu estilo de vida y aspiraciones
             </p>
 
             {/* Modern Search Bar */}
-            <div className="w-full bg-white/95 rounded-2xl shadow-2xl p-3 flex flex-col md:flex-row items-stretch gap-2 md:gap-0 mt-4 md:mt-8" style={{ filter: 'drop-shadow(0 15px 35px rgba(0, 0, 0, 0.2))' }}>
+            <div className="w-full bg-white/95 rounded-2xl shadow-2xl p-3 flex flex-col md:flex-row items-stretch gap-2 md:gap-0 mt-4 md:mt-8 mb-8 md:mb-0" style={{ filter: 'drop-shadow(0 15px 35px rgba(0, 0, 0, 0.2))' }}>
               {/* Búsqueda - Reemplaza la zona select */}
               <div className="flex-1 flex items-center gap-2 px-2 py-2 relative border-r md:border-r border-gray-200 md:border-b-0 border-b">
                 <span className="text-blue-700">

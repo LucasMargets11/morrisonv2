@@ -75,7 +75,7 @@ const Header: React.FC = () => {
       >
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center">
-            {/* Logo */}
+            {/* Logo a la izquierda */}
             <Link to="/" className="flex items-center">
               <img
                 src="/logo_transparent para web-01.svg"
@@ -92,19 +92,7 @@ const Header: React.FC = () => {
               </span>
             </Link>
 
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden"
-              onClick={() => setMobileMenuOpen(open => !open)}
-            >
-              {mobileMenuOpen ? (
-                <X size={24} className={isScrolled ? 'text-gray-900' : 'text-white'} />
-              ) : (
-                <Menu size={24} className={isScrolled ? 'text-gray-900' : 'text-white'} />
-              )}
-            </button>
-
-            {/* Desktop Navigation */}
+            {/* Navbar en el centro */}
             <nav className="hidden md:flex items-center space-x-1">
               <NavLink
                 to="/"
@@ -139,85 +127,24 @@ const Header: React.FC = () => {
               >
                 {t('nav.contact')}
               </NavLink>
-              
-              <div className="ml-2">
-                <LanguageSwitcher />
-              </div>
             </nav>
 
-            {/* Right Section: Solo Panel Admin + User (si está autenticado) */}
-            <div className="hidden md:flex items-center space-x-4">
-              {loading ? (
-                <div className="w-8 h-8 animate-pulse bg-gray-300 rounded-full"></div>
-              ) : user ? (
-                <div className="flex items-center space-x-4">
-                  {/* Panel Admin - Solo si es admin */}
-                  {(user.is_staff || user.role === 'admin') && (
-                    <NavLink
-                      to="/admin/properties"
-                      className={({ isActive }) =>
-                        `${navLinkClass} ${
-                          isActive ? activeNavClass : inactiveNavClass
-                        } flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                          isScrolled 
-                            ? 'hover:bg-gray-100' 
-                            : 'hover:bg-white/10'
-                        }`
-                      }
-                    >
-                      <LayoutDashboard size={16} />
-                      <span className="font-medium">Admin</span>
-                    </NavLink>
-                  )}
-                  
-                  {/* User Dropdown */}
-                  <div className="relative">
-                    <button
-                      id="user-dropdown-button"
-                      onClick={toggleDropdown}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                        isScrolled
-                          ? 'text-gray-800 hover:bg-gray-100'
-                          : 'text-white hover:bg-white/10'
-                      }`}
-                    >
-                      <User size={18} />
-                      <span className="max-w-[150px] truncate text-sm font-medium">
-                        {user.first_name || user.email}
-                      </span>
-                      <ChevronDown
-                        size={16}
-                        className={`transition-transform duration-200 ${
-                          dropdownOpen ? 'rotate-180' : ''
-                        }`}
-                      />
-                    </button>
-
-                    {dropdownOpen && (
-                      <div
-                        id="user-dropdown"
-                        className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg py-2 z-[var(--z-dropdown)]"
-                      >
-                        <div className="px-4 py-2 border-b border-gray-100">
-                          <p className="text-sm text-gray-600">Signed in as</p>
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {user.first_name || user.email}
-                          </p>
-                        </div>
-                        <button
-                          onClick={handleLogout}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center"
-                        >
-                          <LogOut size={16} className="mr-2" />
-                          {t('auth.signOut')}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : null}
-              {/* Sin usuario autenticado: no mostrar nada */}
+            {/* Bandera / selector de idioma a la derecha */}
+            <div className="hidden md:block relative">
+              <LanguageSwitcher />
             </div>
+
+            {/* Botón menú hamburguesa solo en mobile */}
+            <button
+              className="md:hidden"
+              onClick={() => setMobileMenuOpen(open => !open)}
+            >
+              {mobileMenuOpen ? (
+                <X size={24} className={isScrolled ? 'text-gray-900' : 'text-white'} />
+              ) : (
+                <Menu size={24} className={isScrolled ? 'text-gray-900' : 'text-white'} />
+              )}
+            </button>
           </div>
         </div>
 
@@ -229,8 +156,8 @@ const Header: React.FC = () => {
                 to="/"
                 end
                 className={({ isActive }) =>
-                  `py-3 border-b border-gray-100 transition-all duration-200 ${
-                    isActive ? 'text-blue-900 font-semibold transform scale-110' : 'text-gray-800 hover:text-blue-900'
+                  `py-4 border-b border-gray-100 transition-all duration-200 whitespace-nowrap overflow-hidden text-center ${
+                    isActive ? 'text-blue-900 font-semibold bg-blue-50' : 'text-gray-800 hover:text-blue-900'
                   }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
@@ -240,8 +167,8 @@ const Header: React.FC = () => {
               <NavLink
                 to="/properties"
                 className={({ isActive }) =>
-                  `py-3 border-b border-gray-100 transition-all duration-200 ${
-                    isActive ? 'text-blue-900 font-semibold transform scale-110' : 'text-gray-800 hover:text-blue-900'
+                  `py-4 border-b border-gray-100 transition-all duration-200 whitespace-nowrap overflow-hidden text-center ${
+                    isActive ? 'text-blue-900 font-semibold bg-blue-50' : 'text-gray-800 hover:text-blue-900'
                   }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
@@ -251,8 +178,8 @@ const Header: React.FC = () => {
               <NavLink
                 to="/about"
                 className={({ isActive }) =>
-                  `py-3 border-b border-gray-100 transition-all duration-200 ${
-                    isActive ? 'text-blue-900 font-semibold transform scale-110' : 'text-gray-800 hover:text-blue-900'
+                  `py-4 border-b border-gray-100 transition-all duration-200 whitespace-nowrap overflow-hidden text-center ${
+                    isActive ? 'text-blue-900 font-semibold bg-blue-50' : 'text-gray-800 hover:text-blue-900'
                   }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
@@ -262,8 +189,8 @@ const Header: React.FC = () => {
               <NavLink
                 to="/contact"
                 className={({ isActive }) =>
-                  `py-3 border-b border-gray-100 transition-all duration-200 ${
-                    isActive ? 'text-blue-900 font-semibold transform scale-110' : 'text-gray-800 hover:text-blue-900'
+                  `py-4 border-b border-gray-100 transition-all duration-200 whitespace-nowrap overflow-hidden text-center ${
+                    isActive ? 'text-blue-900 font-semibold bg-blue-50' : 'text-gray-800 hover:text-blue-900'
                   }`
                 }
                 onClick={() => setMobileMenuOpen(false)}

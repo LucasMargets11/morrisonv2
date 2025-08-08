@@ -19,9 +19,9 @@ const FeaturedSection: React.FC<FeaturedSectionProps> = ({ properties }) => {
   return (
     <section className="py-16 container mx-auto px-4">
       <div className="text-center mb-12">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">Featured Properties</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">Propiedades Destacadas</h2>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Discover our handpicked selection of premium properties that represent the best in luxury and location
+          Descubre nuestra selección exclusiva de propiedades premium que representan lo mejor en lujo y ubicación
         </p>
       </div>
 
@@ -32,7 +32,7 @@ const FeaturedSection: React.FC<FeaturedSectionProps> = ({ properties }) => {
           variant="outline"
           onClick={() => navigate('/properties')}
         >
-          View All Properties
+          Ver Todas las Propiedades
         </Button>
       </div>
     </section>
