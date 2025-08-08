@@ -349,10 +349,10 @@ const PropertiesPage: React.FC = () => {
           <div className="flex flex-wrap items-center justify-between mb-8">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
-                {isLoading ? 'Loading...' : `${mappedProperties.length} Available Properties`}
+                {isLoading ? 'Cargando...' : `${mappedProperties.length} Propiedades disponibles`}
               </h2>
               <p className="text-gray-600 mt-1">
-                {search ? `Showing results for "${search}"` : 'Showing results for your search'}
+                {search ? `Mostrando resultados para "${search}"` : 'Mostrando resultados para tu búsqueda'}
               </p>
             </div>
 
@@ -376,10 +376,10 @@ const PropertiesPage: React.FC = () => {
             <div className="w-full lg:w-3/5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {isLoading && (
-                  <div className="col-span-2 py-12 text-center text-gray-500">Loading properties...</div>
+                  <div className="col-span-2 py-12 text-center text-gray-500">Cargando propiedades...</div>
                 )}
                 {isError && (
-                  <div className="col-span-2 py-12 text-center text-red-500">Error loading properties.</div>
+                  <div className="col-span-2 py-12 text-center text-red-500">Error al cargar propiedades.</div>
                 )}
                 {!isLoading && !isError && mappedProperties.map((property) => (
                   <div
@@ -392,8 +392,8 @@ const PropertiesPage: React.FC = () => {
                 {!isLoading && !isError && mappedProperties.length === 0 && (
                   <div className="col-span-2 py-12 text-center text-gray-500">
                     <HomeIcon size={48} className="mx-auto mb-4 text-gray-400" />
-                    <p className="text-xl font-medium mb-2">No properties found</p>
-                    <p>Try adjusting your search criteria</p>
+                    <p className="text-xl font-medium mb-2">Ninguna propiedad encontrada</p>
+                    <p>Intenta ajustar tus criterios de búsqueda</p>
                   </div>
                 )}
               </div>
