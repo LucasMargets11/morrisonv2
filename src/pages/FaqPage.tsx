@@ -92,35 +92,35 @@ const FAQPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-16 ">
+    <div className="min-h-screen bg-gray-50 py-16">
       <div className="container mx-auto px-4 max-w-4xl">
-        {/* Header */}
-        <div className="text-center mb-12 pt-8">
-          <HelpCircle className="w-16 h-16 text-blue-600 mx-auto mb-6" />
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Preguntas Frecuentes
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Encuentra respuestas a las preguntas más comunes sobre nuestros servicios inmobiliarios
-          </p>
-        </div>
-
-        {/* Search Bar */}
-        <div className="mb-8">
-          <div className="relative max-w-md mx-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Buscar preguntas..."
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div className="bg-white rounded-lg shadow-lg mt-8">
+          {/* Header, Search Bar, FAQ Content y Contact CTA juntos */}
+          <div className="text-center pt-8 px-4">
+            <HelpCircle className="w-16 h-16 text-blue-600 mx-auto mb-6" />
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              Preguntas Frecuentes
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Encuentra respuestas a las preguntas más comunes sobre nuestros servicios inmobiliarios
+            </p>
           </div>
-        </div>
 
-        {/* FAQ Content */}
-        <div className="bg-white rounded-lg shadow-lg">
+          {/* Search Bar */}
+          <div className="mb-8 px-4">
+            <div className="relative max-w-md mx-auto">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder="Buscar preguntas..."
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* FAQ Content */}
           {!searchTerm ? (
             // Grouped by categories
             faqCategories.map((category, categoryIndex) => (
@@ -200,29 +200,29 @@ const FAQPage: React.FC = () => {
               )}
             </div>
           )}
-        </div>
 
-        {/* Contact CTA */}
-        <div className="mt-12 text-center bg-blue-50 rounded-lg p-8">
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">
-            ¿No encontraste lo que buscabas?
-          </h3>
-          <p className="text-gray-600 mb-6">
-            Nuestro equipo está aquí para ayudarte con cualquier consulta adicional
-          </p>
-          <div className="space-y-4 md:space-y-0 md:space-x-4 md:flex md:justify-center">
-            <a
-              href="tel:+541130454989"
-              className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Llamar ahora
-            </a>
-            <a
-              href="mailto:info@grupobairen.com"
-              className="inline-block bg-white text-blue-600 border border-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors"
-            >
-              Enviar email
-            </a>
+          {/* Contact CTA dentro del mismo contenedor */}
+          <div className="mt-12 text-center rounded-lg p-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+              ¿No encontraste lo que buscabas?
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Nuestro equipo está aquí para ayudarte con cualquier consulta adicional
+            </p>
+            <div className="space-y-4 md:space-y-0 md:space-x-4 md:flex md:justify-center">
+              <a
+                href="tel:+541130454989"
+                className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Llamar ahora
+              </a>
+              <a
+                href="mailto:info@grupobairen.com"
+                className="inline-block bg-white text-blue-600 border border-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 transition-colors"
+              >
+                Enviar email
+              </a>
+            </div>
           </div>
         </div>
       </div>
