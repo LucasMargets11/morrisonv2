@@ -14,7 +14,7 @@ import { useTranslation } from '../translations';
 const HomePage: React.FC = () => {
   const { data: properties = [], isLoading, isError } = useQuery<Property[], Error>({
     queryKey: ['properties'],
-    queryFn: adminApi.getProperties,
+    queryFn: () => adminApi.getProperties(),
   });
 
   const { language } = useLanguage();

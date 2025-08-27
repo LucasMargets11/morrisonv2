@@ -10,41 +10,58 @@ const FAQPage: React.FC = () => {
       title: 'Alquiler Temporal',
       faqs: [
         {
-          question: '¿Cuáles son los requisitos para alquilar una propiedad temporal?',
-          answer: 'Para alquilar una propiedad temporal necesitas: documento de identidad vigente, comprobantes de ingresos, depósito de garantía equivalente al 50% del valor total de la estadía, y completar el formulario de huéspedes.'
+          question: '¿Cuáles son los requisitos para alquilar temporalmente?',
+          answer: 'No se solicita garantía ni recibo de sueldo. Se requiere un depósito de seguridad equivalente a 2 meses.'
         },
         {
-          question: '¿Cuánto tiempo de anticipación debo reservar?',
-          answer: 'Recomendamos reservar con al menos 15 días de anticipación, especialmente en temporada alta (diciembre-febrero). Para estadías de más de 30 días, sugerimos reservar con 30 días de anticipación.'
+          question: '¿Con cuánto tiempo de anticipación debo reservar?',
+          answer: 'Recomendamos al menos 15 días. Para confirmar, se realiza una seña.'
+        },
+        {
+          question: '¿Cómo se puede abonar el alquiler y la seña?',
+          answer: 'Pesos argentinos: transferencia o efectivo\nUSD: efectivo\nUSDT (cripto)'
         },
         {
           question: '¿Qué incluye el alquiler temporal?',
-          answer: 'Nuestros alquileres incluyen: servicios básicos (luz, agua, gas), WiFi, ropa de cama y toallas, utensilios de cocina básicos, y limpieza inicial. Los gastos extraordinarios van por cuenta del huésped.'
+          answer: 'Un modelo “all-in”: expensas y servicios incluidos, más limpiezas de cortesía durante la estadía pactada. Además, atención personalizada para cualquier necesidad.'
         },
         {
           question: '¿Puedo cancelar mi reserva?',
-          answer: 'Sí, las cancelaciones con más de 30 días de anticipación tienen reembolso del 90%. Entre 15-30 días: 50% de reembolso. Menos de 15 días: sin reembolso. Condiciones especiales pueden aplicar según la propiedad.'
+          answer: 'Sí. Se puede cancelar; la seña podrá retenerse total o parcialmente según el momento de la cancelación conforme a la política vigente.'
         }
       ]
     },
     {
-      title: 'Compra y Venta',
+      title: 'Alquiler Tradicional (Convencional)',
       faqs: [
         {
-          question: '¿Cuál es el proceso para comprar una propiedad?',
-          answer: 'El proceso incluye: 1) Asesoramiento y búsqueda, 2) Visitas a propiedades, 3) Negociación de precio, 4) Verificación legal y técnica, 5) Firma de boleto de compraventa, 6) Escrituración ante escribano.'
+          question: '¿Cuáles son los requisitos?',
+          answer: 'Garantía propietaria CABA o seguro de caución\nRecibos de sueldo con ingresos equivalentes a 3 meses de alquiler\nDepósito de seguridad: 1 mes'
         },
         {
-          question: '¿Qué documentación necesito para vender mi propiedad?',
-          answer: 'Necesitas: escritura original, planos aprobados, certificado de libre deuda municipal y provincial, certificado de dominio actualizado, y documentación personal del propietario.'
+          question: '¿Qué tipos de contratos ofrecen?',
+          answer: 'Contratos a 12 o 24 meses.'
+        }
+      ]
+    },
+    {
+      title: 'Alquiler Vacacional',
+      faqs: [
+        {
+          question: '¿Qué incluye el departamento que reservé?',
+          answer: 'Blanquería completa (toallas y sábanas) acorde a la cantidad de huéspedes.'
         },
         {
-          question: '¿Cuánto tiempo demora una operación de compraventa?',
-          answer: 'Una operación típica demora entre 30-60 días desde la firma del boleto hasta la escritura, dependiendo de la documentación y financiación involucrada.'
+          question: '¿Aceptan mascotas?',
+          answer: 'No se aceptan mascotas para estadías por renta diaria.'
         },
         {
-          question: '¿Cuáles son los gastos de una compraventa?',
-          answer: 'Los gastos incluyen: escribanía (1-2% del valor), impuesto de sellos (1.2%), gastos de gestoría, y comisión inmobiliaria (3% + IVA para cada parte).'
+          question: '¿Cuáles son los horarios de check-in y check-out?',
+          answer: 'Check-in: de 14:00 a 18:00\nCheck-out: de 08:00 a 10:00\nFuera de ese rango se aplica cargo adicional.'
+        },
+        {
+          question: '¿Cuándo y dónde se abona?',
+          answer: 'Al retirar la llave en nuestras oficinas de Las Heras 3331. Si necesitan recepción personalizada, se coordina previamente.'
         }
       ]
     },
@@ -52,20 +69,16 @@ const FAQPage: React.FC = () => {
       title: 'Servicios Generales',
       faqs: [
         {
-          question: '¿En qué zonas de Posadas trabajan?',
-          answer: 'Trabajamos en toda la ciudad de Posadas y alrededores: centro, Villa Cabello, Villa Sarita, Itaembé Miní, San Lorenzo, Candelaria, y otras localidades de la zona metropolitana.'
+          question: '¿Ofrecen limpieza adicional del departamento?',
+          answer: 'Sí, puede solicitarse y se cotiza aparte.'
         },
         {
-          question: '¿Ofrecen servicios de administración de propiedades?',
-          answer: 'Sí, ofrecemos administración integral: cobro de alquileres, mantenimiento preventivo, gestión de inquilinos, rendición mensual de cuentas, y atención de emergencias 24/7.'
+          question: '¿Coordinan traslados?',
+          answer: 'Sí, a coordinar según disponibilidad.'
         },
         {
-          question: '¿Realizan tasaciones?',
-          answer: 'Sí, realizamos tasaciones profesionales para compraventa, alquiler, sucesiones, divorcios, y fines judiciales. Nuestras tasaciones están respaldadas por nuestra matrícula profesional.'
-        },
-        {
-          question: '¿Qué garantías ofrecen en sus servicios?',
-          answer: 'Ofrecemos garantía total en nuestros servicios: asesoramiento legal gratuito, seguro de responsabilidad civil, y respaldo de nuestra matrícula profesional en todos los trámites.'
+          question: 'Nota',
+          answer: 'Las condiciones pueden variar según cada propiedad. Los detalles finales se confirman en la reserva/contrato.'
         }
       ]
     }

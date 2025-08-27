@@ -29,7 +29,6 @@ const Footer: React.FC = () => {
                   src="/logo_transparent para web-01.svg"
                   alt="Grupo Bairen"
                   className="w-14 h-14 mb-2"
-                  style={{ filter: 'invert(1)' }}
                 />
                 <span className="text-2xl font-extrabold tracking-wide font-title uppercase" style={{ letterSpacing: '0.05em' }}>GRUPOBAIREN</span>
               </div>
@@ -52,13 +51,11 @@ const Footer: React.FC = () => {
                   src="/logo_transparent para web-01.svg"
                   alt="Grupo Bairen"
                   className="w-12 h-12"
-                  style={{ filter: 'invert(1)' }}
                 />
                 <span className="ml-2 text-xl md:text-2xl font-bold">Grupo Bairen</span>
               </div>
               <p className="text-gray-400 mb-6 leading-relaxed text-sm md:text-base">
-                Más de 15 años de experiencia en el mercado inmobiliario de Posadas y zona.
-                Tu socio de confianza para encontrar la propiedad perfecta.
+                Calidad y experiencia aseguradas. Especialistas en alquiler temporal, vacacional y tradicional, administración, asesoramiento y tasaciones. Hospitalidad para el huésped; excelencia para el propietario.
               </p>
 
               {/* Newsletter */}
@@ -109,13 +106,18 @@ const Footer: React.FC = () => {
               </h3>
               <ul className="space-y-3">
                 <li>
-                  <Link to="/properties?type=sale" className="text-gray-400 hover:text-white transition-colors">
-                    Venta de Propiedades
+                  <Link to="/properties?type=temporal" className="text-gray-400 hover:text-white transition-colors font-semibold">
+                    Alquiler Temporal
                   </Link>
                 </li>
                 <li>
-                  <Link to="/properties?type=rent" className="text-gray-400 hover:text-white transition-colors">
-                    Alquiler Temporal
+                  <Link to="/properties?type=vacacional" className="text-gray-400 hover:text-white transition-colors font-semibold">
+                    Alquiler Vacacional
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/properties?type=tradicional" className="text-gray-400 hover:text-white transition-colors font-semibold">
+                    Alquiler Tradicional
                   </Link>
                 </li>
                 <li>
@@ -146,11 +148,6 @@ const Footer: React.FC = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/blog" className="text-gray-400 hover:text-white transition-colors">
-                    Blog Inmobiliario
-                  </Link>
-                </li>
-                <li>
                   <Link to="/testimonials" className="text-gray-400 hover:text-white transition-colors">
                     Testimonios
                   </Link>
@@ -158,11 +155,6 @@ const Footer: React.FC = () => {
                 <li>
                   <Link to="/faq" className="text-gray-400 hover:text-white transition-colors">
                     Preguntas Frecuentes
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/careers" className="text-gray-400 hover:text-white transition-colors">
-                    Trabaja con Nosotros
                   </Link>
                 </li>
               </ul>
@@ -176,21 +168,20 @@ const Footer: React.FC = () => {
               <div className="flex items-start">
                 <MapPin size={18} className="text-gray-400 mr-2 mt-1 flex-shrink-0" />
                 <p className="text-gray-400 text-sm">
-                  La Rioja 1578<br />
-                  Posadas, Misiones<br />
-                  Argentina
+                  Las Heras 3331<br />
+                  Palermo, CABA, Argentina
                 </p>
               </div>
               <div className="flex items-center">
                 <Phone size={18} className="text-gray-400 mr-2 flex-shrink-0" />
-                <a href="tel:+541130454989" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  +54 11 3045-4989
+                <a href="tel:+5491123106629" className="text-gray-400 hover:text-white transition-colors text-sm">
+                  +54 9 11 2310-6629
                 </a>
               </div>
               <div className="flex items-center">
                 <Mail size={18} className="text-gray-400 mr-2 flex-shrink-0" />
-                <a href="mailto:info@grupobairen.com" className="text-gray-400 hover:text-white transition-colors text-sm break-all">
-                  info@grupobairen.com
+                <a href="mailto:Grupobairen@gmail.com" className="text-gray-400 hover:text-white transition-colors text-sm break-all">
+                  Grupobairen@gmail.com
                 </a>
               </div>
               <div className="flex items-start">
@@ -230,9 +221,24 @@ const Footer: React.FC = () => {
 
         {/* Barra inferior */}
         <div className="flex flex-col md:flex-row justify-between items-center text-gray-500 text-sm gap-2">
-          <p className="text-center md:text-left">© {new Date().getFullYear()} Grupo Bairen. Todos los derechos reservados.</p>
-          <p className="text-center md:text-right">Desarrollado por Lucas Margets</p>
+          <p className="text-center md:text-left">
+            © {new Date().getFullYear()} Grupo Bairen. Todos los derechos reservados.
+          </p>
+
+          <p className="text-center md:text-right">
+            Desarrollado por{" "}
+            <a
+              href="https://instagram.com/estudio.vizion"
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              aria-label="Ir al Instagram de Estudio Vizion"
+              className="font-semibold bg-gradient-to-r from-indigo-400 via-sky-400 to-cyan-400 bg-clip-text text-transparent hover:underline underline-offset-4 transition"
+            >
+              Estudio Vizion
+            </a>
+          </p>
         </div>
+
       </div>
     </footer>
   );
