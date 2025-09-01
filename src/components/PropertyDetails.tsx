@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { BedDouble, Bath, Ruler, Calendar as CalendarIcon, Home, Check, ChevronDown, Edit } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import Calendar from './Calendar';
+import { BedDouble, Bath, Ruler, Calendar as CalendarIcon, Home, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 import api from '../lib/api';
+import { adminApi } from '../lib/admin';
 import { Property } from '../types';
 import { formatPrice, formatNumber } from '../utils/formatters';
 import Button from './UI/Button';
@@ -13,47 +13,68 @@ interface PropertyDetailsProps {
   property: Property;
 }
 
+type Slot = '00-12' | '12-24' | null;
+
+const addDays = (d: Date, n: number) => {
+  const x = new Date(d);
+  x.setDate(x.getDate() + n);
+  return x;
+};
+const sameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
 const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property }) => {
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([null, null]);
   const [startDate, endDate] = dateRange;
 
-  // Helper to set only the start date
-  const setStartDate = (date: Date | null) => setDateRange([date, endDate]);
   const [seasonalPrice, setSeasonalPrice] = useState<number | null>(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [pricings, setPricings] = useState<any[]>([]);
-  const [checkInSlot, setCheckInSlot] = useState<'00-12' | '12-24' | null>(null);
-  const [checkOutSlot, setCheckOutSlot] = useState<'00-12' | '12-24' | null>(null);
+  const [checkInSlot, setCheckInSlot] = useState<Slot>(null);
+  const [checkOutSlot, setCheckOutSlot] = useState<Slot>(null);
+  const [blockedRanges, setBlockedRanges] = useState<{ start: string; end: string }[]>([]);
   const navigate = useNavigate();
   const GENERIC_WHATSAPP_NUMBER = '5491130454989';
 
-  // Obtener rol de usuario desde DRF
+  // Rol de usuario
   useEffect(() => {
     (async () => {
       try {
         const { data } = await api.get<{ role: string }>('/users/role/');
         setIsAdmin(data.role === 'admin');
-      } catch (error) {
-        console.error('Error fetching user role:', error);
+      } catch {
         setIsAdmin(false);
       }
     })();
   }, []);
 
-  // Carga de tarifas estacionales
+  // Tarifas estacionales
   useEffect(() => {
     if (property?.id) {
       api.get(`/properties/${property.id}/pricing/`).then(res => setPricings(res.data));
     }
   }, [property]);
 
-  // Actualizar precio estacional según rango seleccionado
+  // Bloqueos (status=blocked bookings)
+  useEffect(() => {
+    (async () => {
+      if (!property?.id) return;
+      try {
+        const blocks = await adminApi.getBlocks(Number(property.id));
+        const mapped = blocks.map((b: any) => ({ start: b.check_in_date, end: b.check_out_date }));
+        setBlockedRanges(mapped);
+      } catch (e) {
+        // ignore
+      }
+    })();
+  }, [property]);
+
+  // Precio estacional (si todo el rango cae en una tarifa)
   useEffect(() => {
     if (startDate && endDate && pricings.length > 0) {
-      const found = pricings.find(p =>
-        new Date(p.start_date) <= startDate &&
-        new Date(p.end_date) >= endDate
+      const found = pricings.find((p: any) =>
+        new Date(p.start_date) <= startDate && new Date(p.end_date) >= endDate
       );
       setSeasonalPrice(found ? Number(found.amount ?? found.price) : null);
     } else {
@@ -61,53 +82,32 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property }) => {
     }
   }, [startDate, endDate, pricings]);
 
-  // Solicitar cita de visita a la API DRF
-  const handleScheduleViewing = async () => {
-    if (!startDate || !endDate) return;
-    try {
-      await api.post('/api/reservas/bloquear/', {
-        propiedad: property.id,
-        fecha_inicio: startDate.toISOString().split('T')[0],
-        fecha_fin: endDate.toISOString().split('T')[0],
-        horario_checkin: checkInSlot,
-        horario_checkout: checkOutSlot,
-      });
-      navigate('/payment');
-    } catch (error) {
-      console.error('Error scheduling viewing:', error);
-    }
-  };
-
-  // Cálculo del precio total de la estadía
   const getTotalPrice = () => {
     if (!startDate || !endDate) return 0;
-    let total = 0;
-    let current = new Date(startDate);
-    const end = new Date(endDate);
-    const pricePerDay = seasonalPrice ?? property.price;
+    const base = Number(seasonalPrice ?? property.price);
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const nightsRaw = Math.round((endDate.getTime() - startDate.getTime()) / msPerDay);
+    const nights = Math.max(nightsRaw, 1); // mínimo 1 noche
 
-    while (current < end) {
-      const special = pricings.find(p =>
-        new Date(p.start_date) <= current &&
-        new Date(p.end_date) >= current
+    let total = 0;
+    for (let i = 0; i < nights; i++) {
+      const day = new Date(startDate.getTime());
+      day.setDate(startDate.getDate() + i);
+      const special = pricings.find(
+        (p: any) => new Date(p.start_date) <= day && new Date(p.end_date) >= day
       );
-      total += special ? Number(special.amount ?? special.price) : Number(pricePerDay);
-      current.setDate(current.getDate() + 1);
+      total += special ? Number(special.amount ?? special.price) : base;
     }
-    // Ajuste por media jornada
-    if (checkInSlot === '12-24') total -= pricePerDay / 2;
-    if (checkOutSlot === '00-12') total -= pricePerDay / 2;
-    return total;
+    // Sin descuentos por media jornada: siempre se cobra la noche completa
+    return Math.max(Math.round(total), base);
   };
 
-  // Cálculo de rango de fechas (visualmente)
   const formatDateRange = () => {
-    if (!startDate) return 'Select dates to schedule a viewing';
-    if (!endDate)   return `From ${startDate.toLocaleDateString()}`;
+    if (!startDate) return 'Seleccioná fechas';
+    if (!endDate) return `Desde ${startDate.toLocaleDateString()}`;
     return `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
   };
 
-  // Manejar clic en WhatsApp
   const handleWhatsAppClick = () => {
     const phone = GENERIC_WHATSAPP_NUMBER;
     const horarioIn = checkInSlot === '00-12' ? '00:00 a 12:00' : checkInSlot === '12-24' ? '12:00 a 00:00' : '';
@@ -117,10 +117,21 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property }) => {
       `Fechas seleccionadas: ${formatDateRange()}. ` +
       `Check-in: ${horarioIn}. Check-out: ${horarioOut}. ¿Podría brindarme más información?`
     );
-    if (phone) {
-      window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+    if (phone) window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+    else alert('No hay número de WhatsApp disponible para esta propiedad.');
+  };
+
+  // Abrir calendario desde cualquiera de los dos botones
+  const openCalendar = () => setIsCalendarOpen(true);
+
+  // Recibir selección en tiempo real del Calendar (primer y último click)
+  const handleCalendarSelect = ({ startDate: s, endDate: e }: { startDate: Date | null; endDate: Date | null }) => {
+    if (s && e && sameDay(s, e)) {
+      // mismo día: tratamos como 1 noche (end = start + 1 día)
+      const nextDay = addDays(s, 1);
+      setDateRange([s, nextDay]);
     } else {
-      alert('No hay número de WhatsApp disponible para esta propiedad.');
+      setDateRange([s ?? null, e ?? null]);
     }
   };
 
@@ -190,11 +201,13 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property }) => {
           {/* Check-in */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Check-in</label>
-            <DatePicker
-              selected={startDate}
-              onChange={date => setStartDate(date)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-            />
+            <button
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-left bg-white"
+              onClick={openCalendar}
+              type="button"
+            >
+              {startDate ? startDate.toLocaleDateString() : 'Selecciona fecha de Check-in'}
+            </button>
             <div className="mt-2 flex space-x-2">
               <button
                 className={`px-3 py-1 rounded ${checkInSlot === '00-12' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
@@ -212,15 +225,17 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property }) => {
               </button>
             </div>
           </div>
+
           {/* Check-out */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
-            <DatePicker
-              selected={endDate}
-              onChange={date => setDateRange([startDate, date])}
-              minDate={startDate || new Date()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-            />
+            <button
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-left bg-white"
+              onClick={openCalendar}
+              type="button"
+            >
+              {endDate ? endDate.toLocaleDateString() : 'Selecciona fecha de Check-out'}
+            </button>
             <div className="mt-2 flex space-x-2">
               <button
                 className={`px-3 py-1 rounded ${checkOutSlot === '00-12' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
@@ -239,15 +254,35 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property }) => {
             </div>
           </div>
         </div>
+
+        {/* Modal calendario único (misma UI que el resto) */}
+    {isCalendarOpen && (
+          <Calendar
+            monthsToShow={2}
+            initialStartDate={startDate ?? undefined}
+            initialEndDate={endDate ?? undefined}
+            onDateSelect={handleCalendarSelect}
+      blockedRanges={blockedRanges}
+      basePrice={Number(property.price)}
+      pricingRanges={pricings.map(p => ({ start_date: p.start_date, end_date: p.end_date, price: Number(p.price ?? p.amount) }))}
+            onClose={() => setIsCalendarOpen(false)}
+          />
+        )}
+
         {(startDate || endDate) && (
           <button
             type="button"
-            onClick={() => setDateRange([null, null])}
+            onClick={() => {
+              setDateRange([null, null]);
+              setCheckInSlot(null);
+              setCheckOutSlot(null);
+            }}
             className="mb-2 px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
           >
             Resetear fechas
           </button>
         )}
+
         <div className="mt-2">
           <span className="text-lg font-bold">
             Precio: ${seasonalPrice !== null ? seasonalPrice : property.price}/noche
@@ -260,85 +295,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property }) => {
         )}
       </div>
 
-      {/* Programar visita */}
-      <div className="mb-8">
-        <button
-          onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-          className="w-full flex items-center justify-between p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-100 p-2 rounded-full">
-              <CalendarIcon className="text-blue-600" size={24} />
-            </div>
-            <div className="text-left">
-              <h3 className="font-semibold text-gray-900">Schedule a Viewing</h3>
-              <p className="text-sm text-gray-600">{formatDateRange()}</p>
-            </div>
-          </div>
-          <ChevronDown
-            className={`text-blue-600 transition-transform duration-300 ${
-              isCalendarOpen ? 'rotate-180' : ''
-            }`}
-            size={20}
-          />
-        </button>
-
-        <div
-          className={`transition-all duration-300 ease-in-out overflow-hidden ${
-            isCalendarOpen ? 'max-h-[600px] opacity-100 mt-4' : 'max-h-0 opacity-0'
-          }`}
-        >
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <DatePicker
-              selectsRange
-              startDate={startDate}
-              endDate={endDate}
-              onChange={(update: [Date | null, Date | null]) => setDateRange(update)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-            />
-            <div className="mt-6 space-y-4">
-              <div className="flex items-center gap-2 text-gray-600">
-                <div className="w-4 h-4 rounded-full bg-blue-600"></div>
-                <span>Selected Dates</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-600">
-                <div className="w-4 h-4 rounded-full bg-gray-200"></div>
-                <span>Unavailable Dates</span>
-              </div>
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                disabled={!startDate || !endDate}
-                onClick={handleScheduleViewing}
-              >
-                Schedule Viewing
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Descripción */}
-      <div className="mb-8">
-        <h2 className="text-xl font-bold mb-4 text-gray-900">Description</h2>
-        <p className="text-gray-700 leading-relaxed">{property.description}</p>
-      </div>
-
-      {/* Características */}
-      <div className="mb-8">
-        <h2 className="text-xl font-bold mb-4 text-gray-900">Features</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-y-2 gap-x-4">
-          {property.features.map((feature, index) => (
-            <div key={index} className="flex items-center">
-              <Check size={18} className="text-green-600 mr-2" />
-              <span className="text-gray-700">{feature}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Acciones finales */}
+      {/* Acciones */}
       <div className="flex flex-col sm:flex-row gap-4">
         <Button
           variant="primary"

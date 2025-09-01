@@ -10,7 +10,9 @@ class Property(models.Model):
         ('condo', 'Condo'),
         ('townhouse', 'Townhouse'),
         ('land', 'Land'),
-        ('temporal', 'Temporal'),
+    ('temporal', 'Temporal'),
+    ('vacacional', 'Vacacional'),
+    ('tradicional', 'Tradicional'),
     ]
 
     STATUS_CHOICES = [

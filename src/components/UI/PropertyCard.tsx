@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Home, BedDouble, Bath, Ruler, HeartIcon } from 'lucide-react';
+import { Home, BedDouble, Bath, Ruler } from 'lucide-react';
 import { Property } from '../../types';
 import { formatPrice } from '../../utils/formatters';
 import Badge from './Badge';
@@ -10,13 +10,7 @@ interface PropertyCardProps {
 }
 
 const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
-  const [isFavorite, setIsFavorite] = React.useState(false);
-  
-  const toggleFavorite = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsFavorite(!isFavorite);
-  };
+  // Removed favorite/heart feature per request
 
   return (
     <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 group">
@@ -27,22 +21,20 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
             alt={property.title} 
             className="h-64 w-full object-cover transition-transform duration-300 group-hover:scale-105 rounded-t-xl"
           />
-          <button 
-            onClick={toggleFavorite}
-            className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors duration-200 z-10"
-          >
-            <HeartIcon 
-              size={20} 
-              className={`${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
-            />
-          </button>
-          {(property.isFeatured || property.property_type === "temporal") && (
-            <div className="absolute top-3 left-3 flex gap-2 z-10">
+          {/* Heart button removed */}
+          {(property.isFeatured || ['temporal','vacacional','tradicional'].includes(property.property_type)) && (
+            <div className="absolute top-3 left-3 flex flex-wrap gap-2 z-10 max-w-[70%]">
               {property.isFeatured && (
                 <Badge variant="primary" className="shadow-sm">Featured</Badge>
               )}
-              {property.property_type === "temporal" && (
+              {property.property_type === 'temporal' && (
                 <Badge variant="success" className="shadow-sm">Temporal</Badge>
+              )}
+              {property.property_type === 'vacacional' && (
+                <Badge variant="info" className="shadow-sm">Vacacional</Badge>
+              )}
+              {property.property_type === 'tradicional' && (
+                <Badge variant="secondary" className="shadow-sm">Tradicional</Badge>
               )}
             </div>
           )}

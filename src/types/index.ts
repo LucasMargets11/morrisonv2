@@ -1,7 +1,7 @@
 export interface Property {
   longitude: any;
   latitude: any;
-  is_featured: unknown;
+  is_featured: boolean;
   property_type: string;
   id: string;
   title: string;

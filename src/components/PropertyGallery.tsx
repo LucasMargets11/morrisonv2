@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Expand } from 'lucide-react';
 
 interface PropertyGalleryProps {
@@ -82,9 +83,9 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
         ))}
       </div>
       
-      {/* Lightbox */}
-      {isLightboxOpen && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center" onClick={closeLightbox}>
+      {/* Lightbox (portal to ensure highest stacking, z > header) */}
+      {isLightboxOpen && createPortal((
+        <div className="fixed inset-0 z-[2000] bg-black/90 flex items-center justify-center backdrop-blur-sm" onClick={closeLightbox}>
           <div className="relative w-full max-w-4xl p-4" onClick={(e) => e.stopPropagation()}>
             <img 
               src={images[currentIndex]} 
@@ -119,7 +120,7 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
             </button>
           </div>
         </div>
-      )}
+      ), document.body)}
     </div>
   );
 };

@@ -37,7 +37,12 @@ export const adminApi = {
     Object.entries(property).forEach(([key, value]) => {
       if (value === undefined || value === null) return;
       if (Array.isArray(value)) {
-        value.forEach((v) => formData.append(`${key}[]`, String(v)));
+        // feature_list es un ListField: DRF acepta repitiendo la misma key
+        if (key === 'feature_list') {
+          value.forEach(v => formData.append('feature_list', String(v)));
+        } else {
+          value.forEach(v => formData.append(`${key}[]`, String(v)));
+        }
       } else {
         formData.append(key, String(value));
       }
@@ -176,23 +181,37 @@ export const adminApi = {
     });
   },
 
-  async createBlock(data: {
-    property: string;
-    check_in_date: string;
-    check_out_date: string;
-    guest?: string; // Replace 'string' with the appropriate type or interface if available
-    guest_count: number;
-    total_amount: number;
-    special_requests?: string;
-    reason?: string;
-  }): Promise<Block> {
-    const response = await api.post('/bookings/blocks/', data);
-    return response.data;
+  // (Bloqueos de fechas) — Interfaces no definidas aún. Implementar si se requieren.
+  async getBlocks(propertyId?: number) {
+    // Blocks expuestos como Bookings con status=blocked en endpoint dedicado
+    const res = await api.get('/blocks/', { params: propertyId ? { property: propertyId } : {} });
+    return Array.isArray(res.data) ? res.data : (res.data.results ?? []);
   },
 
-  async getBlocks(): Promise<Block[]> {
-    const response = await api.get('/bookings/blocks/');
-    return response.data.results || [];
+  async createBlock(data: {
+    property: string | number;
+    check_in_date: string;
+    check_out_date: string;
+    guest_count: number;
+    total_amount: number;
+    reason?: string;
+  }) {
+  // property field expected as FK id
+  const res = await api.post('/blocks/', data);
+    return res.data;
+  },
+
+  async updateBlock(id: string | number, data: {
+    check_in_date?: string;
+    check_out_date?: string;
+    reason?: string;
+  }) {
+    const res = await api.patch(`/blocks/${id}/`, data);
+    return res.data;
+  },
+
+  async deleteBlock(id: string | number) {
+    await api.delete(`/blocks/${id}/`);
   },
 
   async createMaintenanceEvent(event: Omit<MaintenanceEvent, 'id' | 'created_at' | 'updated_at' | 'created_by'> & { property_id: string }): Promise<MaintenanceEvent> {

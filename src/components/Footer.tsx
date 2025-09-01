@@ -207,11 +207,6 @@ const Footer: React.FC = () => {
                     Términos
                   </Link>
                 </li>
-                <li>
-                  <Link to="/cookies" className="text-gray-400 hover:text-white transition-colors">
-                    Cookies
-                  </Link>
-                </li>
               </ul>
             </div>
           </div>
@@ -222,7 +217,7 @@ const Footer: React.FC = () => {
         {/* Barra inferior */}
         <div className="flex flex-col md:flex-row justify-between items-center text-gray-500 text-sm gap-2">
           <p className="text-center md:text-left">
-            © {new Date().getFullYear()} Grupo Bairen. Todos los derechos reservados.
+            © {new Date().getFullYear()} Grupo Bairen. 
           </p>
 
           <p className="text-center md:text-right">

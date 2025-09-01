@@ -19,21 +19,29 @@ class PropertyViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         search = self.request.query_params.get('search')
-        start = self.request.query_params.get('start')
-        end = self.request.query_params.get('end')
+        start = self.request.query_params.get('start')  # (reservado para futura lógica de disponibilidad)
+        end = self.request.query_params.get('end')      # (reservado)
         adults = self.request.query_params.get('adults')
-        children = self.request.query_params.get('children')
-        babies = self.request.query_params.get('babies')
-        # Aplica los filtros según los parámetros recibidos
+        children = self.request.query_params.get('children')  # (no usado aún)
+        babies = self.request.query_params.get('babies')      # (no usado aún)
+        property_type = self.request.query_params.get('propertyType') or self.request.query_params.get('property_type')
+
+        # Filtro de búsqueda básica
         if search:
             queryset = queryset.filter(
                 Q(city__icontains=search) |
-                Q(address__icontains=search) |
-                Q(zone__icontains=search)
+                Q(address__icontains=search)
             )
+        # Filtro por cantidad mínima de dormitorios (usando 'adults' como aproximación)
         if adults:
-            queryset = queryset.filter(bedrooms__gte=int(adults))
-        # Agrega más filtros según tu modelo y lógica
+            try:
+                queryset = queryset.filter(bedrooms__gte=int(adults))
+            except ValueError:
+                pass
+        # Filtro por tipo de propiedad (temporal, vacacional, tradicional, etc.)
+        if property_type and property_type != 'all':
+            queryset = queryset.filter(property_type=property_type)
+
         return queryset
 
     def perform_create(self, serializer):

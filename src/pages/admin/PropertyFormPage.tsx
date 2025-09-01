@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -11,6 +11,55 @@ import { Property, PropertyImage } from '../../types/admin';
 
 type PropertyFormData = Omit<Property, 'id' | 'created_at' | 'updated_at' | 'media'>;
 
+// Nueva agrupación de features / equipamiento solicitada
+const FEATURE_CATEGORIES: { title: string; items: string[] }[] = [
+  {
+    title: 'Cocina',
+    items: [
+      'Cocina equipada',
+      'Utensilios de cocina',
+      'Cafetera / pava eléctrica',
+      'Tostadora',
+    ],
+  },
+  {
+    title: 'Electrodomésticos y confort',
+    items: [
+      'Smart TV',
+      'Aire acondicionado',
+      'Calefacción',
+      'WiFi / Internet',
+      'Lavarropas',
+      'Plancha / tabla de planchar',
+      'Secador de pelo',
+    ],
+  },
+  {
+    title: 'Espacios exteriores y amenities',
+    items: [
+      'Parrilla / Quincho',
+      'Pileta',
+      'SUM',
+      'Estacionamiento propio o asignado',
+    ],
+  },
+  {
+    title: 'Ropa blanca y mobiliario',
+    items: [
+      'Blanquería completa',
+      'Cuna o cama adicional bajo pedido',
+    ],
+  },
+  {
+    title: 'Seguridad',
+    items: [
+      'Caja fuerte',
+      'Cerradura electrónica',
+      'Alarma / cámaras de seguridad',
+    ],
+  },
+];
+
 const PropertyFormPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -21,6 +70,13 @@ const PropertyFormPage: React.FC = () => {
   const [images, setImages] = useState<(string | PropertyImage)[]>([]);
 
   const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm<PropertyFormData>();
+  // Estado para features seleccionadas y campo "Otros"
+  const [selectedFeatures, setSelectedFeatures] = useState<Set<string>>(new Set());
+  const [otrosInput, setOtrosInput] = useState('');
+  const [otrosFeatures, setOtrosFeatures] = useState<string[]>([]);
+
+  // Conjunto de features conocidas para detectar "otros" al editar
+  const KNOWN_FEATURES = useMemo(() => new Set(FEATURE_CATEGORIES.flatMap(c => c.items)), []);
   const selectedCity = watch('city');
 
   // Códigos postales por ciudad
@@ -45,6 +101,20 @@ const PropertyFormPage: React.FC = () => {
         features: property.features || [],
       });
       setImages(property.images || []);
+
+      // Pre-cargar features existentes (solo lectura en edición si backend no soporta update)
+      if (property.features) {
+        const names = property.features.map(f => f.name);
+        const unknown: string[] = [];
+        const newSet = new Set<string>();
+        names.forEach(n => {
+          if (KNOWN_FEATURES.has(n)) newSet.add(n); else unknown.push(n);
+        });
+        setSelectedFeatures(newSet);
+        if (unknown.length) {
+          setOtrosFeatures(unknown);
+        }
+      }
     }
   }, [property, reset]);
 
@@ -116,7 +186,7 @@ const PropertyFormPage: React.FC = () => {
       setUploadedFiles(prev => [...prev, ...acceptedFiles]);
       setUploadError(null);
     },
-    onDropRejected: (rejectedFiles) => {
+  onDropRejected: () => {
       setUploadError('Tipo de archivo inválido o tamaño excedido (máx 5MB)');
     },
   });
@@ -149,6 +219,11 @@ const PropertyFormPage: React.FC = () => {
 
   const onSubmit = async (data: PropertyFormData) => {
     try {
+      // Construir feature_list antes de enviar (solo creación por ahora)
+  const feature_list: string[] = Array.from(selectedFeatures);
+  otrosFeatures.forEach(of => feature_list.push(`Otros Feature: ${of}`));
+      (data as any).feature_list = feature_list;
+
       const orderedImages = images.map((img, idx) => {
         if (typeof img === 'string') {
           return { image: img, is_primary: idx === 0, order: idx };
@@ -261,11 +336,12 @@ const PropertyFormPage: React.FC = () => {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   >
                     <option value="">Selecciona un tipo</option>
-                    <option value="vacation_rental">🏖️ Alquiler Vacacional</option>
-                    <option value="temporary_rental">⏰ Alquiler Temporal</option>
+                    <option value="temporal">⏰ Alquiler Temporal</option>
+                    <option value="vacacional">🏖️ Alquiler Vacacional</option>
+                    <option value="tradicional">🏠 Alquiler Tradicional</option>
                   </select>
                   <p className="text-xs text-gray-500 mt-1">
-                    Vacacional: Para turismo y estadías cortas • Temporal: Para estadías de mediano plazo
+                    Temporal: estadías de mediano plazo • Vacacional: turismo / corta estadía • Tradicional: contrato estándar
                   </p>
                   {errors.property_type && (
                     <p className="mt-1 text-sm text-red-600">{errors.property_type.message}</p>
@@ -479,6 +555,105 @@ const PropertyFormPage: React.FC = () => {
                   <p className="text-xs text-gray-500 mt-1">Opcional</p>
                 </div>
               </div>
+            </div>
+
+            {/* Sección: Features / Equipamiento */}
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="bg-indigo-100 rounded-lg p-2">
+                  <Square size={20} className="text-indigo-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Equipamiento / Features</h2>
+                  <p className="text-sm text-gray-600">Selecciona los elementos disponibles en la propiedad</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {FEATURE_CATEGORIES.map(cat => (
+                  <div key={cat.title} className="border rounded-lg p-4 bg-gray-50">
+                    <h3 className="font-medium text-gray-800 mb-3 text-sm tracking-wide">{cat.title}</h3>
+                    <div className="space-y-2">
+                      {cat.items.map(item => {
+                        const checked = selectedFeatures.has(item);
+                        return (
+                          <label key={item} className="flex items-start gap-2 cursor-pointer group">
+                            <input
+                              type="checkbox"
+                              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              checked={checked}
+                              onChange={() => {
+                                setSelectedFeatures(prev => {
+                                  const next = new Set(prev);
+                                  if (next.has(item)) next.delete(item); else next.add(item);
+                                  return next;
+                                });
+                              }}
+                              disabled={!!id} // deshabilitar edición hasta que backend soporte update
+                            />
+                            <span className="text-sm text-gray-700 group-hover:text-gray-900">{item}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+                {/* Otros Features (uno por uno) */}
+                <div className="border rounded-lg p-4 bg-gray-50 flex flex-col">
+                  <h3 className="font-medium text-gray-800 mb-3 text-sm tracking-wide">Otros Features</h3>
+                  <div className="flex gap-2 mb-3">
+                    <input
+                      type="text"
+                      value={otrosInput}
+                      onChange={e => setOtrosInput(e.target.value)}
+                      placeholder="Ej: Jacuzzi"
+                      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      disabled={!!id}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && otrosInput.trim()) {
+                          e.preventDefault();
+                          setOtrosFeatures(prev => prev.includes(otrosInput.trim()) ? prev : [...prev, otrosInput.trim()]);
+                          setOtrosInput('');
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      disabled={!otrosInput.trim() || !!id}
+                      onClick={() => {
+                        if (!otrosInput.trim()) return;
+                        setOtrosFeatures(prev => prev.includes(otrosInput.trim()) ? prev : [...prev, otrosInput.trim()]);
+                        setOtrosInput('');
+                      }}
+                      className="px-3 py-2 text-sm bg-indigo-600 disabled:bg-gray-300 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                    >
+                      Agregar
+                    </button>
+                  </div>
+                  {otrosFeatures.length > 0 && (
+                    <ul className="space-y-2 mb-2 max-h-40 overflow-y-auto pr-1">
+                      {otrosFeatures.map(of => (
+                        <li key={of} className="flex items-center justify-between bg-white border border-gray-200 rounded-md px-3 py-1 text-sm">
+                          <span className="text-gray-700 truncate">{of}</span>
+                          {!id && (
+                            <button
+                              type="button"
+                              onClick={() => setOtrosFeatures(prev => prev.filter(x => x !== of))}
+                              className="ml-2 text-red-500 hover:text-red-700 text-xs font-medium"
+                            >
+                              Quitar
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <p className="mt-1 text-xs text-gray-500">Presiona Enter o "Agregar". Se guardan como "Otros Feature:"</p>
+                </div>
+              </div>
+              {id && (
+                <p className="mt-4 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-3 py-2">Edición de features existente no soportada aún. (Solo lectura)</p>
+              )}
             </div>
 
             {/* Sección: Descripción */}

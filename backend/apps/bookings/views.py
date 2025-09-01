@@ -53,3 +53,10 @@ class BlockViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(status='blocked')
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        property_id = self.request.query_params.get('property')
+        if property_id:
+            qs = qs.filter(property_id=property_id)
+        return qs

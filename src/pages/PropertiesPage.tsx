@@ -7,8 +7,7 @@ import { Home as HomeIcon, Users, X } from 'lucide-react';
 import Button from '../components/UI/Button';
 import PropertyMap from '../components/UI/PropertyMap';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useTranslation } from '../translations';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Calendar from '../components/Calendar';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyAhKUEMZevObTmkKtml47NvHQFkDKyZt7o'; // pon tu key aquí
@@ -21,10 +20,10 @@ export function useModal() {
 }
 
 const PropertiesPage: React.FC = () => {
-  const { language } = useLanguage();
-  const t = useTranslation(language);
+  useLanguage(); // language context initialized (value not directly needed here)
   const location = useLocation();
   const params = new URLSearchParams(location.search);
+  const navigate = useNavigate();
 
   // Removed unused selectedProperty state
 
@@ -36,7 +35,8 @@ const PropertiesPage: React.FC = () => {
   const babies = params.get('babies') || '';
   const zone = params.get('zone') || '';
   const priceRange = params.get('priceRange') || 'all';
-  const propertyType = params.get('propertyType') || 'all';
+  const initialPropertyType = params.get('propertyType') || 'all';
+  const [propertyType, setPropertyTypeState] = useState<string>(initialPropertyType);
   const bedroomCount = params.get('bedroomCount') || 'all';
 
   // Fetch filtered properties from API
@@ -99,53 +99,23 @@ const PropertiesPage: React.FC = () => {
   [properties]);
 
   // Ciudades y tipos únicos para los selects
-  const uniqueCities = useMemo(
-    () => Array.from(new Set(mappedProperties.map((p) => p.city).filter(Boolean))),
-    [mappedProperties]
-  );
+  // Removed uniqueCities (not used in current UI)
 
-  function setZone(value: string): void {
-    const params = new URLSearchParams(location.search);
-    if (value) {
-      params.set('zone', value);
-    } else {
-      params.delete('zone');
-    }
-    window.history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
-  }
-
-  function setPriceRange(value: string): void {
-    const params = new URLSearchParams(location.search);
-    if (value && value !== 'all') {
-      params.set('priceRange', value);
-    } else {
-      params.delete('priceRange');
-    }
-    window.history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
-  }
+  // Removed setZone & setPriceRange (replaced by rental type select)
 
   function setPropertyType(value: string): void {
-    const params = new URLSearchParams(location.search);
-    if (value && value !== 'all') {
-      params.set('propertyType', value);
-    } else {
-      params.delete('propertyType');
-    }
-    window.history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
+    setPropertyTypeState(value);
+    const newParams = new URLSearchParams(location.search);
+    if (value && value !== 'all') newParams.set('propertyType', value); else newParams.delete('propertyType');
+    navigate(`${location.pathname}?${newParams.toString()}`, { replace: true });
   }
 
-  function setBedroomCount(value: string): void {
-    const params = new URLSearchParams(location.search);
-    if (value && value !== 'all') {
-      params.set('bedroomCount', value);
-    } else {
-      params.delete('bedroomCount');
-    }
-    window.history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
-  }
+  // Removed setBedroomCount (not shown in condensed search bar)
 
   const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isPropertyListOpen, setIsPropertyListOpen] = useState(false);
+  const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [tempAdultsCount, setTempAdultsCount] = useState(parseInt(adults) || 1);
   const [tempChildrenCount, setTempChildrenCount] = useState(parseInt(children) || 0);
@@ -201,24 +171,35 @@ const PropertiesPage: React.FC = () => {
     : [];
 
   // Estado para huéspedes
-  const [adultsCount, setAdultsCount] = useState(Number(adults) > 0 ? Number(adults) : 1);
-  const [childrenCount, setChildrenCount] = useState(Number(children) || 0);
-  const [babiesCount, setBabiesCount] = useState(Number(babies) || 0);
+  // Removed derived counts (unused duplicates of temp states)
 
   const openCalendar = () => {
     setIsCalendarOpen(true);
     setModalOpen(true);
   };
-  const closeCalendar = () => {
-    setIsCalendarOpen(false);
-    setModalOpen(false);
-  };
+  // closeCalendar helper removed (inline handling)
   const openGuests = () => {
     setIsGuestModalOpen(true);
     setModalOpen(true);
   };
   const closeGuests = () => {
     setIsGuestModalOpen(false);
+    setModalOpen(false);
+  };
+  const openPropertyList = () => {
+    setIsPropertyListOpen(true);
+    setModalOpen(true);
+  };
+  const closePropertyList = () => {
+    setIsPropertyListOpen(false);
+    setModalOpen(false);
+  };
+  const openTypeModal = () => {
+    setIsTypeModalOpen(true);
+    setModalOpen(true);
+  };
+  const closeTypeModal = () => {
+    setIsTypeModalOpen(false);
     setModalOpen(false);
   };
 
@@ -281,23 +262,21 @@ const PropertiesPage: React.FC = () => {
                   </div>
                 )}
               </div>
-              {/* Precio */}
+              {/* Tipo de Alquiler (abre modal) */}
               <div className="flex-1 flex items-center gap-2 px-2 py-2 border-r md:border-r border-gray-200 md:border-b-0 border-b">
                 <span className="text-blue-700">
-                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 8v8m0 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
                 </span>
-                <select
-                  id="price-select"
-                  value={priceRange}
-                  onChange={e => setPriceRange(e.target.value)}
-                  className="w-full bg-transparent text-gray-900 border-none focus:ring-0 text-base"
+                <button
+                  type="button"
+                  onClick={openTypeModal}
+                  className="w-full text-left bg-transparent text-gray-900 border-none focus:ring-0 text-base px-0 py-0"
                 >
-                  <option value="all">Cualquier precio</option>
-                  <option value="under-500k">Menos de $500k</option>
-                  <option value="500k-1m">$500k - $1M</option>
-                  <option value="1m-2m">$1M - $2M</option>
-                  <option value="over-2m">Más de $2M</option>
-                </select>
+                  {propertyType === 'all' ? 'Tipo de alquiler' :
+                    propertyType === 'temporal' ? 'Alquiler temporal' :
+                    propertyType === 'vacacional' ? 'Alquiler vacacional' :
+                    propertyType === 'tradicional' ? 'Alquiler tradicional' : propertyType}
+                </button>
               </div>
               {/* Fechas (modal trigger) */}
               <div className="flex-1 flex items-center gap-2 px-2 py-2 border-r md:border-r border-gray-200 md:border-b-0 border-b">
@@ -339,6 +318,16 @@ const PropertiesPage: React.FC = () => {
                   Buscar
                 </Button>
               </div>
+              {/* Botón listar propiedades en modal */}
+              <div className="flex items-center px-2 py-2">
+                <Button
+                  variant="outline"
+                  className="px-4 py-3 rounded-xl shadow w-full md:w-auto"
+                  onClick={openPropertyList}
+                >
+                  Ver listado
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -361,7 +350,6 @@ const PropertiesPage: React.FC = () => {
                 variant="outline"
                 onClick={() => {
                   setSearchInput('');
-                  const params = new URLSearchParams();
                   window.history.replaceState({}, '', `${location.pathname}`);
                 }}
               >
@@ -527,9 +515,108 @@ const PropertiesPage: React.FC = () => {
         {isCalendarOpen && (
           <Calendar
             monthsToShow={2}
-            onClose={() => setIsCalendarOpen(false)}
+            onClose={() => {
+              setIsCalendarOpen(false);
+              // Persist selected dates into URL params
+              if (tempDates.startDate && tempDates.endDate) {
+                const params = new URLSearchParams(location.search);
+                params.set('start', tempDates.startDate.toISOString().split('T')[0]);
+                params.set('end', tempDates.endDate.toISOString().split('T')[0]);
+                window.history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
+              }
+            }}
             onDateSelect={setTempDates}
           />
+        )}
+
+        {/* Modal listado de propiedades */}
+        {isPropertyListOpen && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="relative w-full max-w-5xl max-h-[85vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-500 text-white">
+                <h2 className="text-lg md:text-xl font-semibold">Propiedades ({mappedProperties.length})</h2>
+                <button
+                  onClick={closePropertyList}
+                  className="p-2 rounded-full hover:bg-white/20 transition-colors"
+                  aria-label="Cerrar"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {mappedProperties.map(property => (
+                  <div key={property.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => { window.location.href = `/property/${property.id}`; }}>
+                    <div className="h-40 w-full overflow-hidden rounded-t-xl bg-gray-100 relative">
+                      {property.images[0] ? (
+                        <img src={property.images[0]} alt={property.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">Sin imagen</div>
+                      )}
+                      {Boolean(property.is_featured) && (
+                        <span className="absolute top-2 left-2 bg-amber-500 text-white text-xs font-semibold px-2 py-1 rounded-full shadow">Destacada</span>
+                      )}
+                    </div>
+                    <div className="p-3 flex flex-col gap-1">
+                      <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">{property.title}</h3>
+                      <p className="text-xs text-gray-500 line-clamp-1">{property.address}, {property.city}</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-blue-600 font-bold text-sm">${property.price}</span>
+                        <span className="text-[10px] uppercase tracking-wide text-gray-500">{property.property_type}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {mappedProperties.length === 0 && (
+                  <div className="col-span-full text-center text-gray-500 py-12">No hay propiedades.</div>
+                )}
+              </div>
+              <div className="p-4 border-t border-gray-200 flex justify-end bg-gray-50">
+                <Button onClick={closePropertyList} className="bg-blue-600 hover:bg-blue-700 text-white">Cerrar</Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal tipo de alquiler */}
+        {isTypeModalOpen && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <div className="relative w-full max-w-sm mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-500 text-white">
+                <h2 className="text-lg font-semibold">Tipo de alquiler</h2>
+                <button onClick={closeTypeModal} className="p-2 rounded-full hover:bg-white/20 transition-colors" aria-label="Cerrar">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-4 divide-y divide-gray-100">
+                {[
+                  { value: 'all', label: 'Todos los tipos' },
+                  { value: 'temporal', label: 'Alquiler temporal' },
+                  { value: 'vacacional', label: 'Alquiler vacacional' },
+                  { value: 'tradicional', label: 'Alquiler tradicional' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => {
+                      setPropertyType(opt.value);
+                      closeTypeModal();
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-3 text-sm font-medium rounded-md transition-colors ${
+                      propertyType === opt.value ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50 text-gray-700'
+                    }`}
+                  >
+                    <span>{opt.label}</span>
+                    {propertyType === opt.value && (
+                      <span className="text-blue-600 text-xs font-semibold">Seleccionado</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <div className="p-4 border-t border-gray-200 flex justify-end bg-gray-50">
+                <Button onClick={closeTypeModal} variant="outline" className="mr-2">Cerrar</Button>
+                <Button onClick={closeTypeModal} className="bg-blue-600 hover:bg-blue-700 text-white">Aplicar</Button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </ModalContext.Provider>

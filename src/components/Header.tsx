@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Menu, X, ChevronDown, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard } from 'lucide-react';
 import Button from './UI/Button';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useAuth } from '../hooks/useAuth';
@@ -9,7 +9,6 @@ import { useTranslation } from '../translations';
 
 const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   
   const { user, loading, logout } = useAuth();
@@ -29,32 +28,11 @@ const Header: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Cerrar dropdown al hacer click fuera
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const dropdown = document.getElementById('user-dropdown');
-      const button = document.getElementById('user-dropdown-button');
-      if (
-        dropdown &&
-        button &&
-        !dropdown.contains(event.target as Node) &&
-        !button.contains(event.target as Node)
-      ) {
-        setDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const handleLogout = () => {
     logout();
-    setDropdownOpen(false);
     navigate('/');
   };
-
-  const toggleDropdown = () => setDropdownOpen(open => !open);
 
   const navLinkClass = 'text-sm font-medium px-3 py-2 transition-all duration-200 transform';
   const activeNavClass = isScrolled 
@@ -65,7 +43,7 @@ const Header: React.FC = () => {
     : 'text-white hover:text-blue-100 hover:scale-110';
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[var(--z-header)]">
+  <div className="fixed top-0 left-0 right-0 z-[60]">
       <header
         className={`relative transition-all duration-300 ${
           isScrolled
@@ -129,8 +107,19 @@ const Header: React.FC = () => {
               </NavLink>
             </nav>
 
-            {/* Bandera / selector de idioma a la derecha */}
-            <div className="hidden md:block relative">
+            {/* Right side actions */}
+            <div className="hidden md:flex items-center gap-3 relative">
+              {user && (user.is_staff || user.role === 'admin') && (
+                <NavLink
+                  to="/admin/properties"
+                  className={({ isActive }) => `flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200
+                    ${isActive ? 'bg-blue-600 text-white shadow-sm' : isScrolled ? 'bg-blue-50 text-blue-700 hover:bg-blue-100' : 'bg-white/15 text-white hover:bg-white/25'}
+                  `}
+                >
+                  <LayoutDashboard size={16} />
+                  <span>Admin</span>
+                </NavLink>
+              )}
               <LanguageSwitcher />
             </div>
 
