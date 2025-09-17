@@ -6,7 +6,7 @@ import { useTranslation } from '../translations';
 
 const Footer: React.FC = () => {
   const { language } = useLanguage();
-  const t = useTranslation(language);
+  useTranslation(language);
   const [email, setEmail] = useState('');
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
@@ -106,32 +106,32 @@ const Footer: React.FC = () => {
               </h3>
               <ul className="space-y-3">
                 <li>
-                  <Link to="/properties?type=temporal" className="text-gray-400 hover:text-white transition-colors font-semibold">
+                  <Link to="/properties?propertyType=temporal" className="text-gray-400 hover:text-white transition-colors font-semibold">
                     Alquiler Temporal
                   </Link>
                 </li>
                 <li>
-                  <Link to="/properties?type=vacacional" className="text-gray-400 hover:text-white transition-colors font-semibold">
+                  <Link to="/properties?propertyType=vacacional" className="text-gray-400 hover:text-white transition-colors font-semibold">
                     Alquiler Vacacional
                   </Link>
                 </li>
                 <li>
-                  <Link to="/properties?type=tradicional" className="text-gray-400 hover:text-white transition-colors font-semibold">
+                  <Link to="/properties?propertyType=tradicional" className="text-gray-400 hover:text-white transition-colors font-semibold">
                     Alquiler Tradicional
                   </Link>
                 </li>
                 <li>
-                  <Link to="/services/administration" className="text-gray-400 hover:text-white transition-colors">
+                  <Link to="/contacto" className="text-gray-400 hover:text-white transition-colors">
                     Administración
                   </Link>
                 </li>
                 <li>
-                  <Link to="/services/investment" className="text-gray-400 hover:text-white transition-colors">
+                  <Link to="/contacto" className="text-gray-400 hover:text-white transition-colors">
                     Asesoramiento
                   </Link>
                 </li>
                 <li>
-                  <Link to="/services/valuation" className="text-gray-400 hover:text-white transition-colors">
+                  <Link to="/contacto" className="text-gray-400 hover:text-white transition-colors">
                     Tasaciones
                   </Link>
                 </li>

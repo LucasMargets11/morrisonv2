@@ -112,7 +112,17 @@ type TranslationKey =
   | 'footer.faq'
   | 'footer.privacy'
   | 'footer.terms'
-  | 'footer.careers';
+  | 'footer.careers'
+
+  // Homepage sections
+  | 'home.testimonials.title'
+  | 'home.testimonials.subtitle'
+  | 'home.stats.title'
+  | 'home.stats.subtitle'
+  | 'home.loadingFeatured'
+  | 'home.errorLoadingProperties'
+  | 'home.featured.title'
+  | 'home.featured.subtitle';
 
 type Translations = {
   [key in TranslationKey]: string;
@@ -214,7 +224,7 @@ const translations: Record<Language, Translations> = {
     'stats.locations': 'Ubicaciones',
 
     // CTA
-    'cta.title': '¿Listo para Encontrar tu Casa Ideal?',
+    'cta.title': '¿Listo para encontrar tu Propiedad ideal?',
     'cta.subtitle': 'Nuestros agentes están listos para ayudarte',
     'cta.button.primary': 'Ver Propiedades',
     'cta.button.secondary': 'Contactar Agente',
@@ -232,6 +242,18 @@ const translations: Record<Language, Translations> = {
     'footer.privacy': 'Política de Privacidad',
     'footer.terms': 'Términos de Servicio',
     'footer.careers': 'Trabaja con Nosotros'
+    ,
+
+    // Homepage sections
+    'home.testimonials.title': 'Lo que dicen nuestros clientes',
+    'home.testimonials.subtitle': 'No te quedes solo con nuestra palabra — escucha a nuestros clientes satisfechos',
+  'home.stats.title': '¿Por qué elegir Grupo Bairen?',
+    'home.stats.subtitle': 'Con experiencia y dedicación, hemos ayudado a cientos de clientes a encontrar su propiedad ideal',
+    'home.loadingFeatured': 'Cargando propiedades destacadas...',
+    'home.errorLoadingProperties': 'Error al cargar propiedades.'
+    ,
+    'home.featured.title': 'Propiedades Destacadas',
+    'home.featured.subtitle': 'Explora entre nuestra colección de propiedades exclusivas.'
   },
 
   en: {
@@ -347,6 +369,18 @@ const translations: Record<Language, Translations> = {
     'footer.privacy': 'Privacy Policy',
     'footer.terms': 'Terms of Service',
     'footer.careers': 'Careers'
+    ,
+
+    // Homepage sections
+    'home.testimonials.title': 'What Our Clients Say',
+    'home.testimonials.subtitle': "Don't just take our word for it - hear from our satisfied clients",
+  'home.stats.title': 'Why Choose Grupo Bairen?',
+    'home.stats.subtitle': "With our expertise and dedication, we've helped hundreds of clients find their perfect property",
+    'home.loadingFeatured': 'Loading featured properties...',
+    'home.errorLoadingProperties': 'Error loading properties.'
+    ,
+    'home.featured.title': 'Featured Properties',
+    'home.featured.subtitle': 'Explore our exclusive collection of premium properties.'
   },
 
   pt: {
@@ -462,6 +496,18 @@ const translations: Record<Language, Translations> = {
     'footer.privacy': 'Política de Privacidade',
     'footer.terms': 'Termos de Serviço',
     'footer.careers': 'Carreiras'
+    ,
+
+    // Homepage sections
+    'home.testimonials.title': 'O que dizem nossos clientes',
+    'home.testimonials.subtitle': 'Não fique só com a nossa palavra — veja o que dizem nossos clientes satisfeitos',
+  'home.stats.title': 'Por que escolher o Grupo Bairen?',
+    'home.stats.subtitle': 'Com experiência e dedicação, ajudamos centenas de clientes a encontrar o imóvel ideal',
+    'home.loadingFeatured': 'Carregando imóveis em destaque...',
+    'home.errorLoadingProperties': 'Erro ao carregar imóveis.'
+    ,
+    'home.featured.title': 'Imóveis em Destaque',
+    'home.featured.subtitle': 'Explore nossa coleção exclusiva de propriedades premium.'
   }
 };
 

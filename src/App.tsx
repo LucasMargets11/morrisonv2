@@ -12,7 +12,7 @@ import ContactPage from './pages/ContactPage';
 import AboutPage from './pages/AboutPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
-import FAQPage from './pages/FAQPage';
+import FAQPage from './pages/FaqPage';
 import TestimonialsPage from './pages/TestimonialsPage';
 import CareersPage from './pages/CareersPage';
 
@@ -122,6 +122,7 @@ function HeaderFooterLayout() {
           <Route path="/property/:id" element={<PropertyDetailsPage />} />
           <Route path="/agents" element={<AgentsPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/contacto" element={<ContactPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />

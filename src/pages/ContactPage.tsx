@@ -139,10 +139,10 @@ const ContactPage: React.FC = () => {
                   <h3 className="text-base md:text-lg font-bold text-white mb-1 group-hover:text-blue-200 transition-colors">Email</h3>
                   <p className="text-white/70 text-xs md:text-sm mb-2">Escríbenos y te responderemos</p>
                   <a 
-                    href="mailto:info@grupobairen.com" 
+                    href="mailto:grupobairen@gmail.com" 
                     className="text-white/90 hover:text-blue-400 text-xs md:text-sm font-medium break-all transition-colors duration-200 border-b border-blue-400/30 hover:border-blue-400/60 pb-1"
                   >
-                    info@grupobairen.com
+                    grupobairen@gmail.com
                   </a>
                 </div>
               </div>
@@ -158,10 +158,10 @@ const ContactPage: React.FC = () => {
                   <h3 className="text-base md:text-lg font-bold text-white mb-1 group-hover:text-green-200 transition-colors">Teléfono</h3>
                   <p className="text-white/70 text-xs md:text-sm mb-2">Llámanos directamente</p>
                   <a 
-                    href="tel:+541130454989" 
+                    href="tel:+5491123106629" 
                     className="text-white/90 hover:text-green-400 font-semibold text-xs md:text-lg transition-colors duration-200 border-b border-green-400/30 hover:border-green-400/60 pb-1"
                   >
-                    +54 11 3045-4989
+                    +54 9 11 2310-6629
                   </a>
                 </div>
               </div>
@@ -177,8 +177,8 @@ const ContactPage: React.FC = () => {
                   <h3 className="text-base md:text-lg font-bold text-white mb-1 group-hover:text-purple-200 transition-colors">Dirección</h3>
                   <p className="text-white/70 text-xs md:text-sm mb-2">Visítanos en persona</p>
                   <p className="text-white/90 font-medium text-xs md:text-sm leading-relaxed">
-                    La Rioja 1578<br />
-                    Posadas, Misiones<br />
+                    Las Heras 3331<br />
+                    Palermo, CABA<br />
                     <span className="text-white/70">Argentina</span>
                   </p>
                 </div>

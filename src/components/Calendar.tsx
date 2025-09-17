@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
@@ -33,6 +33,9 @@ const Calendar: React.FC<CalendarProps> = ({
 }) => {
   const [startDate, setStartDate] = useState<Date | null>(initialStartDate);
   const [endDate, setEndDate] = useState<Date | null>(initialEndDate);
+  const [baseOffset, setBaseOffset] = useState(0); // desplazar los meses mostrados
+  const touchStartX = useRef<number | null>(null);
+  const touchDeltaX = useRef(0);
 
   // Mantener sincronizado si cambian las props iniciales
   useEffect(() => {
@@ -64,6 +67,9 @@ const Calendar: React.FC<CalendarProps> = ({
       weeks: totalWeeks,
     };
   };
+
+  const handlePrevMonth = () => setBaseOffset((o) => o - 1);
+  const handleNextMonth = () => setBaseOffset((o) => o + 1);
 
   const handleSelectDate = (date: Date) => {
   // Evitar seleccionar dentro de bloqueos
@@ -165,9 +171,17 @@ const Calendar: React.FC<CalendarProps> = ({
   }, []);
 
   const modal = (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-2xl overflow-hidden">
-        <div className="p-4 md:p-6">
+    <div
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 sm:p-4"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        className="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-xl shadow-2xl overflow-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-3 sm:p-4 md:p-6">
           <button
             onClick={onClose}
             className="absolute right-3 top-3 p-1.5 hover:bg-gray-100 rounded-full transition-colors z-10"
@@ -181,9 +195,31 @@ const Calendar: React.FC<CalendarProps> = ({
             <p className="text-gray-600 text-sm">{formatDateRange()}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"
+            onTouchStart={(e) => {
+              touchStartX.current = e.touches[0].clientX;
+              touchDeltaX.current = 0;
+            }}
+            onTouchMove={(e) => {
+              if (touchStartX.current === null) return;
+              touchDeltaX.current = e.touches[0].clientX - touchStartX.current;
+            }}
+            onTouchEnd={() => {
+              const threshold = 50;
+              if (Math.abs(touchDeltaX.current) > threshold) {
+                if (touchDeltaX.current > 0) {
+                  handlePrevMonth();
+                } else {
+                  handleNextMonth();
+                }
+              }
+              touchStartX.current = null;
+              touchDeltaX.current = 0;
+            }}
+          >
             {Array.from({ length: monthsToShow }, (_, i) => {
-              const { monthLabel, days, weeks } = generateMonth(i);
+              const { monthLabel, days, weeks } = generateMonth(baseOffset + i);
               return (
                 <div key={i} className="w-full">
                   <h3 className="text-center font-semibold mb-4 text-gray-900 capitalize">{monthLabel}</h3>
@@ -219,7 +255,7 @@ const Calendar: React.FC<CalendarProps> = ({
                         <div
                           key={idx}
                           className={`
-                            relative h-12 w-12 flex flex-col items-center justify-center text-xs rounded-md mx-auto transition-all duration-150
+                            relative h-10 w-10 sm:h-12 sm:w-12 flex flex-col items-center justify-center text-xs rounded-md mx-auto transition-all duration-150
                             ${!day ? 'invisible' : ''}
                             ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}
                           `}
@@ -229,7 +265,7 @@ const Calendar: React.FC<CalendarProps> = ({
                             <>
                               <div className={circleClasses}>{day.getDate()}</div>
                               {!blocked && (
-                                <span className={`mt-0.5 leading-none ${selected ? 'text-blue-600' : 'text-gray-500'} text-[10px]`}>
+                                <span className={`mt-0.5 leading-none ${selected ? 'text-blue-600' : 'text-gray-500'} text-[9px] sm:text-[10px]`}>
                                   ${getPriceForDate(day) ?? ''}
                                 </span>
                               )}
@@ -258,6 +294,24 @@ const Calendar: React.FC<CalendarProps> = ({
               Aplicar fechas
             </button>
           </div>
+
+          {/* Controles de navegación de mes */}
+          <button
+            type="button"
+            onClick={handlePrevMonth}
+            aria-label="Mes anterior"
+            className="hidden sm:flex items-center justify-center absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full shadow p-2"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button
+            type="button"
+            onClick={handleNextMonth}
+            aria-label="Mes siguiente"
+            className="hidden sm:flex items-center justify-center absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full shadow p-2"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
         </div>
       </div>
     </div>

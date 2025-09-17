@@ -3,6 +3,22 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 const api = axios.create({ baseURL: API_URL });
 
+// Single-flight control for refresh to avoid multiple parallel refresh calls
+let isRefreshing = false as boolean;
+type QueueItem = { resolve: (value: any) => void; reject: (error: any) => void };
+const failedQueue: QueueItem[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  while (failedQueue.length) {
+    const { resolve, reject } = failedQueue.shift()!;
+    if (token) {
+      resolve(token);
+    } else {
+      reject(error);
+    }
+  }
+};
+
 api.interceptors.request.use(cfg => {
   const token = localStorage.getItem('access_token');
   if (token) cfg.headers!['Authorization'] = `Bearer ${token}`;
@@ -12,41 +28,66 @@ api.interceptors.request.use(cfg => {
 api.interceptors.response.use(
   res => res,
   async err => {
-    const originalRequest = err.config;
+    const originalRequest = err.config || {};
     const status = err.response?.status;
+    const url = (originalRequest.url || '') as string;
 
-    if (
-      status === 401 &&
-      !originalRequest._retry &&
-      localStorage.getItem('refresh_token') &&
-      !originalRequest.url?.includes('/login/') // No intentar refresh en login
-    ) {
-      originalRequest._retry = true;
+    // Never try to refresh on auth endpoints themselves
+    const isAuthEndpoint = url.includes('/users/login') || url.includes('/users/token/refresh');
+
+    if (status === 401 && !isAuthEndpoint) {
+      const req: any = originalRequest; // allow custom flags
+
+      // Prevent retry loops per-request
+      if (req._retry) {
+        return Promise.reject(err);
+      }
+
       const refreshToken = localStorage.getItem('refresh_token');
-
       if (!refreshToken) {
         localStorage.clear();
-        // Solo redirigir a login admin si estamos en rutas admin
         if (window.location.pathname.startsWith('/admin')) {
           window.location.href = '/admin/login';
         }
         return Promise.reject(err);
       }
 
+      // Queue requests while one refresh is in flight
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((newToken) => {
+            req._retry = true;
+            req.headers = req.headers || {};
+            req.headers['Authorization'] = `Bearer ${newToken}`;
+            return api(req);
+          })
+          .catch((queueErr) => Promise.reject(queueErr));
+      }
+
+      req._retry = true;
+      isRefreshing = true;
+
       try {
-        const { data } = await api.post('/users/token/refresh/', { refresh: refreshToken });
+        // Use a clean client without interceptors for refresh
+        const refreshClient = axios.create({ baseURL: API_URL });
+        const { data } = await refreshClient.post('/users/token/refresh/', { refresh: refreshToken });
 
         if (data?.access) {
           localStorage.setItem('access_token', data.access);
-          originalRequest.headers['Authorization'] = `Bearer ${data.access}`;
-          return api(originalRequest);
+          isRefreshing = false;
+          processQueue(null, data.access);
+          req.headers = req.headers || {};
+          req.headers['Authorization'] = `Bearer ${data.access}`;
+          return api(req);
         } else {
           throw new Error('No se recibió nuevo access token');
         }
-
       } catch (refreshError) {
+        isRefreshing = false;
+        processQueue(refreshError, null);
         localStorage.clear();
-        // Solo redirigir a login admin si estamos en rutas admin
         if (window.location.pathname.startsWith('/admin')) {
           window.location.href = '/admin/login';
         }

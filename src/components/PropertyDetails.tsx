@@ -256,9 +256,9 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property }) => {
         </div>
 
         {/* Modal calendario único (misma UI que el resto) */}
-    {isCalendarOpen && (
+        {isCalendarOpen && (
           <Calendar
-            monthsToShow={2}
+            monthsToShow={typeof window !== 'undefined' && window.innerWidth < 640 ? 1 : 2}
             initialStartDate={startDate ?? undefined}
             initialEndDate={endDate ?? undefined}
             onDateSelect={handleCalendarSelect}

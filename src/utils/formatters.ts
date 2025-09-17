@@ -1,10 +1,16 @@
+import { getCurrentLanguage, mapLanguageToLocale } from '../contexts/LanguageContext';
+
 /**
- * Format price as currency
+ * Format price as currency using current locale
  */
 export const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat('en-US', {
+  const lang = getCurrentLanguage();
+  const locale = mapLanguageToLocale(lang);
+  // Currency can be adjusted; keeping USD as placeholder if backend sends USD-equivalent
+  const currency = lang === 'es' ? 'ARS' : lang === 'pt' ? 'BRL' : 'USD';
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: 'USD',
+    currency,
     maximumFractionDigits: 0,
   }).format(price);
 };
@@ -13,7 +19,8 @@ export const formatPrice = (price: number): string => {
  * Format number with commas
  */
 export const formatNumber = (num: number): string => {
-  return new Intl.NumberFormat('en-US').format(num);
+  const locale = mapLanguageToLocale(getCurrentLanguage());
+  return new Intl.NumberFormat(locale).format(num);
 };
 
 /**

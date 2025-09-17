@@ -4,9 +4,9 @@ import Button from '../components/UI/Button';
 
 const AboutPage: React.FC = () => {
   const stats = [
-    { icon: Home, value: '500+', label: 'Propiedades Vendidas' },
-    { icon: Users, value: '1000+', label: 'Clientes Satisfechos' },
-    { icon: Award, value: '15+', label: 'Años de Experiencia' },
+    { icon: Home, value: '100+', label: 'Propiedades Administradas' },
+    { icon: Users, value: '3000+', label: 'Clientes Satisfechos' },
+    { icon: Award, value: '5+', label: 'Años de Experiencia' },
     { icon: TrendingUp, value: '95%', label: 'Éxito en Ventas' },
   ];
 
@@ -17,7 +17,7 @@ const AboutPage: React.FC = () => {
     },
     {
       title: 'Experiencia',
-      description: 'Más de 15 años en el mercado inmobiliario local.',
+      description: 'Más de 5 años en el mercado inmobiliario local.',
     },
     {
       title: 'Confianza',
@@ -46,7 +46,7 @@ const AboutPage: React.FC = () => {
               Sobre Grupo Bairen
             </h1>
             <p className="text-xl">
-              Tu socio de confianza en el mercado inmobiliario de Posadas y zona
+              Tu socio de confianza en el mercado inmobiliario.
             </p>
           </div>
         </div>
@@ -82,7 +82,7 @@ const AboutPage: React.FC = () => {
               </h2>
               <div className="space-y-4 text-gray-600">
                 <p>
-                  Fundado en 2008, Grupo Bairen nació con la visión de transformar 
+                  Fundado en 2020, Grupo Bairen nació con la visión de transformar 
                   la experiencia inmobiliaria en Posadas, Misiones. Lo que comenzó 
                   como un pequeño emprendimiento familiar, hoy se ha convertido en 
                   una de las inmobiliarias más confiables de la región.
