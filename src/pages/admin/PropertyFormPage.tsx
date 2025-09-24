@@ -6,7 +6,8 @@ import { useDropzone } from 'react-dropzone';
 import { ArrowLeft, Upload, X, Loader2, Home, MapPin, DollarSign, Bed, Bath, Square, Calendar } from 'lucide-react';
 import { adminApi } from '../../lib/admin';
 import Button from '../../components/UI/Button';
-import PropertyCalendar from '../../components/admin/PropertyCalendar';
+import { lazy, Suspense } from 'react';
+const PropertyCalendar = lazy(() => import('../../components/admin/PropertyCalendar'));
 import { Property, PropertyImage } from '../../types/admin';
 
 type PropertyFormData = Omit<Property, 'id' | 'created_at' | 'updated_at' | 'media'>;
@@ -872,7 +873,9 @@ const PropertyFormPage: React.FC = () => {
         {/* Calendario (solo en modo edición) */}
         {property && (
           <div className="mt-8">
-            <PropertyCalendar property={property} />
+            <Suspense fallback={<div>Cargando calendario…</div>}>
+              <PropertyCalendar property={property} />
+            </Suspense>
           </div>
         )}
       </div>
