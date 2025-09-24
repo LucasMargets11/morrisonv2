@@ -4,7 +4,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from '../translations';
 import Calendar from './Calendar';
 import dayjs from 'dayjs';
-import { adminApi } from '../lib/admin'; // Asegúrate de importar tu API
 import { useNavigate } from 'react-router-dom';
 
 const Hero: React.FC = () => {
@@ -33,7 +32,7 @@ const Hero: React.FC = () => {
 
   useEffect(() => {
     // Cargar sugerencias únicas de city, address y zone al montar el componente
-    adminApi.getProperties().then((props) => {
+    import('../lib/admin').then(({ adminApi }) => adminApi.getProperties()).then((props) => {
       const unique = Array.from(
         new Set(
           props.flatMap((p: any) => [

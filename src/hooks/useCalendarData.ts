@@ -1,7 +1,6 @@
 // src/hooks/useCalendarData.ts
 import { useMemo } from 'react'
 import { useQueries } from '@tanstack/react-query'
-import { adminApi } from '../lib/admin'
 import { formatCalendarEvents } from '../utils/CalendarEvents'
 
 export function useCalendarData(propertyId?: number) {
@@ -10,15 +9,15 @@ export function useCalendarData(propertyId?: number) {
     queries: [
       {
         queryKey: ['bookings', propertyId],
-        queryFn: () => adminApi.getBookings(propertyId),
+        queryFn: async () => (await import('../lib/admin')).adminApi.getBookings(propertyId as number),
       },
       {
         queryKey: ['blocks', propertyId],
-        queryFn: () => adminApi.getBlocks(propertyId),
+        queryFn: async () => (await import('../lib/admin')).adminApi.getBlocks(propertyId as number),
       },
       {
         queryKey: ['properties'],
-        queryFn: () => adminApi.getProperties(),
+        queryFn: async () => (await import('../lib/admin')).adminApi.getProperties(),
       },
     ],
   })

@@ -1,6 +1,5 @@
 import React, { useMemo, useState, createContext, useContext, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { adminApi } from '../lib/admin';
 import PropertyCard from '../components/UI/PropertyCard';
 import { Property } from '../types';
 import { Home as HomeIcon, Users, X } from 'lucide-react';
@@ -42,7 +41,7 @@ const PropertiesPage: React.FC = () => {
   // Fetch filtered properties from API
   const { data: properties = [], isLoading, isError } = useQuery({
     queryKey: ['properties', { search, start, end, adults, children, babies, zone, priceRange, propertyType, bedroomCount }],
-    queryFn: () => adminApi.getProperties({ search, start, end, adults, children, babies, zone, priceRange, propertyType, bedroomCount }),
+    queryFn: async () => (await import('../lib/admin')).adminApi.getProperties({ search, start, end, adults, children, babies, zone, priceRange, propertyType, bedroomCount }),
   });
 
   // Map API response to interface Property

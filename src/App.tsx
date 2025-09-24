@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider, useIsFetching } from '@tanstack/react-query';
 import { LanguageProvider } from './contexts/LanguageContext';
@@ -16,11 +16,11 @@ import FAQPage from './pages/FaqPage';
 import TestimonialsPage from './pages/TestimonialsPage';
 import CareersPage from './pages/CareersPage';
 
-// Admin Pages
-import AdminLoginPage from './pages/admin/AdminLoginPage';
+// Admin Pages (lazy-loaded)
+const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'));
 import ProtectedRoute from './components/admin/ProtectedRoute';
-import PropertyListPage from './pages/admin/PropertyListPage';
-import PropertyFormPage from './pages/admin/PropertyFormPage';
+const PropertyListPage = lazy(() => import('./pages/admin/PropertyListPage'));
+const PropertyFormPage = lazy(() => import('./pages/admin/PropertyFormPage'));
 
 const queryClient = new QueryClient();
 
@@ -95,7 +95,14 @@ function App() {
             <GlobalLoader />
             <Routes>
               {/* Admin Login (sin header/footer) */}
-              <Route path="/admin/login" element={<AdminLoginPage />} />
+              <Route
+                path="/admin/login"
+                element={
+                  <Suspense fallback={<div className="py-10 text-center">Cargando...</div>}>
+                    <AdminLoginPage />
+                  </Suspense>
+                }
+              />
               
               {/* Rutas con Header/Footer */}
               <Route path="/*" element={
@@ -133,12 +140,14 @@ function HeaderFooterLayout() {
           {/* Rutas protegidas de admin */}
           <Route path="/admin/*" element={
             <ProtectedRoute>
-              <Routes>
-                <Route path="properties" element={<PropertyListPage />} />
-                <Route path="properties/new" element={<PropertyFormPage />} />
-                <Route path="properties/:id/edit" element={<PropertyFormPage />} />
-                {/* Agregar más rutas de admin aquí */}
-              </Routes>
+              <Suspense fallback={<div className="py-10 text-center">Cargando panel…</div>}>
+                <Routes>
+                  <Route path="properties" element={<PropertyListPage />} />
+                  <Route path="properties/new" element={<PropertyFormPage />} />
+                  <Route path="properties/:id/edit" element={<PropertyFormPage />} />
+                  {/* Agregar más rutas de admin aquí */}
+                </Routes>
+              </Suspense>
             </ProtectedRoute>
           } />
         </Routes>

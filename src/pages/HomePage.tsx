@@ -6,7 +6,6 @@ import TestimonialsSection from '../components/TestimonialsSection';
 // import AgentsSection from '../components/AgentsSection';
 import CTASection from '../components/CTASection';
 import { useQuery } from '@tanstack/react-query';
-import { adminApi } from '../lib/admin';
 import { Property } from '../types/index';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from '../translations';
@@ -14,7 +13,8 @@ import { useTranslation } from '../translations';
 const HomePage: React.FC = () => {
   const { data: properties = [], isLoading, isError } = useQuery<any[], Error>({
     queryKey: ['properties'],
-    queryFn: () => adminApi.getProperties(),
+    // dynamic import to avoid bundling adminApi in main chunk
+    queryFn: async () => (await import('../lib/admin')).adminApi.getProperties(),
   });
 
   const { language } = useLanguage();

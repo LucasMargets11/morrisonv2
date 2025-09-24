@@ -3,7 +3,6 @@ import Calendar from './Calendar';
 import { BedDouble, Bath, Ruler, Calendar as CalendarIcon, Home, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
-import { adminApi } from '../lib/admin';
 import { Property } from '../types';
 import { formatPrice, formatNumber } from '../utils/formatters';
 import Button from './UI/Button';
@@ -61,6 +60,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property }) => {
     (async () => {
       if (!property?.id) return;
       try {
+        const { adminApi } = await import('../lib/admin');
         const blocks = await adminApi.getBlocks(Number(property.id));
         const mapped = blocks.map((b: any) => ({ start: b.check_in_date, end: b.check_out_date }));
         setBlockedRanges(mapped);
