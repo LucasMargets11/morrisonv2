@@ -144,7 +144,7 @@ const translations: Record<Language, Translations> = {
     'auth.rememberMe': 'Recordarme',
 
     // Hero Section
-    'hero.title': 'Encuentra tu Casa Ideal',
+  'hero.title': 'Encuentra tu Propiedad Ideal',
     'hero.subtitle': 'Descubre la propiedad perfecta de nuestra selección premium',
     'hero.search.placeholder': 'Ciudad, barrio o dirección',
     'hero.filters.anyPrice': 'Cualquier Precio',
@@ -271,7 +271,7 @@ const translations: Record<Language, Translations> = {
     'auth.rememberMe': 'Remember Me',
 
     // Hero Section
-    'hero.title': 'Find Your Dream Home',
+  'hero.title': 'Find Your Ideal Property',
     'hero.subtitle': 'Discover the perfect property from our curated selection',
     'hero.search.placeholder': 'City, neighborhood, or address',
     'hero.filters.anyPrice': 'Any Price',
@@ -398,7 +398,7 @@ const translations: Record<Language, Translations> = {
     'auth.rememberMe': 'Lembrar-me',
 
     // Hero Section
-    'hero.title': 'Encontre sua Casa dos Sonhos',
+  'hero.title': 'Encontre sua Propriedade Ideal',
     'hero.subtitle': 'Descubra a propriedade perfeita em nossa seleção premium',
     'hero.search.placeholder': 'Cidade, bairro ou endereço',
     'hero.filters.anyPrice': 'Qualquer Preço',
