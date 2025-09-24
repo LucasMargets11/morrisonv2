@@ -10,6 +10,7 @@ const Hero: React.FC = () => {
   const { language } = useLanguage();
   const t = useTranslation(language);
   const navigate = useNavigate();
+  const videoUrl = `${import.meta.env.BASE_URL}videos/fondo.mp4`;
 
   // Date selection state
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -137,7 +138,7 @@ const Hero: React.FC = () => {
       <div className="absolute inset-0 z-0">
         <video
           className="w-full h-full object-cover"
-          src="/videos/fondo.mp4"
+          src={videoUrl}
           autoPlay
           muted
           loop

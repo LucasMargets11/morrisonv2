@@ -8,6 +8,7 @@ const Footer: React.FC = () => {
   const { language } = useLanguage();
   useTranslation(language);
   const [email, setEmail] = useState('');
+  const logoUrl = `${import.meta.env.BASE_URL}logo_transparent.png`;
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +27,7 @@ const Footer: React.FC = () => {
             <div className="block md:hidden text-center mb-6">
               <div className="flex flex-col items-center justify-center">
                 <img
-                  src="/logo_transparent para web-01.svg"
+                  src={logoUrl}
                   alt="Grupo Bairen"
                   className="w-14 h-14 mb-2"
                 />
@@ -48,7 +49,7 @@ const Footer: React.FC = () => {
             <div className="hidden md:block">
               <div className="flex items-center mb-4">
                 <img
-                  src="/logo_transparent para web-01.svg"
+                  src={logoUrl}
                   alt="Grupo Bairen"
                   className="w-12 h-12"
                 />
