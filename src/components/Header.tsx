@@ -42,7 +42,7 @@ const Header: React.FC = () => {
     ? 'text-gray-800 hover:text-blue-900 hover:scale-110'
     : 'text-white hover:text-blue-100 hover:scale-110';
 
-  const logoUrl = `${import.meta.env.BASE_URL}${encodeURIComponent('logo_transparent para web-01.svg')}`;
+  const logoUrl = `${import.meta.env.BASE_URL}logo_transparentweb.svg`;
 
   return (
   <div className="fixed top-0 left-0 right-0 z-[60]">
