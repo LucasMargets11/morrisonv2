@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
   const { language } = useLanguage();
   useTranslation(language);
   const [email, setEmail] = useState('');
-  const logoUrl = `${import.meta.env.BASE_URL}logo_transparent.png`;
+  const logoUrl = `${import.meta.env.BASE_URL}logo_transparentweb.svg`;
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
