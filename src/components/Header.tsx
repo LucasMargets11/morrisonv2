@@ -42,7 +42,7 @@ const Header: React.FC = () => {
     ? 'text-gray-800 hover:text-blue-900 hover:scale-110'
     : 'text-white hover:text-blue-100 hover:scale-110';
 
-  const logoUrl = `${import.meta.env.BASE_URL}logo_transparent.png`;
+  const logoUrl = `${import.meta.env.BASE_URL}${encodeURIComponent('logo_transparent para web-01.svg')}`;
 
   return (
   <div className="fixed top-0 left-0 right-0 z-[60]">
@@ -60,7 +60,7 @@ const Header: React.FC = () => {
               <img
                 src={logoUrl}
                 alt="GrupoBairen"
-                className="w-8 h-8 transition-filter duration-300"
+                className="w-10 h-10 -my-1 transition-filter duration-300"
                 style={{ filter: isScrolled ? 'none' : 'invert(0)' }}
               />
               <span
