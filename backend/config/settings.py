@@ -10,12 +10,14 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'your-secret-key-here')
 GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', 'AIzaSyAhKUEMZevObTmkKtml47NvHQFkDKyZt7o')
 USE_GEOCODING = os.environ.get('USE_GEOCODING', 'true').lower() == 'true'
 
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', os.getenv('DEBUG', 'false')).lower() == 'true'
 
 # ALLOWED_HOSTS: configurable vía DJANGO_ALLOWED_HOSTS (coma separada). Ej:
 # DJANGO_ALLOWED_HOSTS="api.bairengroup.com,.bairengroup.com,.elasticbeanstalk.com,localhost,127.0.0.1"
 # Uso temporal de "*" sólo si el ALB hace health check sin Host correcto (no recomendable a largo plazo).
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",") if os.getenv("ALLOWED_HOSTS") else [
+# Prefer DJANGO_ALLOWED_HOSTS but support legacy ALLOWED_HOSTS for compatibility
+_hosts_env = os.getenv("DJANGO_ALLOWED_HOSTS") or os.getenv("ALLOWED_HOSTS") or ""
+ALLOWED_HOSTS = [h.strip() for h in _hosts_env.split(",") if h.strip()] or [
     "api.bairengroup.com",
     "admin.bairengroup.com",            # your domain
     ".elasticbeanstalk.com",          # EB URLs
