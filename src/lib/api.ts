@@ -6,8 +6,12 @@ import axios from 'axios';
 //     'http://localhost:8000'        (direct dev)
 //     'https://api.bairengroup.com'  (production)
 // We append '/api/' internally for DRF endpoints where appropriate.
-// If VITE_API_BASE is not set we fallback to localhost.
-const RAW_BASE = (import.meta.env.VITE_API_BASE ?? '').trim();
+// If VITE_API_BASE (legacy) or VITE_API_BASE_URL (preferred) not set we fallback to localhost.
+const RAW_BASE = (
+  import.meta.env.VITE_API_BASE_URL ??
+  import.meta.env.VITE_API_BASE ??
+  ''
+).trim();
 const BASE = RAW_BASE === '' ? 'http://localhost:8000' : RAW_BASE.replace(/\/$/, '');
 
 // Helper to build paths ensuring single slashes and trailing slash for DRF list endpoints
