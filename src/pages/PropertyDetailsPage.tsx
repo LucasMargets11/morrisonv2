@@ -23,7 +23,7 @@ const PropertyDetailsPage: React.FC = () => {
   useEffect(() => {
     const fetchProperty = async () => {
       try {
-        const { data } = await api.get(`/properties/${id}/`);
+  const { data } = await api.get(`properties/${id}/`);
         // Normalizar campos snake_case -> camelCase usados en componentes
         const normalized = {
           ...data,
@@ -38,7 +38,7 @@ const PropertyDetailsPage: React.FC = () => {
             : [],
         } as any;
         setProperty(normalized);
-        const all = await api.get('/properties/');
+  const all = await api.get('properties/');
         const baseList = Array.isArray(all.data.results) ? all.data.results : all.data;
         const similar = baseList
           .filter((p: any) => p.id !== data.id && p.city === data.city && Math.abs(p.price - data.price) < data.price * 0.3)

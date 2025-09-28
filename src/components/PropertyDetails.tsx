@@ -40,7 +40,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property }) => {
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await api.get<{ role: string }>('/users/role/');
+  const { data } = await api.get<{ role: string }>('users/role/');
         setIsAdmin(data.role === 'admin');
       } catch {
         setIsAdmin(false);
@@ -51,7 +51,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property }) => {
   // Tarifas estacionales
   useEffect(() => {
     if (property?.id) {
-      api.get(`/properties/${property.id}/pricing/`).then(res => setPricings(res.data));
+  api.get(`properties/${property.id}/pricing/`).then(res => setPricings(res.data));
     }
   }, [property]);
 

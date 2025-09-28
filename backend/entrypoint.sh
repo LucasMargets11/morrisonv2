@@ -1,7 +1,10 @@
 #!/usr/bin/env sh
 set -e
 
-python manage.py collectstatic --noinput
 python manage.py migrate --noinput
+python manage.py collectstatic --noinput
 
-exec gunicorn config.wsgi:application -c gunicorn.conf.py
+exec gunicorn config.wsgi:application \
+  --bind 0.0.0.0:${PORT:-5000} \
+  --workers ${WEB_CONCURRENCY:-3} \
+  --timeout 60

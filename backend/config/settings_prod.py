@@ -1,77 +1,82 @@
 import os
+import dj_database_url
 from .settings import *  # noqa
-
-# Production overrides for AWS deployment
 
 DEBUG = False
 
-# Security hardening
-SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "true").lower() == "true"
+# Seguridad
+SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "31536000"))  # 1 year
+SECURE_HSTS_SECONDS = 31536000  # 1 año
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
-# CORS/CSRF
-CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if os.getenv("CORS_ALLOWED_ORIGINS") else []
-CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if os.getenv("CSRF_TRUSTED_ORIGINS") else []
+# Evitar 301/302 en health (HTTP / HTTPS)
+SECURE_REDIRECT_EXEMPT = [r"^health/?$"]
 
-# Respect X-Forwarded-Proto when behind ALB/ELB terminating TLS
+# Hosts (public + API). Admin subdomain no longer exposed directly; ALB/EB internal host kept optional if needed.
+ALLOWED_HOSTS = [
+    "api.bairengroup.com",
+    "bairengroup.com",
+    "www.bairengroup.com",
+    "bairen-api-prod.us-east-1.elasticbeanstalk.com",
+    "localhost",
+    "127.0.0.1",
+    ".elasticbeanstalk.com",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://bairengroup.com",
+    "https://www.bairengroup.com",
+    "https://admin.bairen.group",
+    "https://api.bairengroup.com",
+    "https://app.bairen.group",
+]
+
+# Proxy/ALB
+USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# Use S3 for static and media via django-storages
-INSTALLED_APPS = list(INSTALLED_APPS) + ["storages"]
-
-AWS_STORAGE_BUCKET_NAME = os.environ["AWS_STORAGE_BUCKET_NAME"]
-AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "us-east-1")
-AWS_S3_SIGNATURE_VERSION = os.getenv("AWS_S3_SIGNATURE_VERSION", "s3v4")
-AWS_S3_FILE_OVERWRITE = False
-AWS_DEFAULT_ACL = None
-AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
-
-# Optional: custom domain (e.g., CloudFront) for media/static
-AWS_S3_CUSTOM_DOMAIN = os.getenv("AWS_S3_CUSTOM_DOMAIN", None)
-
-STORAGES = {
-    "default": {
-        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-        # Store uploads under "media/" prefix to separate from static
-        "OPTIONS": {"location": os.getenv("AWS_MEDIA_LOCATION", "media")},
-    },
-    "staticfiles": {
-        "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
-        "OPTIONS": {"location": os.getenv("AWS_STATIC_LOCATION", "static")},
-    },
+# DB (RDS) con SSL y keep-alive razonable
+DATABASES = {
+    "default": dj_database_url.config(
+        env="DATABASE_URL",
+        conn_max_age=60,
+        ssl_require=True,
+    )
 }
 
-if AWS_S3_CUSTOM_DOMAIN:
-    STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{os.getenv('AWS_STATIC_LOCATION', 'static')}/"
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{os.getenv('AWS_MEDIA_LOCATION', 'media')}/"
-else:
-    STATIC_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/{os.getenv('AWS_STATIC_LOCATION', 'static')}/"
-    MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/{os.getenv('AWS_MEDIA_LOCATION', 'media')}/"
+# Apps requeridas
+INSTALLED_APPS = list(INSTALLED_APPS)
+for app in ["corsheaders", "rest_framework"]:
+    if app not in INSTALLED_APPS:
+        INSTALLED_APPS.append(app)
 
-# Logging suitable for CloudWatch
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "standard": {
-            "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-        }
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "standard",
-        }
-    },
-    "loggers": {
-        "django": {"handlers": ["console"], "level": os.getenv("DJANGO_LOG_LEVEL", "INFO")},
-        "gunicorn.error": {"handlers": ["console"], "level": "INFO"},
-        "gunicorn.access": {"handlers": ["console"], "level": "INFO"},
-    },
-}
+# Middlewares (orden: Security -> WhiteNoise -> HealthNoSSLRedirect -> CORS -> resto)
+MIDDLEWARE = list(MIDDLEWARE)
+if "django.middleware.security.SecurityMiddleware" not in MIDDLEWARE:
+    MIDDLEWARE.insert(0, "django.middleware.security.SecurityMiddleware")
+if "whitenoise.middleware.WhiteNoiseMiddleware" not in MIDDLEWARE:
+    sec_idx = MIDDLEWARE.index("django.middleware.security.SecurityMiddleware")
+    MIDDLEWARE.insert(sec_idx + 1, "whitenoise.middleware.WhiteNoiseMiddleware")
+wn_idx = MIDDLEWARE.index("whitenoise.middleware.WhiteNoiseMiddleware")
+if "core.middleware.HealthNoSSLRedirectMiddleware" not in MIDDLEWARE:
+    MIDDLEWARE.insert(wn_idx + 1, "core.middleware.HealthNoSSLRedirectMiddleware")
+if "corsheaders.middleware.CorsMiddleware" not in MIDDLEWARE:
+    MIDDLEWARE.insert(wn_idx + 2, "corsheaders.middleware.CorsMiddleware")
+
+# Static
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# CORS (frontends permitidos)
+CORS_ALLOWED_ORIGINS = [
+    "https://www.bairengroup.com",
+    "https://admin.bairen.group",
+    "https://app.bairen.group",
+]
+CORS_ALLOW_CREDENTIALS = True

@@ -1,7 +1,27 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-const api = axios.create({ baseURL: API_URL });
+// Unified API base strategy:
+// - VITE_API_BASE should point to the root of the backend (without trailing slash) e.g.:
+//     ''                             (same-origin dev via proxy)
+//     'http://localhost:8000'        (direct dev)
+//     'https://api.bairengroup.com'  (production)
+// We append '/api/' internally for DRF endpoints where appropriate.
+// If VITE_API_BASE is not set we fallback to localhost.
+const RAW_BASE = (import.meta.env.VITE_API_BASE ?? '').trim();
+const BASE = RAW_BASE === '' ? 'http://localhost:8000' : RAW_BASE.replace(/\/$/, '');
+
+// Helper to build paths ensuring single slashes and trailing slash for DRF list endpoints
+const join = (...parts: string[]) => parts
+  .map(p => p.trim())
+  .filter(Boolean)
+  .map((p, i) => i === 0 ? p.replace(/\/$/, '') : p.replace(/^\//, '').replace(/\/$/, ''))
+  .join('/')
+  .replace(/\/+/g, '/');
+
+// API namespace root (always with trailing slash for DRF)
+const API_ROOT = join(BASE, 'api') + '/';
+
+const api = axios.create({ baseURL: API_ROOT });
 
 // Single-flight control for refresh to avoid multiple parallel refresh calls
 let isRefreshing = false as boolean;
@@ -71,8 +91,8 @@ api.interceptors.response.use(
 
       try {
         // Use a clean client without interceptors for refresh
-        const refreshClient = axios.create({ baseURL: API_URL });
-        const { data } = await refreshClient.post('/users/token/refresh/', { refresh: refreshToken });
+  const refreshClient = axios.create({ baseURL: API_ROOT });
+  const { data } = await refreshClient.post('users/token/refresh/', { refresh: refreshToken });
 
         if (data?.access) {
           localStorage.setItem('access_token', data.access);
@@ -101,14 +121,14 @@ api.interceptors.response.use(
 
 export const authApi = {
   login: async (email: string, password: string) => {
-    const response = await api.post('/users/login/', { email, password });
+  const response = await api.post('users/login/', { email, password });
     localStorage.setItem('access_token', response.data.access);
     localStorage.setItem('refresh_token', response.data.refresh);
     return response.data;
   },
   
   getMe: async () => {
-    const response = await api.get('/users/me/');
+  const response = await api.get('users/me/');
     return response;
   },
 };
@@ -121,7 +141,7 @@ export const logout = () => {
 
 export const deleteProperty = async (id: number) => {
   try {
-    await api.delete(`/properties/${id}/`);
+  await api.delete(`properties/${id}/`);
     alert('Propiedad eliminada');
   } catch (error) {
     alert('Error al eliminar la propiedad');
@@ -129,4 +149,17 @@ export const deleteProperty = async (id: number) => {
   }
 };
 
+export const endpoints = {
+  properties: () => 'properties/',
+  property: (id: number) => `properties/${id}/`,
+  users: () => 'users/',
+  user: (id: number) => `users/${id}/`,
+  bookings: () => 'bookings/',
+  blocks: () => 'blocks/',
+  login: () => 'users/login/',
+  refresh: () => 'users/token/refresh/',
+  me: () => 'users/me/',
+};
+
+export { API_ROOT, BASE as API_BASE };
 export default api;

@@ -15,18 +15,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Python deps
 COPY requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt && \
-    pip install --no-cache-dir gunicorn boto3 django-storages
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Copy only backend code from repo root context
-COPY backend/ ./
+COPY . /app
 
 # Port
-EXPOSE 8000
+ENV PORT=5000
+EXPOSE 5000
 
-# Healthcheck (optional)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \
-  CMD python -c "import socket; s=socket.socket(); s.settimeout(2); s.connect(('127.0.0.1',8000)); s.close()" || exit 1
+# Healthcheck (HTTP level hitting /health)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \
+    CMD python -c "import urllib.request,sys;\
+        u='http://127.0.0.1:' + str(${PORT}) + '/health';\
+        req=urllib.request.Request(u);\
+        with urllib.request.urlopen(req,timeout=4) as r:\
+            sys.exit(0 if (200 <= r.getcode() < 300) else 1)" || exit 1
 
 # Default environment
 ENV DJANGO_SETTINGS_MODULE=config.settings_prod

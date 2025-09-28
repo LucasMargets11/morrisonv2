@@ -171,20 +171,15 @@ export const adminApi = {
     currency: string;
   }): Promise<Booking> {
     // Replace with your actual API call
-    return fetch('/api/admin/bookings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    }).then(res => {
-      if (!res.ok) throw new Error('Failed to create booking');
-      return res.json();
-    });
+    // Use api instance (ensures base URL + auth headers)
+    const res = await api.post('bookings/', data);
+    return res.data;
   },
 
   // (Bloqueos de fechas) — Interfaces no definidas aún. Implementar si se requieren.
   async getBlocks(propertyId?: number) {
     // Blocks expuestos como Bookings con status=blocked en endpoint dedicado
-    const res = await api.get('/blocks/', { params: propertyId ? { property: propertyId } : {} });
+  const res = await api.get('blocks/', { params: propertyId ? { property: propertyId } : {} });
     return Array.isArray(res.data) ? res.data : (res.data.results ?? []);
   },
 
@@ -197,7 +192,7 @@ export const adminApi = {
     reason?: string;
   }) {
   // property field expected as FK id
-  const res = await api.post('/blocks/', data);
+  const res = await api.post('blocks/', data);
     return res.data;
   },
 
@@ -206,24 +201,17 @@ export const adminApi = {
     check_out_date?: string;
     reason?: string;
   }) {
-    const res = await api.patch(`/blocks/${id}/`, data);
+  const res = await api.patch(`blocks/${id}/`, data);
     return res.data;
   },
 
   async deleteBlock(id: string | number) {
-    await api.delete(`/blocks/${id}/`);
+  await api.delete(`blocks/${id}/`);
   },
 
   async createMaintenanceEvent(event: Omit<MaintenanceEvent, 'id' | 'created_at' | 'updated_at' | 'created_by'> & { property_id: string }): Promise<MaintenanceEvent> {
     // Replace with your actual API call logic
-    const response = await fetch('/api/maintenance-events', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(event),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to create maintenance event');
-    }
-    return response.json();
+    const res = await api.post('maintenance-events/', event);
+    return res.data;
   },
 };

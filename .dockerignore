@@ -1,0 +1,32 @@
+# Exclude everything by default then include backend
+**/.git
+**/.gitignore
+**/.DS_Store
+**/__pycache__
+**/*.py[cod]
+**/*.pyc
+**/.mypy_cache
+**/.pytest_cache
+**/.venv
+node_modules
+dist
+build
+.next
+.cache
+.vscode
+*.log
+.env
+.env.*
+*.sqlite3
+
+# Media and static collections
+backend/media
+backend/staticfiles
+
+# Include backend and requirements
+!backend/**
+!requirements.txt
+!backend/entrypoint.sh
+!backend/gunicorn.conf.py
+
+backend/Dockerfile
