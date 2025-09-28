@@ -74,3 +74,20 @@ curl -i http://localhost:5000/db/health
 - Verificar que el ALB use `/health` o `/health/` (ambos funcionan).
 - Rutas de negocio no incluidas en este PR (urls minimalistas centradas en observabilidad).
 - Ampliar CORS o reinstaurar rutas API en siguiente PR si corresponde.
+
+### Variables de entorno recomendadas (Elastic Beanstalk)
+
+```
+ALLOWED_HOSTS=api.bairengroup.com,.elasticbeanstalk.com,.compute-1.amazonaws.com,localhost,127.0.0.1
+### Hostnames / Seguridad
+`DJANGO_ALLOWED_HOSTS` (sobrescribe fallback) ejemplo:
+```
+DJANGO_ALLOWED_HOSTS=api.bairengroup.com,.bairengroup.com,.elasticbeanstalk.com,localhost,127.0.0.1
+```
+Evitar `*` salvo diagnóstico puntual de healthchecks sin Host; retirar inmediatamente después.
+```
+
+Si no se define `ALLOWED_HOSTS`, el fallback incluye:
+`localhost`, `127.0.0.1`, `.elasticbeanstalk.com`, `.compute-1.amazonaws.com`, `api.bairengroup.com`.
+
+`USE_X_FORWARDED_HOST=True` y `SECURE_PROXY_SSL_HEADER=('HTTP_X_FORWARDED_PROTO','https')` habilitados para que Django entienda el esquema/host detrás del ALB.

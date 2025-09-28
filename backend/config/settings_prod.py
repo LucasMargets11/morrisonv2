@@ -18,14 +18,11 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REDIRECT_EXEMPT = [r"^health/?$"]
 
 # Hosts (public + API). Admin subdomain no longer exposed directly; ALB/EB internal host kept optional if needed.
-ALLOWED_HOSTS = [
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",") if os.getenv("ALLOWED_HOSTS") else [
     "api.bairengroup.com",
-    "bairengroup.com",
-    "www.bairengroup.com",
-    "bairen-api-prod.us-east-1.elasticbeanstalk.com",
-    "localhost",
-    "127.0.0.1",
-    ".elasticbeanstalk.com",
+    "admin.bairengroup.com",            # your domain
+    ".elasticbeanstalk.com",          # EB URLs
+    "localhost", "127.0.0.1",         # container healthcheck
 ]
 
 CSRF_TRUSTED_ORIGINS = [

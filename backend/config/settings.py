@@ -12,11 +12,15 @@ USE_GEOCODING = os.environ.get('USE_GEOCODING', 'true').lower() == 'true'
 
 DEBUG = True
 
-DJANGO_ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS")
-if DJANGO_ALLOWED_HOSTS:
-    ALLOWED_HOSTS = [h.strip() for h in DJANGO_ALLOWED_HOSTS.split(",") if h.strip()]
-else:
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".elasticbeanstalk.com", ".compute.amazonaws.com"]
+# ALLOWED_HOSTS: configurable vía DJANGO_ALLOWED_HOSTS (coma separada). Ej:
+# DJANGO_ALLOWED_HOSTS="api.bairengroup.com,.bairengroup.com,.elasticbeanstalk.com,localhost,127.0.0.1"
+# Uso temporal de "*" sólo si el ALB hace health check sin Host correcto (no recomendable a largo plazo).
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",") if os.getenv("ALLOWED_HOSTS") else [
+    "api.bairengroup.com",
+    "admin.bairengroup.com",            # your domain
+    ".elasticbeanstalk.com",          # EB URLs
+    "localhost", "127.0.0.1",         # container healthcheck
+]
     
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -132,3 +136,8 @@ CSRF_TRUSTED_ORIGINS = [u.strip() for u in _csrf.split(",") if u.strip()]
 
 # Exempt health endpoints from HTTPS redirect (used by ALB health checks before TLS termination)
 SECURE_REDIRECT_EXEMPT = [r"^health/?$"]
+
+# Proxy support (so Django builds absolute URLs correctly behind ELB/ALB)
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True

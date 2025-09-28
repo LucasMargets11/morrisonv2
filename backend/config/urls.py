@@ -3,7 +3,8 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-from core.views import health, db_health
+from core.views import db_health
+from health import health
 from .views import home
 
 urlpatterns = [
