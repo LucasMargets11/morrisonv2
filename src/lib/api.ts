@@ -12,7 +12,7 @@ const RAW_BASE = (
   import.meta.env.VITE_API_BASE ??
   ''
 ).trim();
-const BASE = RAW_BASE === '' ? 'http://localhost:8000' : RAW_BASE.replace(/\/$/, '');
+const BASE = RAW_BASE === '' ? 'https://api.bairengroup.com' : RAW_BASE.replace(/\/$/, '');
 
 // Helper to build paths ensuring single slashes and trailing slash for DRF list endpoints
 const join = (...parts: string[]) => parts
