@@ -17,7 +17,9 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY backend/ /app/
 
 RUN chmod +x entrypoint.sh
+ENV PORT=5000       
 EXPOSE 5000
+
 
 # Health handled at Nginx/ALB layer; container self-check disabled to avoid false negatives
 HEALTHCHECK NONE
