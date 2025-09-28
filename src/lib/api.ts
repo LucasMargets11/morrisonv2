@@ -6,8 +6,13 @@ import axios from 'axios';
 //     'http://localhost:8000'        (direct dev)
 //     'https://api.bairengroup.com'  (production)
 // We append '/api/' internally for DRF endpoints where appropriate.
-// If VITE_API_BASE (legacy) or VITE_API_BASE_URL (preferred) not set we fallback to localhost.
+// Resolution order for base backend origin (no trailing slash):
+// 1. VITE_API_URL (explicit primary)
+// 2. VITE_API_BASE_URL (previous naming)
+// 3. VITE_API_BASE (legacy fallback)
+// 4. default localhost (dev only)
 const RAW_BASE = (
+  import.meta.env.VITE_API_URL ??
   import.meta.env.VITE_API_BASE_URL ??
   import.meta.env.VITE_API_BASE ??
   ''
@@ -25,7 +30,12 @@ const join = (...parts: string[]) => parts
 // API namespace root (always with trailing slash for DRF)
 const API_ROOT = join(BASE, 'api') + '/';
 
-const api = axios.create({ baseURL: API_ROOT });
+const api = axios.create({
+  baseURL: API_ROOT,
+  // Enable cookies / session if backend later switches to cookie auth.
+  withCredentials: true,
+  headers: { Accept: 'application/json' },
+});
 
 // Single-flight control for refresh to avoid multiple parallel refresh calls
 let isRefreshing = false as boolean;
