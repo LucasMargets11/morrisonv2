@@ -1,0 +1,17 @@
+{
+  "AWSEBDockerrunVersion": 1,
+  "Image": {
+    "Name": "<REPLACE_WITH_ECR_IMAGE>",
+    "Update": "true"
+  },
+  "Ports": [
+    { "ContainerPort": 5000 }
+  ],
+  "Volumes": [
+    {
+      "HostDirectory": "/var/app/current/media",
+      "ContainerDirectory": "/app/media"
+    }
+  ],
+  "Logging": "/var/log/nginx"
+}

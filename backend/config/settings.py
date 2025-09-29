@@ -99,7 +99,8 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# Para despliegue en EB con volumen montado: /app/media (puede sobreescribirse con MEDIA_ROOT env)
+MEDIA_ROOT = os.getenv('DJANGO_MEDIA_ROOT', '/app/media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

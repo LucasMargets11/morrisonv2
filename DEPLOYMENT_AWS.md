@@ -67,6 +67,37 @@ This document outlines a reference architecture and concrete steps to deploy thi
 - Gunicorn config in `backend/gunicorn.conf.py`.
 - Container HEALTHCHECK now queries `http://127.0.0.1:$PORT/health/` every 30s (see Dockerfile) – ensure /health/ remains lightweight and dependency-free.
 
+### (Option B) Media en disco local (Elastic Beanstalk single container)
+Si decides NO usar todavía S3 y servir media localmente:
+1. `MEDIA_ROOT` apunta a `/app/media` (configurable con `DJANGO_MEDIA_ROOT`).
+2. Monta volumen host↔contenedor en `Dockerrun.aws.json`:
+```
+"Volumes": [
+  {
+    "HostDirectory": "/var/app/current/media",
+    "ContainerDirectory": "/app/media"
+  }
+]
+```
+3. Añade `.platform/nginx/conf.d/media.conf`:
+```
+location /media/ {
+    alias /var/app/current/media/;
+    access_log off;
+    try_files $uri =404;
+    expires 30d;
+    add_header Cache-Control "public, max-age=2592000";
+}
+```
+4. Re-deploy. Subidas nuevas aparecerán bajo `/var/app/current/media` y serán servidas por Nginx.
+
+NOTA: Cualquier archivo que estuviera “horneado” dentro de la imagen en `/app/media` quedará oculto al montar el volumen vacío. Si necesitas preservar contenido previo:
+```
+docker run --rm <image> tar -C /app/media -cf - . | tar -C media_backup -xf -
+scp -r media_backup/* ec2:/var/app/current/media/
+```
+o súbelos nuevamente desde la UI.
+
 ### Nginx snippets (Elastic Beanstalk / .platform)
 We consolidated upload/body size & timeouts into `proxy.conf` and removed overlapping `01_uploads.conf`. A single `client_max_body_size 50M;` defines upload limit. `02_typeshash.conf` prevents hash bucket warnings.
 
