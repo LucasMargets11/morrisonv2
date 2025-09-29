@@ -31,30 +31,34 @@ export const adminApi = {
   },
 
   async createProperty(property: Partial<Property>, files?: File[]): Promise<Property> {
-    const formData = new FormData();
-
-    // Agrega los campos del property al FormData
+    // 1) Crear la propiedad sin imágenes (JSON puro) para evitar 413 por multipart grande
+    const payload: Record<string, any> = {};
     Object.entries(property).forEach(([key, value]) => {
       if (value === undefined || value === null) return;
       if (Array.isArray(value)) {
-        // feature_list es un ListField: DRF acepta repitiendo la misma key
         if (key === 'feature_list') {
-          value.forEach(v => formData.append('feature_list', String(v)));
+          payload[key] = value; // DRF ListField
         } else {
-          value.forEach(v => formData.append(`${key}[]`, String(v)));
+          payload[key] = value; // arrays simples
         }
       } else {
-        formData.append(key, String(value));
+        payload[key] = value;
       }
     });
 
-    // Agrega los archivos (puedes cambiar 'images' por el nombre que espera tu backend)
-    if (files && files.length > 0) {
-      files.forEach((file) => formData.append('images', file));
-    }
+    const baseRes = await api.post<Property>('/properties/', payload, {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const created = baseRes.data;
 
-    const response = await api.post<Property>('/properties/', formData);
-    return response.data;
+    // 2) Subir imágenes (si las hay) en requests separados más pequeños
+    if (files && files.length) {
+      await this.uploadImagesBatch(created.id as unknown as string, files);
+      // Refrescar para obtener las imágenes ya asociadas
+      const refreshed = await api.get<Property>(`/properties/${created.id}/`);
+      return refreshed.data;
+    }
+    return created;
   },
 
   async updateProperty(id: string, property: Partial<Property>, files?: File[]): Promise<Property> {
@@ -107,11 +111,36 @@ export const adminApi = {
   async uploadMedia(propertyId: string, file: File) {
     const formData = new FormData();
     formData.append('images', file);
-    const response = await api.post<Property['images']>(
-      `/properties/${propertyId}/upload_images/`,
-      formData
-    );
+    const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+    if (file.size > 15 * 1024 * 1024) {
+      // eslint-disable-next-line no-console
+      console.warn(`[uploadMedia] Archivo grande (${sizeMB}MB). Considera comprimir para mejorar performance.`);
+    }
+    const response = await api.post<Property['images']>(`/properties/${propertyId}/upload_images/`, formData, {
+      headers: { 'Accept': 'application/json' }
+    });
     return response.data[0];
+  },
+
+  async uploadImagesBatch(propertyId: string, files: File[], parallel = 3) {
+    // Sube en lotes para no saturar ancho de banda ni llegar a límites
+    const queue = [...files];
+    const results: any[] = [];
+    const worker = async () => {
+      while (queue.length) {
+        const f = queue.shift()!;
+        try {
+          const img = await this.uploadMedia(propertyId, f);
+          results.push(img);
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.error('[uploadImagesBatch] Error subiendo imagen', f.name, e);
+        }
+      }
+    };
+    const workers = Array.from({ length: Math.min(parallel, files.length) }, () => worker());
+    await Promise.all(workers);
+    return results;
   },
 
   async deleteMedia(propertyId: string, imageId: string): Promise<void> {
