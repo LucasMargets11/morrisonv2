@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'apps.users',
     'apps.properties',
     'apps.bookings',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -99,8 +100,19 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
-# Para despliegue en EB con volumen montado: /app/media (puede sobreescribirse con MEDIA_ROOT env)
 MEDIA_ROOT = os.getenv('DJANGO_MEDIA_ROOT', '/app/media')
+
+# --- AWS S3 MEDIA (opcional: activado si se define AWS_STORAGE_BUCKET_NAME) ---
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+if AWS_STORAGE_BUCKET_NAME:
+    AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
+    AWS_S3_SIGNATURE_VERSION = os.getenv('AWS_S3_SIGNATURE_VERSION', 's3v4')
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_DEFAULT_ACL = None  # el backend controla ACL
+    AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "public, max-age=31536000"}
+    DEFAULT_FILE_STORAGE = 'core.storage_backends.PublicMediaS3Storage'
+    # Dominio público (sin CloudFront aún). Cambiar a CDN si se agrega.
+    MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

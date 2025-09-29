@@ -67,6 +67,70 @@ This document outlines a reference architecture and concrete steps to deploy thi
 - Gunicorn config in `backend/gunicorn.conf.py`.
 - Container HEALTHCHECK now queries `http://127.0.0.1:$PORT/health/` every 30s (see Dockerfile) – ensure /health/ remains lightweight and dependency-free.
 
+### S3 Media (Producción recomendado)
+Variables necesarias (Elastic Beanstalk env):
+```
+AWS_STORAGE_BUCKET_NAME=bairengroup-media-prod
+AWS_S3_REGION_NAME=us-east-1
+```
+Activar storage: `storages` ya está en INSTALLED_APPS y si el bucket var existe se usa `core.storage_backends.PublicMediaS3Storage`.
+
+Bucket CORS (poner en pestaña CORS del bucket):
+```
+[
+  {
+    "AllowedHeaders": ["*"],
+    "AllowedMethods": ["GET","HEAD"],
+    "AllowedOrigins": ["*"],
+    "ExposeHeaders": ["ETag","Last-Modified","Content-Length"],
+    "MaxAgeSeconds": 3000
+  }
+]
+```
+
+Bucket Policy (lectura pública de objetos):
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadGetObject",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": ["s3:GetObject"],
+      "Resource": "arn:aws:s3:::bairengroup-media-prod/*"
+    }
+  ]
+}
+```
+
+IAM (instance profile EB) requiere permisos mínimos:
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {"Effect": "Allow", "Action": ["s3:ListBucket"], "Resource": "arn:aws:s3:::bairengroup-media-prod"},
+    {"Effect": "Allow", "Action": ["s3:GetObject","s3:PutObject","s3:DeleteObject"], "Resource": "arn:aws:s3:::bairengroup-media-prod/*"}
+  ]
+}
+```
+
+URLs resultantes: `https://bairengroup-media-prod.s3.amazonaws.com/<path>`.
+
+Migración de media existente (si había archivos locales persistidos):
+```
+# Ver lista de candidatos
+python manage.py migrate_media_to_s3 --dry-run
+
+# Subir realmente
+python manage.py migrate_media_to_s3
+
+# Sólo un subdirectorio
+python manage.py migrate_media_to_s3 --prefix properties
+```
+
+Después de confirmar migración exitosa puedes eliminar el fallback /media proxy de Nginx y el re_path de Django.
+
 ### (Option B) Media en disco local (Elastic Beanstalk single container)
 Si decides NO usar todavía S3 y servir media localmente:
 1. `MEDIA_ROOT` apunta a `/app/media` (configurable con `DJANGO_MEDIA_ROOT`).
