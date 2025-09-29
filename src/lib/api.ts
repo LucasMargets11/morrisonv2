@@ -1,38 +1,62 @@
 import axios from 'axios';
 
-// Unified API base strategy:
-// - VITE_API_BASE should point to the root of the backend (without trailing slash) e.g.:
-//     ''                             (same-origin dev via proxy)
-//     'http://localhost:8000'        (direct dev)
-//     'https://api.bairengroup.com'  (production)
-// We append '/api/' internally for DRF endpoints where appropriate.
-// Resolution order for base backend origin (no trailing slash):
-// 1. VITE_API_URL (explicit primary)
-// 2. VITE_API_BASE_URL (previous naming)
-// 3. VITE_API_BASE (legacy fallback)
-// 4. default localhost (dev only)
-const RAW_BASE = (
-  import.meta.env.VITE_API_URL ??
-  import.meta.env.VITE_API_BASE_URL ??
-  import.meta.env.VITE_API_BASE ??
-  ''
-).trim();
-const BASE = RAW_BASE === '' ? 'https://api.bairengroup.com' : RAW_BASE.replace(/\/$/, '');
+// ================================================================
+// API Base Resolution (production-safe)
+//
+// Primary new convention:
+//   VITE_API_BASE   -> e.g. https://api.bairengroup.com   (NO trailing slash)
+//   VITE_API_PREFIX -> e.g. /api                         (OPTIONAL, with or without leading slash)
+// Combines into: `${VITE_API_BASE}${VITE_API_PREFIX}`
+//
+// Backwards compatibility (if older env vars present):
+//   VITE_API_URL (full base including /api) or VITE_API_BASE_URL still respected.
+//
+// Guards:
+//  - Normalizes double slashes
+//  - Ensures trailing slash for axios base (DRF list endpoints convenience)
+//  - Avoids producing /api/api when both prefix and legacy full path exist
+// ================================================================
 
-// Helper to build paths ensuring single slashes and trailing slash for DRF list endpoints
-const join = (...parts: string[]) => parts
-  .map(p => p.trim())
-  .filter(Boolean)
-  .map((p, i) => i === 0 ? p.replace(/\/$/, '') : p.replace(/^\//, '').replace(/\/$/, ''))
-  .join('/')
-  .replace(/\/+/g, '/');
+const rawExplicit = (import.meta.env.VITE_API_URL ?? '').trim(); // legacy full URL (maybe already contains /api)
+const legacyBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').trim();
+const baseRoot = (import.meta.env.VITE_API_BASE ?? '').trim();
+const prefixRaw = (import.meta.env.VITE_API_PREFIX ?? '').trim();
 
-// API namespace root (always with trailing slash for DRF)
-const API_ROOT = join(BASE, 'api') + '/';
+// Decide strategy: if VITE_API_BASE provided, build with prefix; else fall back to explicit full.
+let computedBase: string;
+if (baseRoot) {
+  const cleanedRoot = baseRoot.replace(/\/$/, '');
+  const cleanedPrefix = prefixRaw
+    ? ('/' + prefixRaw.replace(/^\//, '').replace(/\/$/, ''))
+    : '/api'; // default prefix if not specified
+  computedBase = cleanedRoot + cleanedPrefix;
+} else if (rawExplicit) {
+  computedBase = rawExplicit.replace(/\/$/, '');
+} else if (legacyBaseUrl) {
+  computedBase = legacyBaseUrl.replace(/\/$/, '');
+} else {
+  // Final fallback (dev): same origin or explicit localhost
+  computedBase = 'http://localhost:8000/api';
+}
+
+// Normalize duplicate /api/api or double slashes
+computedBase = computedBase
+  .replace(/\/+/g, '/')
+  .replace(':/', '://')     // fix http:/ -> http://
+  .replace(/(api)(\/api)+/g, 'api'); // collapse repeated api segments
+
+// Ensure trailing slash for DRF convenience
+const API_ROOT = /\/$/.test(computedBase) ? computedBase : computedBase + '/';
+
+// Extract origin for export (without prefix) when possible
+let API_BASE = API_ROOT.replace(/\/$/, '');
+const apiMatch = API_BASE.match(/^(https?:\/\/[^\/]+)(\/.*)$/);
+if (apiMatch) {
+  API_BASE = apiMatch[1];
+}
 
 const api = axios.create({
   baseURL: API_ROOT,
-  // Enable cookies / session if backend later switches to cookie auth.
   withCredentials: true,
   headers: { Accept: 'application/json' },
 });
@@ -54,10 +78,23 @@ const processQueue = (error: any, token: string | null = null) => {
 };
 
 api.interceptors.request.use(cfg => {
-  const token = localStorage.getItem('access_token');
+  const token = localStorage.getItem('access_token') || localStorage.getItem('access');
   if (token) cfg.headers!['Authorization'] = `Bearer ${token}`;
   return cfg;
 });
+
+// Guard: reject HTML (likely SPA index.html) when JSON expected
+api.interceptors.response.use(
+  response => {
+    const ct = response.headers['content-type'] || '';
+    if (ct && !ct.includes('application/json')) {
+      // Hard fail so callers can surface domain misconfiguration
+      return Promise.reject(new Error('Respuesta no JSON: posible dominio incorrecto (recibido HTML).'));
+    }
+    return response;
+  },
+  error => Promise.reject(error)
+);
 
 api.interceptors.response.use(
   res => res,
@@ -105,7 +142,7 @@ api.interceptors.response.use(
 
       try {
         // Use a clean client without interceptors for refresh
-  const refreshClient = axios.create({ baseURL: API_ROOT });
+  const refreshClient = axios.create({ baseURL: API_ROOT, headers: { Accept: 'application/json' } });
   const { data } = await refreshClient.post('users/token/refresh/', { refresh: refreshToken });
 
         if (data?.access) {
@@ -175,5 +212,5 @@ export const endpoints = {
   me: () => 'users/me/',
 };
 
-export { API_ROOT, BASE as API_BASE };
+export { API_ROOT, API_BASE };
 export default api;

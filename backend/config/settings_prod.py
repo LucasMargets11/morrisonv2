@@ -70,10 +70,16 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# CORS (frontends permitidos)
-CORS_ALLOWED_ORIGINS = [
-    "https://www.bairengroup.com",
-    "https://admin.bairen.group",
-    "https://app.bairen.group",
-]
+# CORS (frontends permitidos). Para modificar sin cambiar código, usar env var:
+# CORS_ALLOWED_ORIGINS="https://www.bairengroup.com,https://bairengroup.com"
+_cors_env = os.getenv("CORS_ALLOWED_ORIGINS")
+if _cors_env:
+    CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_env.split(",") if o.strip()]
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "https://www.bairengroup.com",
+        "https://bairengroup.com",
+        "https://admin.bairen.group",
+        "https://app.bairen.group",
+    ]
 CORS_ALLOW_CREDENTIALS = True
