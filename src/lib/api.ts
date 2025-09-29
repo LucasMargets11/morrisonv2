@@ -24,6 +24,7 @@ const prefixRaw = (import.meta.env.VITE_API_PREFIX ?? '').trim();
 
 // Decide strategy: if VITE_API_BASE provided, build with prefix; else fall back to explicit full.
 let computedBase: string;
+let inferredApiPrefix = false;
 if (baseRoot) {
   const cleanedRoot = baseRoot.replace(/\/$/, '');
   const cleanedPrefix = prefixRaw
@@ -32,6 +33,11 @@ if (baseRoot) {
   computedBase = cleanedRoot + cleanedPrefix;
 } else if (rawExplicit) {
   computedBase = rawExplicit.replace(/\/$/, '');
+  // If explicit URL was provided but appears to lack /api segment and no prefix var set, infer it.
+  if (!/\/api(\/|$)/.test(computedBase) && !prefixRaw) {
+    computedBase = computedBase + '/api';
+    inferredApiPrefix = true;
+  }
 } else if (legacyBaseUrl) {
   computedBase = legacyBaseUrl.replace(/\/$/, '');
 } else {
@@ -47,6 +53,11 @@ computedBase = computedBase
 
 // Ensure trailing slash for DRF convenience
 const API_ROOT = /\/$/.test(computedBase) ? computedBase : computedBase + '/';
+
+if (inferredApiPrefix && typeof window !== 'undefined') {
+  // eslint-disable-next-line no-console
+  console.warn('[api] Se detectó VITE_API_URL sin /api; se añadió automáticamente. Configura VITE_API_BASE + VITE_API_PREFIX para control explícito.');
+}
 
 // Extract origin for export (without prefix) when possible
 let API_BASE = API_ROOT.replace(/\/$/, '');
@@ -212,5 +223,6 @@ export const endpoints = {
   me: () => 'users/me/',
 };
 
+export const API_INFERRED_PREFIX = inferredApiPrefix;
 export { API_ROOT, API_BASE };
 export default api;
