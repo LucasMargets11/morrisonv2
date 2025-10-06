@@ -22,7 +22,7 @@ const Footer: React.FC = () => {
         {/* Grid principal */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 md:gap-8 mb-12">
           {/* Identidad + Newsletter + RRSS (ocupa 2 col en desktop) */}
-          <div className="lg:col-span-2 min-w-[180px] pb-8 border-b border-blue-900 md:border-b-0 md:pb-0 md:border-r md:pr-8">
+            <div className="lg:col-span-2 min-w-[180px] pb-8 md:border-b-0 md:pb-0 md:border-r md:border-gray-800 md:pr-8">
             {/* Mobile: solo logo, nombre y redes */}
             <div className="block md:hidden text-center mb-6">
               <div className="flex flex-col items-center justify-center">
@@ -34,16 +34,17 @@ const Footer: React.FC = () => {
                 <span className="text-2xl font-extrabold tracking-wide font-title uppercase" style={{ letterSpacing: '0.05em' }}>GRUPOBAIREN</span>
               </div>
               <div className="flex justify-center space-x-6 mt-4">
-                <a href="https://facebook.com/grupobairen" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label="Facebook">
+                <a href="https://facebook.com/grupobairen" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] focus:text-[#D4AF37] transition-colors" aria-label="Facebook">
                   <Facebook size={22} />
                 </a>
-                <a href="https://instagram.com/grupobairen" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label="Instagram">
+                <a href="https://instagram.com/grupobairen" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] focus:text-[#D4AF37] transition-colors" aria-label="Instagram">
                   <Instagram size={22} />
                 </a>
-                <a href="https://linkedin.com/company/grupobairen" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label="LinkedIn">
+                <a href="https://linkedin.com/company/grupobairen" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] focus:text-[#D4AF37] transition-colors" aria-label="LinkedIn">
                   <Linkedin size={22} />
                 </a>
               </div>
+              <div className="md:hidden mx-auto mt-6 h-px w-full border-b border-[#D4AF37] mb-8" />
             </div>
             {/* Desktop/Tablet: logo, nombre, descripción, newsletter, redes */}
             <div className="hidden md:block">
@@ -73,24 +74,31 @@ const Footer: React.FC = () => {
                   />
                   <button
                     type="submit"
-                    className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg sm:rounded-l-none transition-colors inline-flex items-center justify-center"
+                    className="group relative w-full sm:w-auto px-5 py-2.5 rounded-lg sm:rounded-l-none font-medium inline-flex items-center justify-center text-gray-900
+                      bg-gradient-to-br from-[#F9E27A] via-[#E8C74E] to-[#D4AF37]
+                      shadow-[0_2px_8px_-1px_rgba(212,175,55,0.4)]
+                      transition-all duration-300
+                      hover:brightness-105 hover:shadow-[0_4px_16px_-2px_rgba(212,175,55,0.55)]
+                      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D4AF37] focus:ring-offset-gray-900
+                      active:scale-[0.97]"
                     aria-label="Suscribirse al newsletter"
                   >
-                    <Send size={18} className="mr-2 hidden sm:inline" />
-                    <span>Suscribirme</span>
+                    <span className="absolute inset-0 rounded-lg bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                    <Send size={18} className="mr-2 hidden sm:inline text-gray-900" />
+                    <span className="tracking-wide">Suscribirme</span>
                   </button>
                 </form>
               </div>
 
               {/* Social */}
               <div className="flex space-x-4">
-                <a href="https://facebook.com/grupobairen" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label="Facebook">
+                <a href="https://facebook.com/grupobairen" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] focus:text-[#D4AF37] transition-colors" aria-label="Facebook">
                   <Facebook size={20} />
                 </a>
-                <a href="https://instagram.com/grupobairen" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label="Instagram">
+                <a href="https://instagram.com/grupobairen" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] focus:text-[#D4AF37] transition-colors" aria-label="Instagram">
                   <Instagram size={20} />
                 </a>
-                <a href="https://linkedin.com/company/grupobairen" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label="LinkedIn">
+                <a href="https://linkedin.com/company/grupobairen" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] focus:text-[#D4AF37] transition-colors" aria-label="LinkedIn">
                   <Linkedin size={20} />
                 </a>
               </div>
@@ -195,7 +203,7 @@ const Footer: React.FC = () => {
             </div>
 
             {/* Legal */}
-            <div className="border-t border-gray-700 pt-4">
+            <div className="border-t border-gray-800 pt-4">
               <h4 className="text-sm font-semibold mb-2">Legal</h4>
               <ul className="space-y-1 text-sm">
                 <li>
@@ -213,7 +221,7 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        <hr className="border-gray-800 mb-8" />
+        <hr className="border-b border-[#D4AF37] mb-8" />
 
         {/* Barra inferior */}
         <div className="flex flex-col md:flex-row justify-between items-center text-gray-500 text-sm gap-2">

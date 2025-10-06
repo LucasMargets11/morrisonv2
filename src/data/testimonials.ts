@@ -1,73 +1,74 @@
 export type Testimonial = {
   id: number;
   name: string;
-  location: string;
-  service: string;
-  rating: number;
+  location: string;   // Barrio, CABA
+  service: string;    // Alquiler Temporal | Administración | etc.
+  rating: number;     // 1..5
   text: string;
   avatar: string;
-  date: string;
+  date: string;       // Mes Año
 };
 
 export const testimonials: Testimonial[] = [
   {
     id: 1,
-    name: 'María González',
-    location: 'Posadas, Misiones',
+    name: 'Macarena Diaz',
+    location: 'Recoleta, CABA',
     service: 'Alquiler Temporal',
     rating: 5,
-    text: 'Excelente atención desde el primer contacto. Alquilé un departamento por 3 meses y todo fue perfecto. La propiedad estaba impecable y el equipo de Grupo Bairen estuvo siempre disponible para cualquier consulta.',
-    avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg',
-    date: 'Febrero 2024',
+    text: 'Excelente servicio por parte de Grupo Bairen, sin duda volvería a hospedarme con ellos. ¡Ha sido una hermosa experiencia! Gracias.',
+    avatar: 'https://lh3.googleusercontent.com/a-/ALV-UjXYC4GERLqDzhmttQh0pmRnpG5EUEpzlVBNpQ0QuBp-8ECYzMU=w72-h72-p-rp-mo-br100',
+    date: 'Mayo 2025', // hace 4 meses desde sep-2025
   },
   {
     id: 2,
-    name: 'Carlos Ruiz',
-    location: 'Buenos Aires',
-    service: 'Compra de Propiedad',
+    name: 'Fede Hormigo',
+    location: 'Belgrano, CABA',
+    service: 'Administración',
     rating: 5,
-    text: 'Compré mi casa de fin de semana en Posadas a través de Grupo Bairen. El proceso fue transparente y profesional. Me asesoraron en cada paso y logramos cerrar la operación en tiempo récord.',
-    avatar: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg',
-    date: 'Enero 2024',
+    text: 'Excelente atención del equipo de Bairen, muy profesionales y confiables. Se encargan de todos los problemas que conlleva tener un inmueble en alquiler; dejé mi inversión en muy buenas manos.',
+    avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJ4ASbXmX-ajGYe5TgUtqWyOcXK1SkSjCuR3PmZKYjIaAVO9Q=w72-h72-p-rp-mo-br100',
+    date: 'Abril 2025', // hace 5 meses
   },
   {
     id: 3,
-    name: 'Ana Martínez',
-    location: 'Oberá, Misiones',
-    service: 'Venta de Propiedad',
-    rating: 5,
-    text: 'Vendí mi departamento con Grupo Bairen y superó todas mis expectativas. El precio obtenido fue mejor que otras propuestas y el tiempo de venta fue muy rápido. Altamente recomendables.',
-    avatar: 'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg',
-    date: 'Diciembre 2023',
+    name: 'Cristian Marucci',
+    location: 'Palermo, CABA',
+    service: 'Alquiler Temporal',
+    rating: 4,
+    text: 'Excelente atención y alojamientos. Todo el equipo es muy amable y presto a resolver lo que sea necesario.',
+    avatar: 'https://lh3.googleusercontent.com/a-/ALV-UjXaWyVNhGovu-VzCwmVeIcby-gXqIhAbUXQOLWy9-C3UdokXLz9tw=w72-h72-p-rp-mo-ba4-br100',
+    date: 'Septiembre 2025', // hace 2 semanas
   },
   {
     id: 4,
-    name: 'Roberto Silva',
-    location: 'Puerto Iguazú, Misiones',
+    name: 'Franco Piloto Martinez',
+    location: 'Microcentro, CABA',
     service: 'Administración',
     rating: 5,
-    text: 'Confío la administración de mis propiedades de alquiler a Grupo Bairen desde hace 2 años. Son serios, puntuales con los pagos y mantienen las propiedades en perfecto estado.',
-    avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg',
-    date: 'Noviembre 2023',
+    text: 'La verdad, un placer. Me desligué completamente: Bairen resuelve, te entrega resultados y sigue. Y ante todo cuidan la propiedad, que al final del día es clave mantenerla a pesar del paso del tiempo.',
+    avatar: 'https://lh3.googleusercontent.com/a/ACg8ocKgZ6ry-x6YD5A4eOBnIoLGrkpWb-4PekCEPQdCNeuZrvg3lw=w72-h72-p-rp-mo-br100',
+    date: 'Marzo 2025', // hace 6 meses
   },
   {
     id: 5,
-    name: 'Laura Fernández',
-    location: 'Eldorado, Misiones',
+    name: 'Agustin Soria',
+    location: 'San Telmo, CABA',
     service: 'Alquiler Temporal',
     rating: 5,
-    text: 'Mi familia y yo pasamos las vacaciones en una casa hermosa que encontramos a través de Grupo Bairen. La atención fue excepcional y la propiedad superó nuestras expectativas.',
-    avatar: 'https://images.pexels.com/photos/1181424/pexels-photo-1181424.jpeg',
-    date: 'Octubre 2023',
+    text: 'Hermoso lugar. 100% recomendable. Mucha confianza, tranquilidad y muy lindo lugar.',
+    avatar: 'https://lh3.googleusercontent.com/a-/ALV-UjU0NTS0N2BDrQoXK917xvM6nfgwJmFSRx3paV2KgUwNQqTp5thb=w72-h72-p-rp-mo-br100',
+    date: 'Junio 2025', // hace 3 meses
   },
+  // Post en portugués
   {
     id: 6,
-    name: 'Diego Morales',
-    location: 'Garupá, Misiones',
-    service: 'Asesoramiento',
+    name: 'Giuliano Imparato',
+    location: 'Palermo, CABA',
+    service: 'Aluguel Temporário',
     rating: 5,
-    text: 'Como inversor inmobiliario, el asesoramiento de Grupo Bairen ha sido fundamental. Me ayudaron a identificar las mejores oportunidades y maximizar el retorno de mis inversiones.',
-    avatar: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg',
-    date: 'Septiembre 2023',
+    text: 'Experiência fantástica com o Grupo Bairen. O apartamento estava impecável e o atendimento foi rápido e atencioso. Recomendo muito para quem vem a Buenos Aires.',
+    avatar: 'https://lh3.googleusercontent.com/a/ACg8ocJpchkREwwigpqkl_8VSBcGNwvWFRSvv-KumsqWtYjUR9GzVnU=w72-h72-p-rp-mo-br100',
+    date: 'Agosto 2025',
   },
 ];

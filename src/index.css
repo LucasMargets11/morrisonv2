@@ -27,7 +27,32 @@ body {
   color: #333;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  max-width: 100%;
+  overflow-x: hidden;
 }
+
+html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Prevent horizontal overflow from media elements */
+img, video, svg, canvas, iframe {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Utility to clamp any container to viewport width without causing 100vw scrollbar issue */
+.vw-safe {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Debug helper (paste in console to find overflow offenders):
+Array.from(document.querySelectorAll('*')).filter(el => el.scrollWidth > el.clientWidth).slice(0,20)
+*/
 
 /* Header específicamente usa Lora Regular */
 header, 

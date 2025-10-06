@@ -10,7 +10,7 @@ const Hero: React.FC = () => {
   const { language } = useLanguage();
   const t = useTranslation(language);
   const navigate = useNavigate();
-  const videoUrl = `${import.meta.env.BASE_URL}videos/fondo.mp4`;
+  const videoUrl = `${import.meta.env.BASE_URL}videos/fpv1.mp4`;
 
   // Date selection state
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);

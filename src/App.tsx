@@ -91,7 +91,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <Router>
           <ScrollToTop />
-          <div className="min-h-screen flex flex-col">
+          <div className="min-h-screen flex flex-col vw-safe">
             <GlobalLoader />
             <Routes>
               {/* Admin Login (sin header/footer) */}
