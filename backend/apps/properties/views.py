@@ -19,6 +19,12 @@ class PropertyViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
     parser_classes = [parsers.JSONParser, parsers.MultiPartParser, parsers.FormParser]
 
+    def get_permissions(self):
+        # Public read; authenticated for create and media mutations
+        if getattr(self, 'action', None) in ['create', 'upload_images', 'delete_image']:
+            return [IsAuthenticated()]
+        return [AllowAny()]
+
     def get_queryset(self):
         queryset = super().get_queryset()
         search = self.request.query_params.get('search')

@@ -7,8 +7,8 @@ router.register('', PropertyViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('properties/presign_images/', presign_property_images),
-    path('properties/<int:pk>/attach_images/', attach_property_images),
+    path('presign_images/', presign_property_images),
+    path('<int:pk>/attach_images/', attach_property_images),
     path('<int:property_id>/pricing/', PropertyPricingView.as_view(), name='property-pricing'),
     path('<int:property_id>/maintenance/', PropertyMaintenanceView.as_view(), name='property-maintenance'),
 ]

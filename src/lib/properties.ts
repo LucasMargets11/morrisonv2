@@ -5,7 +5,7 @@ export type PresignUpload = { key: string; uploadUrl: string; contentType: strin
 
 export async function presignImages(files: File[]): Promise<PresignUpload[]> {
   const payload = { files: files.map(f => ({ name: f.name, type: f.type })) };
-  const { data } = await api.post('/properties/presign_images/', payload);
+  const { data } = await api.post('properties/presign_images/', payload);
   return data.uploads;
 }
 
@@ -21,16 +21,16 @@ export async function uploadToS3(uploads: PresignUpload[], files: File[]) {
 }
 
 export async function createProperty(input: any & { image_keys?: string[] }) {
-  const { data } = await api.post('/properties/', input);
+  const { data } = await api.post('properties/', input);
   return data;
 }
 
 export async function attachImages(propertyId: number, keys: string[]) {
-  const { data } = await api.post(`/properties/${propertyId}/attach_images/`, { keys });
+  const { data } = await api.post(`properties/${propertyId}/attach_images/`, { keys });
   return data;
 }
 
 export async function listProperties() {
-  const { data } = await api.get('/properties/');
+  const { data } = await api.get('properties/');
   return data.results ?? data;
 }
