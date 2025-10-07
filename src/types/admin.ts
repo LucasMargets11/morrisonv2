@@ -14,12 +14,14 @@ export interface Property {
   price: number;
   is_featured: boolean;
   status: PropertyStatus;
-  created_by: string;
+  created_by?: string;
   created_at: string;
   updated_at: string;
   images: PropertyImage[];
   features: PropertyFeature[];
   maintenance_events?: MaintenanceEvent[];
+  latitude?: number;
+  longitude?: number;
 
 }
 export interface PropertyPricing {
@@ -38,6 +40,8 @@ export interface PropertyImage {
   image: string;
   is_primary: boolean;
   created_at: string;
+  s3_key?: string;
+  url?: string;
 }
 
 export interface PropertyFeature {

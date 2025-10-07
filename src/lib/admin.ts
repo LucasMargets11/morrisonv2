@@ -35,6 +35,8 @@ export const adminApi = {
     const payload: Record<string, any> = {};
     Object.entries(property).forEach(([key, value]) => {
       if (value === undefined || value === null) return;
+      // No enviar arrays complejas que son read-only o gestionadas aparte
+      if (key === 'images' || key === 'features' || key === 'maintenance_events') return;
       if (Array.isArray(value)) {
         if (key === 'feature_list') {
           payload[key] = value; // DRF ListField

@@ -1,4 +1,5 @@
 import requests
+import logging
 from urllib.parse import quote
 from django.conf import settings
 from rest_framework import serializers
@@ -63,19 +64,29 @@ class PropertySerializer(serializers.ModelSerializer):
         s3_keys = validated_data.pop('image_keys', [])
         # Geocode solo si está activado
         if getattr(settings, 'USE_GEOCODING', True):
-            full_address = self.get_full_address(type('O', (), validated_data)) + ', Argentina'
-            encoded = quote(full_address)
-            api_key = settings.GOOGLE_MAPS_API_KEY
-            url = (
-                'https://maps.googleapis.com/maps/api/geocode/json'
-                f'?address={encoded}&components=country:AR&region=ar&language=es&key={api_key}'
-            )
-            resp = requests.get(url)
-            data = resp.json()
-            if data.get('status') == 'OK' and data.get('results'):
-                loc = data['results'][0]['geometry']['location']
-                validated_data['latitude'] = loc['lat']
-                validated_data['longitude'] = loc['lng']
+            try:
+                # Construye dirección de forma segura (coerción a str y manejo de faltantes)
+                addr = str(validated_data.get('address', '') or '')
+                city = str(validated_data.get('city', '') or '')
+                state = str(validated_data.get('state', '') or '')
+                zipc = str(validated_data.get('zip_code', '') or '')
+                parts = [p for p in [addr, city, state, zipc] if p]
+                full_address = ', '.join(parts) + ', Argentina'
+                if full_address.strip(', ').strip():
+                    encoded = quote(full_address)
+                    api_key = settings.GOOGLE_MAPS_API_KEY
+                    url = (
+                        'https://maps.googleapis.com/maps/api/geocode/json'
+                        f'?address={encoded}&components=country:AR&region=ar&language=es&key={api_key}'
+                    )
+                    resp = requests.get(url, timeout=6)
+                    data = resp.json() if resp.ok else {}
+                    if data.get('status') == 'OK' and data.get('results'):
+                        loc = data['results'][0]['geometry']['location']
+                        validated_data['latitude'] = loc.get('lat')
+                        validated_data['longitude'] = loc.get('lng')
+            except Exception as e:
+                logging.getLogger(__name__).exception("[properties.create] Geocoding failed: %s", e)
         else:
             # Puedes poner coordenadas dummy o dejar en None
             validated_data['latitude'] = None
@@ -109,25 +120,28 @@ class PropertySerializer(serializers.ModelSerializer):
         if getattr(settings, 'USE_GEOCODING', True) and any(
             field in validated_data for field in ('address', 'city', 'state', 'zip_code')
         ):
-            address_obj = type('O', (), {
-                'address': validated_data.get('address', instance.address),
-                'city': validated_data.get('city', instance.city),
-                'state': validated_data.get('state', instance.state),
-                'zip_code': validated_data.get('zip_code', instance.zip_code),
-            })
-            full_address = self.get_full_address(address_obj) + ', Argentina'
-            encoded = quote(full_address)
-            api_key = settings.GOOGLE_MAPS_API_KEY
-            url = (
-                'https://maps.googleapis.com/maps/api/geocode/json'
-                f'?address={encoded}&components=country:AR&region=ar&language=es&key={api_key}'
-            )
-            resp = requests.get(url)
-            data = resp.json()
-            if data.get('status') == 'OK' and data.get('results'):
-                loc = data['results'][0]['geometry']['location']
-                validated_data['latitude'] = loc['lat']
-                validated_data['longitude'] = loc['lng']
+            try:
+                addr = str(validated_data.get('address', instance.address) or '')
+                city = str(validated_data.get('city', instance.city) or '')
+                state = str(validated_data.get('state', instance.state) or '')
+                zipc = str(validated_data.get('zip_code', instance.zip_code) or '')
+                parts = [p for p in [addr, city, state, zipc] if p]
+                full_address = ', '.join(parts) + ', Argentina'
+                if full_address.strip(', ').strip():
+                    encoded = quote(full_address)
+                    api_key = settings.GOOGLE_MAPS_API_KEY
+                    url = (
+                        'https://maps.googleapis.com/maps/api/geocode/json'
+                        f'?address={encoded}&components=country:AR&region=ar&language=es&key={api_key}'
+                    )
+                    resp = requests.get(url, timeout=6)
+                    data = resp.json() if resp.ok else {}
+                    if data.get('status') == 'OK' and data.get('results'):
+                        loc = data['results'][0]['geometry']['location']
+                        validated_data['latitude'] = loc.get('lat')
+                        validated_data['longitude'] = loc.get('lng')
+            except Exception as e:
+                logging.getLogger(__name__).exception("[properties.update] Geocoding failed: %s", e)
 
         instance = super().update(instance, validated_data)
 

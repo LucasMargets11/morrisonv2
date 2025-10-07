@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status, parsers
+from rest_framework import viewsets, status, parsers, serializers
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -70,7 +70,23 @@ class PropertyViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Server error", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        try:
+            serializer.save(created_by=self.request.user)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).exception("[properties.create] Unhandled error on create: %s", e)
+            raise
+
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+        except serializers.ValidationError as ve:  # type: ignore
+            # Return structured 400 instead of HTML 500
+            return Response(getattr(ve, 'detail', {'detail': 'Invalid input'}), status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).exception("[properties.create] Unhandled exception: %s", e)
+            return Response({"detail": "Server error", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=True, methods=['post'])
     def upload_images(self, request, pk=None):
