@@ -17,7 +17,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
       <Link to={`/property/${property.id}`} className="block">
         <div className="relative overflow-hidden rounded-t-xl">
           <img 
-            src={property.images[0] || '/placeholder.jpg'}
+            src={(Array.isArray(property.images) && property.images.length > 0
+              ? (typeof property.images[0] === 'string' 
+                  ? (property.images[0] as string) 
+                  : (((property.images[0] as any)?.url) || ((property.images[0] as any)?.image) || '/placeholder.jpg'))
+              : '/placeholder.jpg')}
             alt={property.title} 
             className="h-64 w-full object-cover transition-transform duration-300 group-hover:scale-105 rounded-t-xl"
           />

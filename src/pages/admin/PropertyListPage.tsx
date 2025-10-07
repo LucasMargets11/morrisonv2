@@ -345,10 +345,13 @@ const PropertyListPage: React.FC = () => {
                 {/* Columna de Property */}
                 <td className="px-4 py-4">
                   <div className="flex items-center gap-3">
-                    {p.images?.[0]?.image ? (
+                    {(() => {
+                      const first = Array.isArray(p.images) && p.images.length > 0 ? p.images[0] as any : null;
+                      const thumb = typeof first === 'string' ? first : (first?.url || first?.image);
+                      return thumb ? (
                       <div className="relative">
                         <img 
-                          src={p.images[0].image} 
+                          src={thumb} 
                           alt={p.title} 
                           className="w-12 h-12 rounded-lg object-cover shadow-sm" 
                         />
@@ -361,11 +364,12 @@ const PropertyListPage: React.FC = () => {
                           </div>
                         )}
                       </div>
-                    ) : (
+                      ) : (
                       <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
                         <Home size={20} className="text-gray-400" />
                       </div>
-                    )}
+                      );
+                    })()}
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-gray-900">{p.title}</p>

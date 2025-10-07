@@ -35,7 +35,7 @@ export const testimonials: Testimonial[] = [
     name: 'Cristian Marucci',
     location: 'Palermo, CABA',
     service: 'Alquiler Temporal',
-    rating: 4,
+    rating: 5,
     text: 'Excelente atención y alojamientos. Todo el equipo es muy amable y presto a resolver lo que sea necesario.',
     avatar: 'https://lh3.googleusercontent.com/a-/ALV-UjXaWyVNhGovu-VzCwmVeIcby-gXqIhAbUXQOLWy9-C3UdokXLz9tw=w72-h72-p-rp-mo-ba4-br100',
     date: 'Septiembre 2025', // hace 2 semanas

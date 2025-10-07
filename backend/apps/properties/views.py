@@ -14,7 +14,7 @@ import boto3
 
 
 class PropertyViewSet(viewsets.ModelViewSet):
-    queryset = Property.objects.all()
+    queryset = Property.objects.all().select_related('created_by').prefetch_related('images')
     serializer_class = PropertySerializer
     permission_classes = [AllowAny]
     parser_classes = [parsers.JSONParser, parsers.MultiPartParser, parsers.FormParser]
@@ -52,6 +52,22 @@ class PropertyViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(property_type=property_type)
 
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        try:
+            return super().list(request, *args, **kwargs)
+        except Exception as e:
+            import logging, traceback
+            logging.getLogger(__name__).exception("[properties.list] Unhandled error: %s", e)
+            return Response({"detail": "Server error", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            return super().retrieve(request, *args, **kwargs)
+        except Exception as e:
+            import logging, traceback
+            logging.getLogger(__name__).exception("[properties.retrieve] Unhandled error: %s", e)
+            return Response({"detail": "Server error", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)

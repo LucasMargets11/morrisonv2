@@ -769,7 +769,7 @@ const PropertyFormPage: React.FC = () => {
                         }`}
                       >
                         <img
-                          src={typeof img === 'string' ? img : img.image}
+                          src={typeof img === 'string' ? img : ((img as any).url || (img as any).image)}
                           alt={`Imagen ${idx + 1}`}
                           className="w-full h-32 object-cover"
                         />

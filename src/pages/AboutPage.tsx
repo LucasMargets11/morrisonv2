@@ -4,9 +4,9 @@ import Button from '../components/UI/Button';
 
 const AboutPage: React.FC = () => {
   const stats = [
-    { icon: Home, value: '100+', label: 'Propiedades Administradas' },
+    { icon: Home, value: '50+', label: 'Propiedades Administradas' },
     { icon: Users, value: '3000+', label: 'Clientes Satisfechos' },
-    { icon: Award, value: '5+', label: 'Años de Experiencia' },
+    { icon: Award, value: '2+', label: 'Años de Experiencia' },
     { icon: TrendingUp, value: '95%', label: 'Éxito en Ventas' },
   ];
 
@@ -17,7 +17,7 @@ const AboutPage: React.FC = () => {
     },
     {
       title: 'Experiencia',
-      description: 'Más de 5 años en el mercado inmobiliario local.',
+      description: 'Reflejada en cada detalle: conocimiento, eficiencia y compromiso real.',
     },
     {
       title: 'Confianza',
@@ -82,21 +82,15 @@ const AboutPage: React.FC = () => {
               </h2>
               <div className="space-y-4 text-gray-600">
                 <p>
-                  Fundado en 2020, Grupo Bairen nació con la visión de transformar 
-                  la experiencia inmobiliaria en Posadas, Misiones. Lo que comenzó 
-                  como un pequeño emprendimiento familiar, hoy se ha convertido en 
-                  una de las inmobiliarias más confiables de la región.
+                  Fundado en 2023, Grupo Bairen nació en la Ciudad de Buenos Aires con la visión de transformar la experiencia inmobiliaria, integrando hospitalidad, innovación y gestión profesional.
+                  Desde el inicio, nos propusimos ofrecer una nueva forma de habitar, invertir y disfrutar cada propiedad, con la intención de expandir nuestro modelo a todo el territorio argentino.
                 </p>
                 <p>
-                  Nuestra pasión por las propiedades y el compromiso con nuestros 
-                  clientes nos ha permitido crecer constantemente, siempre manteniendo 
-                  los valores que nos definen: honestidad, profesionalismo y 
-                  dedicación personalizada.
+                  Nuestra pasión por la hospitalidad y el compromiso con cada propietario e inquilino nos impulsaron a crecer, incorporando tecnología, diseño y servicios premium que redefinen el concepto de alquiler urbano.
                 </p>
                 <p>
-                  Especializados en alquileres temporales y venta de propiedades, 
-                  hemos desarrollado un profundo conocimiento del mercado local 
-                  que nos permite ofrecer el mejor asesoramiento a nuestros clientes.
+                  Hoy, Grupo Bairen combina tradición y modernidad:
+                  administramos propiedades en zonas estratégicas como Palermo y Recoleta, brindamos asesoramiento personalizado, y acompañamos tanto a huéspedes como a inversores con una gestión basada en confianza, innovación y resultados medibles.
                 </p>
               </div>
             </div>

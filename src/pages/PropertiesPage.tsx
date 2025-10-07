@@ -547,7 +547,18 @@ const PropertiesPage: React.FC = () => {
                   <div key={property.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => { window.location.href = `/property/${property.id}`; }}>
                     <div className="h-40 w-full overflow-hidden rounded-t-xl bg-gray-100 relative">
                       {property.images[0] ? (
-                        <img src={property.images[0]} alt={property.title} className="w-full h-full object-cover" />
+                        <img
+                          src={typeof property.images[0] === 'string' ? property.images[0] : ((property.images[0] as any)?.url || (property.images[0] as any)?.image || '')}
+                          onError={(e) => {
+                            const fallback = '/building.svg';
+                            if (e.currentTarget.src !== window.location.origin + fallback && !e.currentTarget.dataset.fallback) {
+                              e.currentTarget.dataset.fallback = 'true';
+                              e.currentTarget.src = fallback;
+                            }
+                          }}
+                          alt={property.title}
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">Sin imagen</div>
                       )}

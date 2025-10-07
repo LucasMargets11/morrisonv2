@@ -20,7 +20,7 @@ const StatsSection: React.FC = () => {
             <div className="bg-blue-800 rounded-full p-5 w-20 h-20 flex items-center justify-center mx-auto mb-4">
               <Home size={30} />
             </div>
-            <h3 className="text-2xl font-bold mb-2">100+</h3>
+            <h3 className="text-2xl font-bold mb-2">50+</h3>
             <p className="text-blue-100">{t('stats.properties')}</p>
           </div>
           
@@ -36,7 +36,7 @@ const StatsSection: React.FC = () => {
             <div className="bg-blue-800 rounded-full p-5 w-20 h-20 flex items-center justify-center mx-auto mb-4">
               <Award size={30} />
             </div>
-            <h3 className="text-2xl font-bold mb-2">5+</h3>
+            <h3 className="text-2xl font-bold mb-2">2+</h3>
             <p className="text-blue-100">{t('stats.experience')}</p>
           </div>
           

@@ -5,11 +5,22 @@ from rest_framework import serializers
 from .models import Property, PropertyImage, PropertyFeature, Pricing, Maintenance
 
 class PropertyImageSerializer(serializers.ModelSerializer):
-    image = serializers.ImageField(required=False, allow_null=True)
+    # Protect .url access: derive URL safely; fall back to stored public URL
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = PropertyImage
-    fields = ['id', 'image', 's3_key', 'url', 'is_primary', 'created_at', 'order']
+        fields = ['id', 'image', 's3_key', 'url', 'is_primary', 'created_at', 'order']
+
+    def get_image(self, obj):
+        try:
+            if getattr(obj, 'image') and getattr(obj.image, 'url', None):
+                return obj.image.url
+        except Exception:
+            # Missing file or storage error; ignore and fall back
+            pass
+        # Prefer explicit public URL if present
+        return getattr(obj, 'url', None)
 
 class PropertyFeatureSerializer(serializers.ModelSerializer):
     class Meta:
@@ -84,9 +95,10 @@ class PropertySerializer(serializers.ModelSerializer):
                 )
         if s3_keys:
             from django.conf import settings
-            domain = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+            bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
+            domain = f"https://{bucket}.s3.amazonaws.com" if bucket else None
             PropertyImage.objects.bulk_create([
-                PropertyImage(property=instance, s3_key=k, url=f"{domain}/{k}") for k in s3_keys
+                PropertyImage(property=instance, s3_key=k, url=(f"{domain}/{k}" if domain else "")) for k in s3_keys
             ])
         return instance
 

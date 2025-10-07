@@ -15,7 +15,6 @@ const PropertyCarousel: React.FC<PropertyCarouselProps> = ({ properties }) => {
   const [dragX, setDragX] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [hasFocus, setHasFocus] = useState(false);
-  const [imageLoadError, setImageLoadError] = useState<Record<string, boolean>>({});
   
   const carouselRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -130,9 +129,6 @@ const PropertyCarousel: React.FC<PropertyCarouselProps> = ({ properties }) => {
     handleMouseUp();
   };
 
-  const handleImageError = (propertyId: string) => {
-    setImageLoadError(prev => ({ ...prev, [propertyId]: true }));
-  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -193,18 +189,20 @@ const PropertyCarousel: React.FC<PropertyCarouselProps> = ({ properties }) => {
           >
             <div className="bg-white rounded-xl overflow-hidden shadow-xl">
               <div className="relative aspect-[16/9]">
-                {!imageLoadError[property.id] ? (
-                  <img
-                    src={property.images?.[0]?.image}
-                    alt={property.title}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-gray-500">Image unavailable</span>
-                  </div>
-                )}
+                {(() => {
+                  const src = (Array.isArray(property.images) && property.images.length > 0
+                    ? (typeof property.images[0] === 'string'
+                        ? (property.images[0] as string)
+                        : (((property.images[0] as any)?.url) || ((property.images[0] as any)?.image)))
+                    : undefined) as string | undefined;
+                  return src ? (
+                    <img src={src} alt={property.title} className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-gray-500">Image unavailable</span>
+                    </div>
+                  );
+                })()}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-4 left-4 right-4">
                   <p className="text-white font-bold text-xl mb-1">
