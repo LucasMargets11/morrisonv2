@@ -5,11 +5,11 @@ from rest_framework import serializers
 from .models import Property, PropertyImage, PropertyFeature, Pricing, Maintenance
 
 class PropertyImageSerializer(serializers.ModelSerializer):
-    image = serializers.ImageField()
+    image = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = PropertyImage
-        fields = ['id', 'image', 'is_primary', 'created_at', 'order']
+    fields = ['id', 'image', 's3_key', 'url', 'is_primary', 'created_at', 'order']
 
 class PropertyFeatureSerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,6 +18,10 @@ class PropertyFeatureSerializer(serializers.ModelSerializer):
 
 class PropertySerializer(serializers.ModelSerializer):
     images = PropertyImageSerializer(many=True, read_only=True)
+    image_keys = serializers.ListField(
+        child=serializers.CharField(), write_only=True, required=False,
+        help_text="S3 keys ya subidas (properties/<uuid>.<ext>)"
+    )
     features = PropertyFeatureSerializer(many=True, read_only=True)
     feature_list = serializers.ListField(
         child=serializers.CharField(),
@@ -33,7 +37,7 @@ class PropertySerializer(serializers.ModelSerializer):
             'zip_code', 'full_address', 'property_type', 'bedrooms', 'bathrooms',
             'square_feet', 'year_built', 'price', 'is_featured',
             'status', 'created_by', 'created_at', 'updated_at',
-            'images', 'features', 'feature_list',
+            'images', 'features', 'feature_list', 'image_keys',
             'latitude', 'longitude'
         ]
         read_only_fields = ['created_by', 'created_at', 'updated_at']
@@ -45,6 +49,7 @@ class PropertySerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         features_data = validated_data.pop('feature_list', None)
         images_data = validated_data.pop('images', None)
+        s3_keys = validated_data.pop('image_keys', [])
         # Geocode solo si está activado
         if getattr(settings, 'USE_GEOCODING', True):
             full_address = self.get_full_address(type('O', (), validated_data)) + ', Argentina'
@@ -77,6 +82,12 @@ class PropertySerializer(serializers.ModelSerializer):
                     is_primary=img_data.get('is_primary', False),
                     order=img_data.get('order', idx)
                 )
+        if s3_keys:
+            from django.conf import settings
+            domain = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+            PropertyImage.objects.bulk_create([
+                PropertyImage(property=instance, s3_key=k, url=f"{domain}/{k}") for k in s3_keys
+            ])
         return instance
 
     def update(self, instance, validated_data):

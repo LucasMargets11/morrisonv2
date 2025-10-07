@@ -49,6 +49,9 @@ class Property(models.Model):
 class PropertyImage(models.Model):
     property = models.ForeignKey(Property, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='properties/')
+    # New fields for direct-to-S3 uploads (compat with existing 'image')
+    s3_key = models.CharField(max_length=512, blank=True, default='')
+    url = models.URLField(max_length=1024, blank=True, default='')
     is_primary = models.BooleanField(default=False)
     order = models.PositiveIntegerField(default=0)  # <-- agrega esto
     created_at = models.DateTimeField(auto_now_add=True)

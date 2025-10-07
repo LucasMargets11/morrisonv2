@@ -82,7 +82,7 @@ const PropertiesPage: React.FC = () => {
       description: p.description,
       features: Array.isArray(p.features) ? p.features : [],
       images: Array.isArray(p.images)
-        ? p.images.map((img) => (typeof img === 'string' ? img : img.image))
+        ? p.images.map((img) => (typeof img === 'string' ? img : ((img as any).url || (img as any).image)))
         : [],
       isFeatured: !!p.is_featured,
       is_featured: !!p.is_featured,

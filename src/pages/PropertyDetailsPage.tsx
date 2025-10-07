@@ -34,7 +34,7 @@ const PropertyDetailsPage: React.FC = () => {
             ? data.features.map((f: any) => (typeof f === 'string' ? f : f.name))
             : [],
           images: Array.isArray(data.images)
-            ? data.images.map((img: any) => (typeof img === 'string' ? img : img.image))
+            ? data.images.map((img: any) => (typeof img === 'string' ? img : (img.url || img.image)))
             : [],
         } as any;
         setProperty(normalized);
@@ -49,7 +49,7 @@ const PropertyDetailsPage: React.FC = () => {
             yearBuilt: p.year_built ?? p.yearBuilt,
             zipCode: p.zip_code ?? p.zipCode,
             features: Array.isArray(p.features) ? p.features.map((f: any) => (typeof f === 'string' ? f : f.name)) : [],
-            images: Array.isArray(p.images) ? p.images.map((img: any) => (typeof img === 'string' ? img : img.image)) : [],
+            images: Array.isArray(p.images) ? p.images.map((img: any) => (typeof img === 'string' ? img : (img.url || img.image))) : [],
           }));
         setSimilarProperties(similar);
         document.title = `${data.title} | Grupo Bairen`;
@@ -85,7 +85,7 @@ const PropertyDetailsPage: React.FC = () => {
         <div className="lg:col-span-2 space-y-10">
           <PropertyGallery
             images={Array.isArray(property.images)
-              ? property.images.map((img: any) => (typeof img === 'string' ? img : img.image))
+              ? property.images.map((img: any) => (typeof img === 'string' ? img : (img.url || img.image)))
               : []}
             title={property.title}
           />

@@ -1,5 +1,5 @@
 from rest_framework import viewsets, status, parsers
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db.models import Q
@@ -8,6 +8,9 @@ from .serializers import PropertySerializer, PropertyImageSerializer, PricingSer
 from .permissions import IsOwnerOrAdmin
 from django.contrib import admin
 from rest_framework.views import APIView
+from django.conf import settings
+import uuid, mimetypes
+import boto3
 
 
 class PropertyViewSet(viewsets.ModelViewSet):
@@ -89,6 +92,48 @@ class PropertyViewSet(viewsets.ModelViewSet):
         context = super().get_serializer_context()
         context['request'] = self.request
         return context
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def presign_property_images(request):
+    """
+    Body: { "files": [ {"name":"foto1.jpg","type":"image/jpeg"}, ... ] }
+    """
+    s3 = boto3.client('s3', region_name=settings.AWS_S3_REGION_NAME)
+    bucket = settings.AWS_STORAGE_BUCKET_NAME
+    out = []
+    for f in request.data.get('files', []):
+        ext = (f.get("name") or "").split(".")[-1].lower() or "jpg"
+        key = f"properties/{uuid.uuid4()}.{ext}"
+        content_type = f.get("type") or mimetypes.guess_type(f.get("name"))[0] or "application/octet-stream"
+        url = s3.generate_presigned_url(
+            ClientMethod='put_object',
+            Params={
+                'Bucket': bucket,
+                'Key': key,
+                'ContentType': content_type,
+                'ACL': 'public-read',
+            },
+            ExpiresIn=300,
+        )
+        out.append({"key": key, "uploadUrl": url, "contentType": content_type})
+    return Response({"uploads": out})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def attach_property_images(request, pk):
+    """
+    Body: { "keys": ["properties/uuid1.jpg", ...] }
+    """
+    from django.shortcuts import get_object_or_404
+    prop = get_object_or_404(Property, pk=pk, created_by=request.user)
+    keys = request.data.get("keys", [])
+    domain = f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+    imgs = [PropertyImage(property=prop, s3_key=k, url=f"{domain}/{k}") for k in keys]
+    PropertyImage.objects.bulk_create(imgs)
+    return Response({"added": len(imgs)}, status=status.HTTP_201_CREATED)
 
 
 class PropertyPricingView(APIView):
