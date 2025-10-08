@@ -91,9 +91,10 @@ const PrivacyPage: React.FC = () => {
               </p>
               <div className="bg-gray-50 p-4 rounded-lg mt-4">
                 <p className="text-gray-700">
-                  <strong>Email:</strong> privacidad@grupobairen.com<br />
-                  <strong>Teléfono:</strong> +54 11 3045-4989<br />
-                  <strong>Dirección:</strong> La Rioja 1578, Posadas, Misiones
+                  <strong>Email:</strong> Grupobairen@gmail.com<br />
+                  <strong>Teléfono:</strong> +54 9 11 2310-6629<br />
+                  <strong>Dirección:</strong> Las Heras 3331
+Palermo, CABA, Argentina
                 </p>
               </div>
             </section>
