@@ -34,7 +34,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property }) => {
   const [checkOutSlot, setCheckOutSlot] = useState<Slot>(null);
   const [blockedRanges, setBlockedRanges] = useState<{ start: string; end: string }[]>([]);
   const navigate = useNavigate();
-  const GENERIC_WHATSAPP_NUMBER = '5491130454989';
+  const GENERIC_WHATSAPP_NUMBER = '5491123106629';
 
   // Rol de usuario
   useEffect(() => {

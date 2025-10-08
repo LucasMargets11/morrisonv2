@@ -15,7 +15,7 @@ const ContactPage: React.FC = () => {
 
   const onSubmit = (data: ContactFormData) => {
     const message = `Hola! Soy : ${data.fullName}, mi email es : ${data.email}, mi teléfono es : ${data.phone} y estoy interesado en: ${data.investmentType}`;
-    const whatsappUrl = `https://wa.me/1130454989?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/1123106629?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
