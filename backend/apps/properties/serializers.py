@@ -105,7 +105,6 @@ class PropertySerializer(serializers.ModelSerializer):
                     order=img_data.get('order', idx)
                 )
         if s3_keys:
-            from django.conf import settings
             bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
             domain = f"https://{bucket}.s3.amazonaws.com" if bucket else None
             PropertyImage.objects.bulk_create([

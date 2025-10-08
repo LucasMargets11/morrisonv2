@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from django.conf import settings
 import uuid, mimetypes
 import boto3
+import logging
 
 
 class PropertyViewSet(viewsets.ModelViewSet):
@@ -21,7 +22,7 @@ class PropertyViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         # Public read; authenticated for create and media mutations
-        if getattr(self, 'action', None) in ['create', 'upload_images', 'delete_image']:
+        if getattr(self, 'action', None) in ['create', 'upload_images', 'delete_image', 'images']:
             return [IsAuthenticated()]
         return [AllowAny()]
 
@@ -126,6 +127,41 @@ class PropertyViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
+    @action(detail=True, methods=['post'], url_path='images')
+    def images(self, request, pk=None):
+        """
+        Body: { "s3_key": "properties/<id>/foto-<uuid>.jpg", "is_primary": true, "order": 0 }
+        Registers an already uploaded S3 object as a PropertyImage.
+        """
+        prop = self.get_object()
+        user = request.user
+        if not (user.is_authenticated and (user == prop.created_by or user.is_staff or user.is_superuser)):
+            return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
+        s3_key = request.data.get('s3_key')
+        if not s3_key or not isinstance(s3_key, str):
+            return Response({"s3_key": ["This field is required."]}, status=status.HTTP_400_BAD_REQUEST)
+        is_primary = bool(request.data.get('is_primary', False))
+        try:
+            order = int(request.data.get('order', 0))
+        except Exception:
+            order = 0
+
+        bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '')
+        domain = f"https://{bucket}.s3.amazonaws.com" if bucket else ''
+        try:
+            img = PropertyImage.objects.create(
+                property=prop,
+                s3_key=s3_key,
+                url=f"{domain}/{s3_key}" if domain else '',
+                is_primary=is_primary,
+                order=order,
+            )
+            return Response(PropertyImageSerializer(img).data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            logging.getLogger(__name__).exception("[properties.images] Failed to register image", extra={"property_id": prop.id, "s3_key": s3_key})
+            return Response({"detail": "Failed to register image", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context['request'] = self.request
@@ -157,6 +193,65 @@ def presign_property_images(request):
         )
         out.append({"key": key, "uploadUrl": url, "contentType": content_type})
     return Response({"uploads": out})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def presign_upload(request):
+    """
+    POST /api/uploads/presign/
+    Body: { "property_id": 123, "filename": "foto.jpg", "content_type": "image/jpeg" }
+    Returns: { upload_url, s3_key, headers }
+    """
+    try:
+        prop_id = request.data.get('property_id')
+        filename = (request.data.get('filename') or '').strip()
+        content_type = (request.data.get('content_type') or '').strip()
+
+        # Validate inputs
+        try:
+            prop = Property.objects.get(pk=prop_id)
+        except Property.DoesNotExist:
+            return Response({"property_id": ["Invalid property."]}, status=status.HTTP_400_BAD_REQUEST)
+
+        if content_type not in ("image/jpeg", "image/png", "image/webp"):
+            return Response({"content_type": ["Unsupported type. Use image/jpeg, image/png or image/webp."]}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Build S3 key: properties/<property_id>/foto-<uuid>.<ext>
+        ext = (filename.rsplit('.', 1)[-1] if '.' in filename else 'jpg').lower()
+        if ext not in ("jpg", "jpeg", "png", "webp"):
+            # Normalize extension to match content_type
+            ext = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}[content_type]
+        s3_key = f"properties/{prop.id}/foto-{uuid.uuid4()}.{ext}"
+
+        s3 = boto3.client('s3', region_name=settings.AWS_S3_REGION_NAME)
+        params = {
+            'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
+            'Key': s3_key,
+            'ContentType': content_type,
+            # No ACL here if bucket policy handles public access
+        }
+        upload_url = s3.generate_presigned_url(
+            ClientMethod='put_object',
+            Params=params,
+            ExpiresIn=300,
+        )
+
+        headers = {
+            'Content-Type': content_type,
+            'Cache-Control': 'public, max-age=31536000, immutable',
+        }
+        return Response({
+            'upload_url': upload_url,
+            's3_key': s3_key,
+            'headers': headers,
+        })
+    except Exception as e:
+        logging.getLogger(__name__).exception("[uploads.presign] Failed to presign", extra={
+            "property_id": request.data.get('property_id'),
+            "filename": request.data.get('filename'),
+        })
+        return Response({"detail": "Failed to presign upload", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])

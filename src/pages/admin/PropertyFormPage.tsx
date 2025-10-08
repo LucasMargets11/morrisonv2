@@ -9,6 +9,7 @@ import Button from '../../components/UI/Button';
 import { lazy, Suspense } from 'react';
 const PropertyCalendar = lazy(() => import('../../components/admin/PropertyCalendar'));
 import { Property, PropertyImage } from '../../types/admin';
+import { presignUpload, putToS3, registerImage } from '../../lib/s3';
 
 type PropertyFormData = Omit<Property, 'id' | 'created_at' | 'updated_at' | 'media'>;
 
@@ -129,11 +130,25 @@ const PropertyFormPage: React.FC = () => {
   const createMutation = useMutation({
     mutationFn: async (data: PropertyFormData) => {
       try {
-        const property = await adminApi.createProperty(data, uploadedFiles);
+        const property = await adminApi.createProperty(data, []);
+        // Direct-to-S3 upload flow
         if (uploadedFiles.length > 0) {
           setIsUploading(true);
-          for (const file of uploadedFiles) {
-            await adminApi.uploadMedia(property.id, file);
+          let order = images.length ? images.length : 0;
+          for (let i = 0; i < uploadedFiles.length; i++) {
+            const file = uploadedFiles[i];
+            if (!file.type.startsWith('image/')) {
+              console.warn('Skipping non-image file', file.name);
+              continue;
+            }
+            // size guard
+            if (file.size > 15 * 1024 * 1024) {
+              console.warn('File too large (>15MB), consider compressing', file.name);
+            }
+            const presign = await presignUpload({ property_id: property.id, filename: file.name, content_type: file.type });
+            await putToS3(presign.upload_url, file, presign.headers);
+            await registerImage(property.id, { s3_key: presign.s3_key, is_primary: order === 0, order });
+            order += 1;
           }
           setIsUploading(false);
         }
@@ -158,8 +173,17 @@ const PropertyFormPage: React.FC = () => {
         const updatedProperty = await adminApi.updateProperty(id!, data);
         if (uploadedFiles.length > 0) {
           setIsUploading(true);
-          for (const file of uploadedFiles) {
-            await adminApi.uploadMedia(updatedProperty.id, file);
+          let order = images.length ? images.length : 0;
+          for (let i = 0; i < uploadedFiles.length; i++) {
+            const file = uploadedFiles[i];
+            if (!file.type.startsWith('image/')) continue;
+            if (file.size > 15 * 1024 * 1024) {
+              console.warn('File too large (>15MB), consider compressing', file.name);
+            }
+            const presign = await presignUpload({ property_id: updatedProperty.id, filename: file.name, content_type: file.type });
+            await putToS3(presign.upload_url, file, presign.headers);
+            await registerImage(updatedProperty.id, { s3_key: presign.s3_key, is_primary: order === 0, order });
+            order += 1;
           }
           setIsUploading(false);
         }
