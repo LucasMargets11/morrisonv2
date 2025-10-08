@@ -6,13 +6,21 @@ from rest_framework import serializers
 from .models import Property, PropertyImage, PropertyFeature, Pricing, Maintenance
 
 class PropertyImageSerializer(serializers.ModelSerializer):
-    # Protect .url access: derive URL safely; fall back to stored public URL
-    image = serializers.SerializerMethodField()
-    url = serializers.SerializerMethodField()
+    # Protect .image access: avoid calling ImageField.url on missing files
+    image = serializers.SerializerMethodField(read_only=True)
+    # Allow providing explicit public URL on write; for read we'll ensure a URL is returned (stored or derived)
+    url = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    # Accept property id on write (FK assignment); keep it write-only so representation matches acceptance
+    property = serializers.PrimaryKeyRelatedField(queryset=Property.objects.all(), write_only=True, required=True)
 
     class Meta:
         model = PropertyImage
-    fields = ['id', 'image', 's3_key', 'url', 'is_primary', 'created_at', 'order']
+        fields = ['id', 'property', 's3_key', 'url', 'is_primary', 'order', 'created_at', 'image']
+        read_only_fields = ['id', 'created_at', 'image']
+        extra_kwargs = {
+            'is_primary': {'required': False},
+            'order': {'required': False},
+        }
 
     def get_image(self, obj):
         try:
@@ -24,17 +32,26 @@ class PropertyImageSerializer(serializers.ModelSerializer):
         # Prefer explicit public URL if present
         return getattr(obj, 'url', None)
 
-    def get_url(self, obj):
-        # If model has url, use it; otherwise derive from s3_key and bucket
-        model_url = getattr(obj, 'url', '') or ''
-        if model_url:
-            return model_url
-        s3_key = getattr(obj, 's3_key', '') or ''
-        if not s3_key:
-            return None
+    def to_representation(self, instance):
+        """Ensure 'url' is present when serializing by deriving from s3_key if missing."""
+        data = super().to_representation(instance)
+        if not data.get('url') and data.get('s3_key'):
+            import os as _os
+            bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '') or _os.environ.get('S3_MEDIA_BUCKET', '')
+            if bucket:
+                data['url'] = f"https://{bucket}.s3.amazonaws.com/{data['s3_key']}"
+        return data
+
+    def create(self, validated_data):
+        """Create PropertyImage; if url not provided but s3_key present, compute default public URL."""
         import os as _os
-        bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '') or _os.environ.get('S3_MEDIA_BUCKET', '')
-        return f"https://{bucket}.s3.amazonaws.com/{s3_key}" if bucket else None
+        s3_key = validated_data.get('s3_key')
+        url = validated_data.get('url')
+        if s3_key and not url:
+            bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '') or _os.environ.get('S3_MEDIA_BUCKET', '')
+            if bucket:
+                validated_data['url'] = f"https://{bucket}.s3.amazonaws.com/{s3_key}"
+        return PropertyImage.objects.create(**validated_data)
 
 class PropertyFeatureSerializer(serializers.ModelSerializer):
     class Meta:

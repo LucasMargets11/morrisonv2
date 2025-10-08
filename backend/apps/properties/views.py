@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status, parsers, serializers
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
 from django.db.models import Q
 from .models import Property, PropertyImage, Pricing, Maintenance
 from .serializers import PropertySerializer, PropertyImageSerializer, PricingSerializer, MaintenanceSerializer
@@ -16,16 +16,25 @@ import os
 
 
 class PropertyViewSet(viewsets.ModelViewSet):
-    queryset = Property.objects.all().select_related('created_by').prefetch_related('images')
+    queryset = (
+        Property.objects.all()
+        .select_related('created_by')
+        .prefetch_related('images', 'features')
+        .order_by('-created_at')
+    )
     serializer_class = PropertySerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     parser_classes = [parsers.JSONParser, parsers.MultiPartParser, parsers.FormParser]
 
     def get_permissions(self):
-        # Public read; authenticated for create and media mutations
-        if getattr(self, 'action', None) in ['create', 'upload_images', 'delete_image', 'images']:
+        # Public read for list/retrieve; auth required for create/update/delete and media mutations
+        action = getattr(self, 'action', None)
+        if action in ['list', 'retrieve']:
+            return [AllowAny()]
+        if action in ['create', 'update', 'partial_update', 'destroy', 'upload_images', 'delete_image', 'images']:
             return [IsAuthenticated()]
-        return [AllowAny()]
+        # Fallback to read-only by default
+        return [IsAuthenticatedOrReadOnly()]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -53,13 +62,22 @@ class PropertyViewSet(viewsets.ModelViewSet):
         if property_type and property_type != 'all':
             queryset = queryset.filter(property_type=property_type)
 
-        return queryset
+        # Mantener relaciones y orden para eficiencia y consistencia
+        return queryset.select_related('created_by').prefetch_related('images', 'features').order_by('-created_at')
 
     def list(self, request, *args, **kwargs):
+        # DRF-standard list: operate on QuerySet, let DRF paginate/serialize
         try:
-            return super().list(request, *args, **kwargs)
+            queryset = self.filter_queryset(self.get_queryset())
+
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
         except Exception as e:
-            import logging, traceback
             logging.getLogger(__name__).exception("[properties.list] Unhandled error: %s", e)
             return Response({"detail": "Server error", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -131,31 +149,45 @@ class PropertyViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='images')
     def images(self, request, pk=None):
         """
-        Body: { "s3_key": "properties/<id>/foto-<uuid>.jpg", "is_primary": true, "order": 0 }
-        Registers an already uploaded S3 object as a PropertyImage.
+        Registers one or many already uploaded S3 objects as PropertyImage records.
+        Accepts either a single object or a list of objects with fields:
+        { "s3_key": "properties/<id>/foto-<uuid>.jpg", "url": "https://...", "is_primary": true, "order": 0 }
         """
+        logger = logging.getLogger(__name__)
         prop = self.get_object()
         user = request.user
         if not (user.is_authenticated and (user == prop.created_by or user.is_staff or user.is_superuser)):
             return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
-        s3_key = request.data.get('s3_key')
-        if not s3_key or not isinstance(s3_key, str):
-            return Response({"s3_key": ["This field is required."]}, status=status.HTTP_400_BAD_REQUEST)
-        is_primary = bool(request.data.get('is_primary', False))
+        payload = request.data
+        many = isinstance(payload, list)
+        items = payload if many else [payload]
+        # Enrich each item with the FK property id
+        prepared = []
+        for item in items:
+            if not isinstance(item, dict):
+                logger.info("[properties.images] Skipping non-dict item type=%s", type(item).__name__)
+                continue
+            data = dict(item)
+            data['property'] = prop.pk
+            prepared.append(data)
+
+        logger.info("[properties.images] payload_type=%s count=%s property_id=%s", type(payload).__name__, len(prepared), prop.pk)
+
+        if not prepared:
+            return Response({"detail": "No valid image objects provided"}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '') or os.environ.get('S3_MEDIA_BUCKET', '')
-            domain = f"https://{bucket}.s3.amazonaws.com" if bucket else ''
-            img = PropertyImage.objects.create(
-                property=prop,
-                s3_key=s3_key,
-                url=f"{domain}/{s3_key}" if domain else '',
-                is_primary=is_primary,
-                order=order,
-            )
-            return Response(PropertyImageSerializer(img).data, status=status.HTTP_201_CREATED)
+            serializer = PropertyImageSerializer(data=prepared, many=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            data = serializer.data
+            return Response(data if many else data[0], status=status.HTTP_201_CREATED)
+        except serializers.ValidationError as ve:  # type: ignore
+            logger.info("[properties.images] validation_error %s", ve.detail if hasattr(ve, 'detail') else str(ve))
+            return Response(getattr(ve, 'detail', {'detail': 'Invalid input'}), status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            logging.getLogger(__name__).exception("[properties.images] Failed to register image", extra={"property_id": prop.id, "s3_key": s3_key})
+            logger.exception("[properties.images] Failed to register images")
             return Response({"detail": "Failed to register image", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def get_serializer_context(self):
