@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'apps.users',
     'apps.properties',
     'apps.bookings',
+    'apps.uploads',
     'storages',
 ]
 

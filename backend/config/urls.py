@@ -7,7 +7,7 @@ from django.conf.urls.static import static
 from core.views import db_health
 from health import health
 from .views import home
-from apps.properties.views import presign_upload
+from apps.uploads.views import PresignUploadView
 
 urlpatterns = [
     # Home / root
@@ -29,7 +29,7 @@ urlpatterns = [
     path("api/users/", include("apps.users.urls")),
     path("api/properties/", include("apps.properties.urls")),
     path("api/", include("apps.bookings.urls")),
-    path("api/uploads/presign/", presign_upload, name="presign-upload"),
+    path("api/uploads/presign/", PresignUploadView.as_view(), name="presign-upload"),
 ]
 
 # Serve media in this deployment variant (EB single container). For production behind a CDN/S3
