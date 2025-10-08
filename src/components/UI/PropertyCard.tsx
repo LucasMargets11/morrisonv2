@@ -4,6 +4,7 @@ import { Home, BedDouble, Bath, Ruler } from 'lucide-react';
 import { Property } from '../../types';
 import { formatPrice } from '../../utils/formatters';
 import Badge from './Badge';
+import { resolvePropertyImageUrl } from '../../utils/imageUrl';
 
 interface PropertyCardProps {
   property: Property;
@@ -12,16 +13,27 @@ interface PropertyCardProps {
 const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
   // Removed favorite/heart feature per request
 
+  // Choose primary image if present
+  const coverObj: any | null = Array.isArray(property.images) && property.images.length
+    ? (property.images as any[]).find((i: any) => i && (i as any).is_primary) ?? (property.images as any[])[0]
+    : null;
+  const coverUrl = typeof coverObj === 'string'
+    ? coverObj
+    : resolvePropertyImageUrl(coverObj, { preferSigned: true }) || (coverObj?.image || null);
+  const fallback = '/building.svg';
+
   return (
     <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 group">
       <Link to={`/property/${property.id}`} className="block">
         <div className="relative overflow-hidden rounded-t-xl">
-          <img 
-            src={(Array.isArray(property.images) && property.images.length > 0
-              ? (typeof property.images[0] === 'string' 
-                  ? (property.images[0] as string) 
-                  : (((property.images[0] as any)?.url) || ((property.images[0] as any)?.image) || '/placeholder.jpg'))
-              : '/placeholder.jpg')}
+          <img
+            src={coverUrl || fallback}
+            onError={(e) => {
+              if (!e.currentTarget.dataset.fallback) {
+                e.currentTarget.dataset.fallback = '1';
+                e.currentTarget.src = fallback;
+              }
+            }}
             alt={property.title} 
             className="h-64 w-full object-cover transition-transform duration-300 group-hover:scale-105 rounded-t-xl"
           />

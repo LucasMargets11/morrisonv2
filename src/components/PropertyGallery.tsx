@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Expand } from 'lucide-react';
+import { resolvePropertyImageUrl } from '../utils/imageUrl';
 
 interface PropertyGalleryProps {
-  // Accept both plain URLs and objects with url/image fields
-  images: Array<string | { url?: string; image?: string }>;
+  // Accept plain URLs or objects with url/image/s3_key
+  images: Array<string | { url?: string | null; image?: string | null; s3_key?: string | null }>;
   title: string;
 }
 
@@ -16,9 +17,7 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
   const normalizedImages = useMemo(() => {
     return (images || [])
       .map((img) =>
-        typeof img === 'string'
-          ? img
-          : (img?.url || img?.image || '')
+        typeof img === 'string' ? img : (resolvePropertyImageUrl(img, { preferSigned: true }) || '')
       )
       .filter(Boolean);
   }, [images]);

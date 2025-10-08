@@ -84,9 +84,7 @@ const PropertyDetailsPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-10">
           <PropertyGallery
-            images={Array.isArray(property.images)
-              ? property.images.map((img: any) => (typeof img === 'string' ? img : (img.url || img.image)))
-              : []}
+            images={Array.isArray(property.images) ? (property.images as any[]) : []}
             title={property.title}
           />
 
