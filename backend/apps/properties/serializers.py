@@ -8,10 +8,11 @@ from .models import Property, PropertyImage, PropertyFeature, Pricing, Maintenan
 class PropertyImageSerializer(serializers.ModelSerializer):
     # Protect .url access: derive URL safely; fall back to stored public URL
     image = serializers.SerializerMethodField()
+    url = serializers.SerializerMethodField()
 
     class Meta:
         model = PropertyImage
-        fields = ['id', 'image', 's3_key', 'url', 'is_primary', 'created_at', 'order']
+    fields = ['id', 'image', 's3_key', 'url', 'is_primary', 'created_at', 'order']
 
     def get_image(self, obj):
         try:
@@ -22,6 +23,18 @@ class PropertyImageSerializer(serializers.ModelSerializer):
             pass
         # Prefer explicit public URL if present
         return getattr(obj, 'url', None)
+
+    def get_url(self, obj):
+        # If model has url, use it; otherwise derive from s3_key and bucket
+        model_url = getattr(obj, 'url', '') or ''
+        if model_url:
+            return model_url
+        s3_key = getattr(obj, 's3_key', '') or ''
+        if not s3_key:
+            return None
+        import os as _os
+        bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '') or _os.environ.get('S3_MEDIA_BUCKET', '')
+        return f"https://{bucket}.s3.amazonaws.com/{s3_key}" if bucket else None
 
 class PropertyFeatureSerializer(serializers.ModelSerializer):
     class Meta:

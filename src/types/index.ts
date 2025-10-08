@@ -15,7 +15,7 @@ export interface Property {
   squareFeet: number;
   description: string;
   features: string[];
-  images: string[];
+  images: Array<string | { id?: string; image?: string; url?: string; s3_key?: string; is_primary?: boolean; order?: number }>;
   isFeatured: boolean;
   isForSale: boolean;
   isForRent: boolean;

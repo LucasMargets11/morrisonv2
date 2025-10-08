@@ -12,6 +12,7 @@ from django.conf import settings
 import uuid, mimetypes
 import boto3
 import logging
+import os
 
 
 class PropertyViewSet(viewsets.ModelViewSet):
@@ -143,13 +144,8 @@ class PropertyViewSet(viewsets.ModelViewSet):
             return Response({"s3_key": ["This field is required."]}, status=status.HTTP_400_BAD_REQUEST)
         is_primary = bool(request.data.get('is_primary', False))
         try:
-            order = int(request.data.get('order', 0))
-        except Exception:
-            order = 0
-
-        bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '')
-        domain = f"https://{bucket}.s3.amazonaws.com" if bucket else ''
-        try:
+            bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '') or os.environ.get('S3_MEDIA_BUCKET', '')
+            domain = f"https://{bucket}.s3.amazonaws.com" if bucket else ''
             img = PropertyImage.objects.create(
                 property=prop,
                 s3_key=s3_key,
