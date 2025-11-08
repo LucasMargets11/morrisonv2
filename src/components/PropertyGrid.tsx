@@ -14,7 +14,7 @@ const PropertyGrid: React.FC<PropertyGridProps> = ({
   subtitle 
 }) => {
   return (
-    <div className="mb-12">
+  <div className="mb-12 cv-auto">
       {title && (
         <div className="mb-6 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">{title}</h2>
@@ -22,7 +22,7 @@ const PropertyGrid: React.FC<PropertyGridProps> = ({
         </div>
       )}
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {properties.map(property => (
           <PropertyCard key={property.id} property={property} />
         ))}

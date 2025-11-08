@@ -72,10 +72,15 @@ const TestimonialsSection: React.FC = () => {
                   >
                     <div className="bg-white rounded-xl shadow-md p-8 flex flex-col items-center text-center">
                       <div className="w-20 h-20 rounded-full overflow-hidden mb-4 border-2">
-                        <img 
-                          src={testimonial.avatar} 
-                          alt={testimonial.name} 
+                        <img
+                          src={testimonial.avatar}
+                          alt={testimonial.name}
+                          width={72}
+                          height={72}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover"
+                          style={{ aspectRatio: '72 / 72' }}
                         />
                       </div>
                       <div className="flex mb-4" aria-label={`Rating: ${testimonial.rating} out of 5`}>

@@ -5,6 +5,8 @@ import { Property } from '../../types';
 import { formatPrice } from '../../utils/formatters';
 import Badge from './Badge';
 import { resolvePropertyImageUrl } from '../../utils/imageUrl';
+import ResponsiveImage from '../ResponsiveImage';
+import { buildSrcSet } from '../../utils/images.ts'; // helper for generating srcset (bundler resolution)
 
 interface PropertyCardProps {
   property: Property;
@@ -21,21 +23,24 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
     ? coverObj
     : resolvePropertyImageUrl(coverObj, { preferSigned: true }) || (coverObj?.image || null);
   const fallback = '/building.svg';
+  const widths = [480, 800, 1200, 1600];
+  const useStaticVariants = typeof coverUrl === 'string' && coverUrl.startsWith('/props/');
+  const srcSet = useStaticVariants && property?.id ? buildSrcSet(`/props/${property.id}/hero`, widths) : undefined;
 
   return (
     <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 group">
       <Link to={`/property/${property.id}`} className="block">
         <div className="relative overflow-hidden rounded-t-xl">
-          <img
+          <ResponsiveImage
             src={coverUrl || fallback}
-            onError={(e) => {
-              if (!e.currentTarget.dataset.fallback) {
-                e.currentTarget.dataset.fallback = '1';
-                e.currentTarget.src = fallback;
-              }
-            }}
-            alt={property.title} 
-            className="h-64 w-full object-cover transition-transform duration-300 group-hover:scale-105 rounded-t-xl"
+            alt={property.title}
+            width={1200}
+            height={800}
+            lazy={true}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            srcSet={srcSet}
+            className="h-64 w-full transition-transform duration-300 group-hover:scale-105 rounded-t-xl"
+            placeholderSrc={undefined}
           />
           {/* Heart button removed */}
           {(property.isFeatured || ['temporal','vacacional','tradicional'].includes(property.property_type)) && (

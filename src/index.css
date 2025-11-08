@@ -7,10 +7,17 @@
 
 /* CSS Variables */
 :root {
-  --header-height: 80px;
+  --header-height: 80px; /* legacy, mantener por compatibilidad */
+  --nav-h: 72px; /* altura base del navbar */
   --z-header: 50;
   --z-dropdown: 60;
   --z-modal: 9999;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --nav-h: 80px; /* navbar un poco más alto en desktop */
+  }
 }
 
 /* Base styles */
@@ -121,6 +128,17 @@ p, span, div, label, button, input, select, textarea, a {
 .font-cormorant {
   font-family: 'Cormorant Garamond', serif;
 }
+
+/* Performance utilities */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1000px 800px;
+}
+
+/* Hero svh utilities para evitar saltos por barras de navegador móviles */
+.hero-minh { min-height: 65svh; }
+@media (min-width: 768px) { .hero-minh { min-height: 75svh; } }
+@media (min-width: 1024px) { .hero-minh { min-height: 85svh; } }
 
 .font-lato {
   font-family: 'Lato', sans-serif;

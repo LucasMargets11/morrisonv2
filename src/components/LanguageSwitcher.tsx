@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Language, useLanguage } from '../contexts/LanguageContext';
+import ResponsiveImage from './ResponsiveImage';
 
 const flags: { [key: string]: string } = {
   es: 'https://flagcdn.com/w40/es.png',
@@ -38,10 +39,13 @@ const LanguageSwitcher: React.FC = () => {
         className="w-8 h-8 md:w-6 md:h-6 flex items-center justify-center p-1 md:p-0 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         aria-label="Cambiar idioma"
       >
-        <img
+        <ResponsiveImage
           src={flags[language]}
           alt={language}
-          className="w-full h-full object-cover rounded-sm filter brightness-90 contrast-90 saturate-75"
+          width={40}
+          height={30}
+          className="w-full h-full rounded-sm filter brightness-90 contrast-90 saturate-75"
+          lazy={false}
         />
       </button>
 
@@ -62,10 +66,13 @@ const LanguageSwitcher: React.FC = () => {
             className="w-8 h-8 md:w-6 md:h-6 transform transition duration-300 ease-out hover:scale-110 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label={`Seleccionar idioma ${lang}`}
           >
-            <img
+            <ResponsiveImage
               src={url}
               alt={lang}
-              className="w-full h-full object-cover rounded-sm filter brightness-90 contrast-90 saturate-75 hover:filter-none"
+              width={40}
+              height={30}
+              className="w-full h-full rounded-sm filter brightness-90 contrast-90 saturate-75 hover:filter-none"
+              lazy={false}
             />
           </button>
         ))}

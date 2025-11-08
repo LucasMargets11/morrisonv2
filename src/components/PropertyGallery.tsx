@@ -2,6 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Expand } from 'lucide-react';
 import { resolvePropertyImageUrl } from '../utils/imageUrl';
+import ResponsiveImage from './ResponsiveImage';
+// import { buildSrcSet } from '../utils/images'; // reserved for future srcset variants
 
 interface PropertyGalleryProps {
   // Accept plain URLs or objects with url/image/s3_key
@@ -23,7 +25,7 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
   }, [images]);
 
   const total = normalizedImages.length;
-  const fallbackSrc = '/building.svg'; // served from public/
+  // const fallbackSrc = '/building.svg'; // served from public/
 
   const next = () => {
     if (!total) return;
@@ -46,21 +48,20 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
   };
 
   return (
-    <div className="relative">
+  <div className="relative cv-auto">
       {/* Main Gallery */}
       <div className="relative h-[500px]">
         {total > 0 ? (
-          <img
+          <ResponsiveImage
             src={normalizedImages[currentIndex]}
-            onError={(e) => {
-              // prevent infinite loop
-              if (e.currentTarget.src !== window.location.origin + fallbackSrc && !e.currentTarget.dataset.fallback) {
-                e.currentTarget.dataset.fallback = 'true';
-                e.currentTarget.src = fallbackSrc;
-              }
-            }}
             alt={`${title} - Image ${currentIndex + 1}`}
-            className="w-full h-full object-cover rounded-lg"
+            width={1600}
+            height={1000}
+            lazy={true}
+            sizes="(max-width: 768px) 100vw, 1600px"
+            srcSet={undefined}
+            className="w-full h-full rounded-lg"
+            placeholderSrc={undefined}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg text-gray-400">
@@ -109,16 +110,14 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
               index === currentIndex ? 'ring-2 ring-blue-500' : 'opacity-70 hover:opacity-100'
             }`}
           >
-            <img
+            <ResponsiveImage
               src={image}
-              onError={(e) => {
-                if (e.currentTarget.src !== window.location.origin + fallbackSrc && !e.currentTarget.dataset.fallback) {
-                  e.currentTarget.dataset.fallback = 'true';
-                  e.currentTarget.src = fallbackSrc;
-                }
-              }}
               alt={`${title} - Thumbnail ${index + 1}`}
-              className="w-full h-full object-cover" 
+              width={160}
+              height={160}
+              lazy={true}
+              className="w-full h-full"
+              placeholderSrc={undefined}
             />
           </button>
         ))}
@@ -128,16 +127,14 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
       {isLightboxOpen && createPortal((
         <div className="fixed inset-0 z-[2000] bg-black/90 flex items-center justify-center backdrop-blur-sm" onClick={closeLightbox}>
           <div className="relative w-full max-w-4xl p-4" onClick={(e) => e.stopPropagation()}>
-            <img
+            <ResponsiveImage
               src={normalizedImages[currentIndex]}
-              onError={(e) => {
-                if (e.currentTarget.src !== window.location.origin + fallbackSrc && !e.currentTarget.dataset.fallback) {
-                  e.currentTarget.dataset.fallback = 'true';
-                  e.currentTarget.src = fallbackSrc;
-                }
-              }}
               alt={`${title} - Full size image ${currentIndex + 1}`}
-              className="w-full max-h-[90vh] object-contain" 
+              width={1600}
+              height={1000}
+              lazy={false}
+              className="w-full max-h-[90vh] object-contain"
+              placeholderSrc={undefined}
             />
             
             {total > 1 && (

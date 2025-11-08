@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import LazyVideo from './LazyVideo';
 import { Search, Calendar as CalendarIcon, Users, X } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from '../translations';
@@ -6,60 +7,64 @@ import Calendar from './Calendar';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 
+interface DateRange {
+  startDate: Date | null;
+  endDate: Date | null;
+}
+
 const Hero: React.FC = () => {
   const { language } = useLanguage();
   const t = useTranslation(language);
   const navigate = useNavigate();
-  const videoUrl = `${import.meta.env.BASE_URL}videos/fpv1.mp4`;
 
-  // Date selection state
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [selectedDates, setSelectedDates] = useState<{ startDate: Date | null; endDate: Date | null }>({
-    startDate: null,
-    endDate: null,
-  });
-
-  // Guest selection state
-  const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
+  // Guest counts
   const [babiesCount, setBabiesCount] = useState(0);
   const [childrenCount, setChildrenCount] = useState(0);
-  const [adultsCount, setAdultsCount] = useState(1);
+  const [adultsCount, setAdultsCount] = useState(1); // at least 1 adult
 
-  const totalGuests = babiesCount + childrenCount + adultsCount;
+  // Date selection state
+  const [selectedDates, setSelectedDates] = useState<DateRange>({ startDate: null, endDate: null });
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
 
-  // Sugerencias
+  // Search suggestions state
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(true);
-
-  useEffect(() => {
-    // Cargar sugerencias únicas de city, address y zone al montar el componente
-    import('../lib/admin').then(({ adminApi }) => adminApi.getProperties()).then((props) => {
-      const unique = Array.from(
-        new Set(
-          props.flatMap((p: any) => [
-            p.city,
-            p.address,
-            p.zone,
-          ]).filter(Boolean)
-        )
-      );
-      setSuggestions(unique);
-      setLoadingSuggestions(false);
-    });
-  }, []);
-
   const [searchValue, setSearchValue] = useState('');
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Lazy load suggestions (city/address/zone) once
+  useEffect(() => {
+    let cancelled = false;
+    import('../lib/admin')
+      .then(({ adminApi }) => adminApi.getProperties())
+      .then((props) => {
+        if (cancelled) return;
+        const unique = Array.from(
+          new Set(
+            props
+              .flatMap((p: any) => [p.city, p.address, p.zone])
+              .filter(Boolean)
+          )
+        );
+        setSuggestions(unique);
+        setLoadingSuggestions(false);
+      })
+      .catch(() => setLoadingSuggestions(false));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchValue(value);
     if (value.length > 1 && suggestions.length > 0) {
       setFilteredSuggestions(
-        suggestions.filter(s =>
-          s.toLowerCase().includes(value.toLowerCase())
-        ).slice(0, 5)
+        suggestions
+          .filter((s) => s.toLowerCase().includes(value.toLowerCase()))
+          .slice(0, 5)
       );
       setShowSuggestions(true);
     } else {
@@ -74,17 +79,15 @@ const Hero: React.FC = () => {
     setShowSuggestions(false);
   };
 
-  // Toggle handlers
   const toggleCalendar = () => {
-    setIsCalendarOpen(open => !open);
+    setIsCalendarOpen((open) => !open);
     setIsGuestModalOpen(false);
   };
   const toggleGuestModal = () => {
-    setIsGuestModalOpen(open => !open);
+    setIsGuestModalOpen((open) => !open);
     setIsCalendarOpen(false);
   };
 
-  // Format date range
   const formatDateRange = () => {
     if (!selectedDates.startDate) return t('hero.search.selectDates');
     if (!selectedDates.endDate) return dayjs(selectedDates.startDate).format('MMM D');
@@ -93,12 +96,6 @@ const Hero: React.FC = () => {
     ).format('MMM D')}`;
   };
 
-  // Clear selected dates
-  const clearSelectedDates = () => {
-    setSelectedDates({ startDate: null, endDate: null });
-  };
-
-  // Nueva función para limpiar invitados y fechas
   const clearGuestsAndDates = () => {
     setBabiesCount(0);
     setChildrenCount(0);
@@ -106,176 +103,82 @@ const Hero: React.FC = () => {
     setSelectedDates({ startDate: null, endDate: null });
   };
 
-  // Botón de búsqueda: redirige a /properties con filtros en query params
   const handleSearch = () => {
     const params = new URLSearchParams();
-    
-    if (searchValue.trim()) {
-      params.set('search', searchValue.trim());
-    }
-    if (selectedDates.startDate) {
+    if (searchValue.trim()) params.set('search', searchValue.trim());
+    if (selectedDates.startDate)
       params.set('start', dayjs(selectedDates.startDate).format('YYYY-MM-DD'));
-    }
-    if (selectedDates.endDate) {
+    if (selectedDates.endDate)
       params.set('end', dayjs(selectedDates.endDate).format('YYYY-MM-DD'));
-    }
-    if (adultsCount > 0) {
-      params.set('adults', adultsCount.toString());
-    }
-    if (childrenCount > 0) {
-      params.set('children', childrenCount.toString());
-    }
-    if (babiesCount > 0) {
-      params.set('babies', babiesCount.toString());
-    }
-    
+    if (adultsCount > 0) params.set('adults', adultsCount.toString());
+    if (childrenCount > 0) params.set('children', childrenCount.toString());
+    if (babiesCount > 0) params.set('babies', babiesCount.toString());
     navigate(`/properties${params.toString() ? `?${params.toString()}` : ''}`);
   };
 
+  const totalGuests = babiesCount + childrenCount + adultsCount;
+
   return (
-    <div className="relative h-screen -mt-[var(--header-height)]">
-      {/* Background video */}
+    // Se baja el contenido ~50px adicional respecto al header
+    <section className="relative isolate hero-minh overflow-hidden pt-[calc(var(--nav-h)+50px)]">
+      {/* Background video (cover, lazy mounted) */}
       <div className="absolute inset-0 z-0">
-        <video
-          className="w-full h-full object-cover"
-          src={videoUrl}
-          autoPlay
+        <LazyVideo
+          className="absolute inset-0 w-full h-full object-cover object-center md:object-[50%_40%]"
+          objectFitCover
+          sources={[
+            { src: '/videos/fpv1.mp4', type: 'video/mp4' }
+          ]}
+          controls={false}
           muted
           loop
-          playsInline
+          autoPlay={true}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/25 to-black/50" />
+        {/* Overlays para contraste */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/40 to-transparent" />
       </div>
 
-      {/* Main content */}
-      <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4 pt-[var(--header-height)]">
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
-          {t('hero.title')}
-        </h1>
-        <p className="text-xl text-white mb-8 max-w-2xl">
-          {t('hero.subtitle')}
-        </p>
+      {/* Main content centered */}
+      <div className="relative z-10 grid place-items-center px-6">
+        <div className="w-full max-w-5xl text-center">
+          <h1 className="text-3xl md:text-5xl font-bold leading-tight drop-shadow-md text-white mb-2">
+            {t('hero.title')}
+          </h1>
+          <p className="text-white/90 mb-6 md:mb-6 max-w-2xl mx-auto">
+            {t('hero.subtitle')}
+          </p>
 
-        {/* Desktop layout */}
-        <div className="hidden md:flex items-stretch bg-white rounded-full shadow-lg overflow-hidden w-full max-w-4xl">
-          {/* Search input */}
-          <div className="flex-1 flex flex-col relative pl-6">
-            <div className="flex items-center">
-              <Search size={20} className="text-gray-400" />
-              <input
-                type="text"
-                list="search-options"
-                value={searchValue}
-                onChange={handleSearchChange}
-                onFocus={() => setShowSuggestions(filteredSuggestions.length > 0)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
-                placeholder={t('hero.search.placeholder')}
-                className="w-full px-4 py-4 focus:outline-none text-gray-700"
-                autoComplete="off"
-                disabled={loadingSuggestions}
-              />
-              <datalist id="search-options">
-                {suggestions.map((s, idx) => (
-                  <option key={idx} value={s} />
-                ))}
-              </datalist>
-            </div>
-            {showSuggestions && filteredSuggestions.length > 0 && (
-              <ul className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-b-lg shadow z-20">
-                {filteredSuggestions.map((s, idx) => (
-                  <li
-                    key={idx}
-                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-gray-700"
-                    onMouseDown={() => handleSuggestionClick(s)}
-                  >
-                    {s}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {loadingSuggestions && (
-              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-b-lg shadow z-20 px-4 py-2 text-gray-500">
-                Cargando sugerencias...
-              </div>
-            )}
-          </div>
-
-          {/* Date picker trigger */}
-          <button
-            onClick={toggleCalendar}
-            className="px-6 py-4 flex items-center gap-2 border-l border-gray-200 hover:bg-gray-50 transition-colors"
-          >
-            <CalendarIcon size={20} className="text-gray-400" />
-            <span className="text-gray-700">{formatDateRange()}</span>
-          </button>
-
-          {/* Guests trigger */}
-          <button
-            onClick={toggleGuestModal}
-            className="px-6 py-4 flex items-center gap-2 border-l border-gray-200 hover:bg-gray-50 transition-colors"
-          >
-            <Users size={20} className="text-gray-400" />
-            <span className="text-gray-700">{totalGuests === 1 ? '1 Huésped' : `${totalGuests} Huéspedes`}</span>
-          </button>
-
-          {/* Search button */}
-          <button className="bg-blue-900 hover:bg-blue-700 text-white px-8 py-4 transition-colors" onClick={handleSearch}>
-            {t('hero.filters.search')}
-          </button>
-        </div>
-
-        {/* Mobile layout */}
-        <div className="md:hidden w-full max-w-sm mx-auto space-y-4">
-          {/* Top row: Calendar and Guests buttons */}
-          <div className="flex gap-3">
-            {/* Date picker trigger */}
-            <button
-              onClick={toggleCalendar}
-              className="flex-1 bg-white rounded-xl shadow-lg px-4 py-4 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
-            >
-              <CalendarIcon size={20} className="text-gray-400" />
-              <span className="text-gray-700 text-sm font-medium">{formatDateRange()}</span>
-            </button>
-
-            {/* Guests trigger */}
-            <button
-              onClick={toggleGuestModal}
-              className="flex-1 bg-white rounded-xl shadow-lg px-4 py-4 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
-            >
-              <Users size={20} className="text-gray-400" />
-              <span className="text-gray-700 text-sm font-medium">{totalGuests === 1 ? '1 Huésped' : `${totalGuests} Huéspedes`}</span>
-            </button>
-          </div>
-
-          {/* Bottom row: Search input and button */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="flex flex-col relative">
-              <div className="flex items-center px-4 py-4">
-                <Search size={20} className="text-gray-400 mr-3" />
+          {/* Desktop search bar */}
+          <div className="hidden md:flex items-stretch bg-white rounded-full shadow-lg overflow-hidden w-full max-w-4xl mx-auto">
+            {/* Search input */}
+            <div className="flex-1 flex flex-col relative pl-6">
+              <div className="flex items-center">
+                <Search size={20} className="text-gray-400" />
                 <input
                   type="text"
-                  list="search-options-mobile"
+                  list="search-options"
                   value={searchValue}
                   onChange={handleSearchChange}
                   onFocus={() => setShowSuggestions(filteredSuggestions.length > 0)}
-                  onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 120)}
                   placeholder={t('hero.search.placeholder')}
-                  className="flex-1 focus:outline-none text-gray-700"
+                  className="w-full px-4 py-4 focus:outline-none text-gray-700"
                   autoComplete="off"
                   disabled={loadingSuggestions}
                 />
-                <datalist id="search-options-mobile">
+                <datalist id="search-options">
                   {suggestions.map((s, idx) => (
                     <option key={idx} value={s} />
                   ))}
                 </datalist>
               </div>
               {showSuggestions && filteredSuggestions.length > 0 && (
-                <ul className="absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-20">
+                <ul className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-b-lg shadow z-20">
                   {filteredSuggestions.map((s, idx) => (
                     <li
                       key={idx}
-                      className="px-4 py-3 hover:bg-blue-50 cursor-pointer text-gray-700 border-b border-gray-100 last:border-b-0"
+                      className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-gray-700"
                       onMouseDown={() => handleSuggestionClick(s)}
                     >
                       {s}
@@ -284,18 +187,104 @@ const Hero: React.FC = () => {
                 </ul>
               )}
               {loadingSuggestions && (
-                <div className="absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-20 px-4 py-3 text-gray-500">
+                <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-b-lg shadow z-20 px-4 py-2 text-gray-500">
                   Cargando sugerencias...
                 </div>
               )}
-              
-              {/* Search button */}
-              <button 
-                className="bg-blue-600 hover:bg-blue-700 text-white py-4 transition-colors font-medium" 
-                onClick={handleSearch}
+            </div>
+
+            {/* Date picker trigger */}
+            <button
+              onClick={toggleCalendar}
+              className="px-6 py-4 flex items-center gap-2 border-l border-gray-200 hover:bg-gray-50 transition-colors"
+            >
+              <CalendarIcon size={20} className="text-gray-400" />
+              <span className="text-gray-700">{formatDateRange()}</span>
+            </button>
+
+            {/* Guests trigger */}
+            <button
+              onClick={toggleGuestModal}
+              className="px-6 py-4 flex items-center gap-2 border-l border-gray-200 hover:bg-gray-50 transition-colors"
+            >
+              <Users size={20} className="text-gray-400" />
+              <span className="text-gray-700">{totalGuests === 1 ? '1 Huésped' : `${totalGuests} Huéspedes`}</span>
+            </button>
+
+            {/* Search button */}
+            <button
+              className="bg-blue-900 hover:bg-blue-700 text-white px-8 py-4 transition-colors"
+              onClick={handleSearch}
+            >
+              {t('hero.filters.search')}
+            </button>
+          </div>
+
+          {/* Mobile layout */}
+          <div className="md:hidden w-full max-w-sm mx-auto space-y-4">
+            <div className="flex gap-3">
+              <button
+                onClick={toggleCalendar}
+                className="flex-1 bg-white rounded-xl shadow-lg px-4 py-4 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
               >
-                {t('hero.filters.search')}
+                <CalendarIcon size={20} className="text-gray-400" />
+                <span className="text-gray-700 text-sm font-medium">{formatDateRange()}</span>
               </button>
+              <button
+                onClick={toggleGuestModal}
+                className="flex-1 bg-white rounded-xl shadow-lg px-4 py-4 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
+              >
+                <Users size={20} className="text-gray-400" />
+                <span className="text-gray-700 text-sm font-medium">{totalGuests === 1 ? '1 Huésped' : `${totalGuests} Huéspedes`}</span>
+              </button>
+            </div>
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <div className="flex flex-col relative">
+                <div className="flex items-center px-4 py-4">
+                  <Search size={20} className="text-gray-400 mr-3" />
+                  <input
+                    type="text"
+                    list="search-options-mobile"
+                    value={searchValue}
+                    onChange={handleSearchChange}
+                    onFocus={() => setShowSuggestions(filteredSuggestions.length > 0)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 120)}
+                    placeholder={t('hero.search.placeholder')}
+                    className="flex-1 focus:outline-none text-gray-700"
+                    autoComplete="off"
+                    disabled={loadingSuggestions}
+                  />
+                  <datalist id="search-options-mobile">
+                    {suggestions.map((s, idx) => (
+                      <option key={idx} value={s} />
+                    ))}
+                  </datalist>
+                </div>
+                {showSuggestions && filteredSuggestions.length > 0 && (
+                  <ul className="absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-20">
+                    {filteredSuggestions.map((s, idx) => (
+                      <li
+                        key={idx}
+                        className="px-4 py-3 hover:bg-blue-50 cursor-pointer text-gray-700 border-b border-gray-100 last:border-b-0"
+                        onMouseDown={() => handleSuggestionClick(s)}
+                      >
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {loadingSuggestions && (
+                  <div className="absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-20 px-4 py-3 text-gray-500">
+                    Cargando sugerencias...
+                  </div>
+                )}
+                <button
+                  className="bg-blue-600 hover:bg-blue-700 text-white py-4 transition-colors font-medium"
+                  onClick={handleSearch}
+                >
+                  {t('hero.filters.search')}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -304,7 +293,6 @@ const Hero: React.FC = () => {
       {/* Guests Modal */}
       {isGuestModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-[9999]">
-          {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm"
             onClick={toggleGuestModal}
@@ -319,7 +307,6 @@ const Hero: React.FC = () => {
             </button>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Invitados</h2>
             <div className="space-y-6">
-              {/* Bebés */}
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-gray-900 font-medium">Bebés</span>
@@ -341,7 +328,6 @@ const Hero: React.FC = () => {
                   </button>
                 </div>
               </div>
-              {/* Niños */}
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-gray-900 font-medium">Niños</span>
@@ -363,7 +349,6 @@ const Hero: React.FC = () => {
                   </button>
                 </div>
               </div>
-              {/* Adultos */}
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-gray-900 font-medium">Adultos</span>
@@ -387,7 +372,6 @@ const Hero: React.FC = () => {
                 </div>
               </div>
             </div>
-            {/* Action buttons row */}
             <div className="flex justify-between mt-6 space-x-2">
               <button
                 onClick={clearGuestsAndDates}
@@ -422,7 +406,7 @@ const Hero: React.FC = () => {
           onDateSelect={setSelectedDates}
         />
       )}
-    </div>
+    </section>
   );
 };
 
