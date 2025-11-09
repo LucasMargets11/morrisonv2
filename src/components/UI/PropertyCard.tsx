@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Home, BedDouble, Bath, Ruler } from 'lucide-react';
 import { Property } from '../../types';
@@ -7,12 +7,39 @@ import Badge from './Badge';
 import { resolvePropertyImageUrl } from '../../utils/imageUrl';
 import ResponsiveImage from '../ResponsiveImage';
 import { buildSrcSet } from '../../utils/images.ts'; // helper for generating srcset (bundler resolution)
+import { useQueryClient } from '@tanstack/react-query';
+import { prefetchProperty } from '../../hooks/useProperty';
 
 interface PropertyCardProps {
   property: Property;
 }
 
 const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
+  const queryClient = useQueryClient();
+  const ref = useRef<HTMLDivElement>(null);
+  const id = property.id;
+
+  const onPrefetch = () => {
+    // Warm data and route chunk during idle or asap
+    (window as any).requestIdleCallback?.(() => {
+      prefetchProperty(queryClient, id);
+      import('../../pages/PropertyDetailsPage');
+    }) || (prefetchProperty(queryClient, id), import('../../pages/PropertyDetailsPage'));
+  };
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !('IntersectionObserver' in window)) return;
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        onPrefetch();
+        io.disconnect();
+      }
+    }, { rootMargin: '200px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   // Removed favorite/heart feature per request
 
   // Choose primary image if present
@@ -28,7 +55,9 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
   const srcSet = useStaticVariants && property?.id ? buildSrcSet(`/props/${property.id}/hero`, widths) : undefined;
 
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 group">
+    <div ref={ref} className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 group"
+      onMouseEnter={onPrefetch} onFocus={onPrefetch}
+    >
       <Link to={`/property/${property.id}`} className="block">
         <div className="relative overflow-hidden rounded-t-xl">
           <ResponsiveImage

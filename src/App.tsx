@@ -6,7 +6,27 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
 import PropertiesPage from './pages/PropertiesPage';
-import PropertyDetailsPage from './pages/PropertyDetailsPage'; // <-- Cambiado
+const PropertyDetailsPage = lazy(() => import('./pages/PropertyDetailsPage'));
+const PropertySkeleton = () => (
+  <div className="container mx-auto px-4 py-24 animate-pulse">
+    <div className="mb-6 h-6 w-40 bg-gray-200 rounded" />
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="lg:col-span-2 space-y-6">
+        <div className="h-[500px] w-full bg-gray-200 rounded-lg" />
+        <div className="space-y-4">
+          <div className="h-5 w-64 bg-gray-200 rounded" />
+          <div className="h-4 w-full bg-gray-200 rounded" />
+          <div className="h-4 w-5/6 bg-gray-200 rounded" />
+          <div className="h-4 w-3/4 bg-gray-200 rounded" />
+        </div>
+      </div>
+      <div className="lg:col-span-1 space-y-4">
+        <div className="h-64 w-full bg-gray-200 rounded-lg" />
+        <div className="h-32 w-full bg-gray-200 rounded-lg" />
+      </div>
+    </div>
+  </div>
+);
 import AgentsPage from './pages/AgentsPage';
 import ContactPage from './pages/ContactPage';
 import AboutPage from './pages/AboutPage';
@@ -126,7 +146,11 @@ function HeaderFooterLayout() {
           {/* Rutas públicas */}
           <Route path="/" element={<HomePage />} />
           <Route path="/properties" element={<PropertiesPage />} />
-          <Route path="/property/:id" element={<PropertyDetailsPage />} />
+          <Route path="/property/:id" element={
+            <Suspense fallback={<PropertySkeleton />}> 
+              <PropertyDetailsPage />
+            </Suspense>
+          } />
           <Route path="/agents" element={<AgentsPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/contacto" element={<ContactPage />} />

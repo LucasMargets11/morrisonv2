@@ -4,7 +4,7 @@ import PropertyCard from '../components/UI/PropertyCard';
 import { Property } from '../types';
 import { Home as HomeIcon, Users, X } from 'lucide-react';
 import Button from '../components/UI/Button';
-import PropertyMap from '../components/UI/PropertyMap';
+const PropertyMap = React.lazy(() => import('../components/UI/PropertyMap'));
 import { useLanguage } from '../contexts/LanguageContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Calendar from '../components/Calendar';
@@ -126,6 +126,44 @@ const PropertiesPage: React.FC = () => {
   const [searchInput, setSearchInput] = useState(search);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mapVisible, setMapVisible] = useState(false);
+
+  // Prefetch hero images for first few properties during idle
+  useEffect(() => {
+    if (!Array.isArray(mappedProperties) || mappedProperties.length === 0) return;
+    const idle = (window as any).requestIdleCallback || ((fn: any) => setTimeout(fn, 1500));
+    const cancelIdle = (window as any).cancelIdleCallback || clearTimeout;
+    const idl = idle(() => {
+      const first = mappedProperties.slice(0, 3);
+      first.forEach((p) => {
+        const href = typeof p.images?.[0] === 'string' ? p.images[0] : ((p.images?.[0] as any)?.url || (p.images?.[0] as any)?.image || '');
+        if (!href) return;
+        const link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.as = 'image';
+        link.href = href;
+        document.head.appendChild(link);
+      });
+    });
+    return () => cancelIdle(idl);
+  }, [mappedProperties]);
+
+  // Toggle map visible when scrolled into view
+  useEffect(() => {
+    const el = document.getElementById('map-anchor');
+    if (!el || !('IntersectionObserver' in window)) {
+      setMapVisible(true);
+      return;
+    }
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setMapVisible(true);
+        io.disconnect();
+      }
+    }, { rootMargin: '200px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   // Load suggestions for search
   useEffect(() => {
@@ -387,23 +425,27 @@ const PropertiesPage: React.FC = () => {
             </div>
 
             {/* Map Section */}
-            <div className="w-full lg:w-2/5 lg:sticky lg:top-24 h-[calc(100vh-6rem)]">
+            <div className="w-full lg:w-2/5 lg:sticky lg:top-24 h-[calc(100vh-6rem)] cv-auto section-sizer">
               <div className="bg-white rounded-lg shadow-md p-4 h-full">
-                <div className="relative w-full h-full min-h-[400px] rounded-lg overflow-hidden">
-                  <PropertyMap
-                    apiKey={GOOGLE_MAPS_API_KEY}
-                    locations={mappedProperties.map(p => ({
-                      id: p.id,
-                      address: `${p.address}, ${p.city}`,
-                      price: p.price,
-                      title: p.title,
-                      imageUrl: p.images[0] || '',
-                      zone: p.city,
-                      propertyType: p.property_type,
-                      latitude: p.latitude!,
-                      longitude: p.longitude!,
-                    }))}
-                  />
+                <div className="relative w-full h-full min-h-[400px] rounded-lg overflow-hidden" id="map-anchor">
+                  <React.Suspense fallback={<div className="w-full h-full bg-gray-100" />}> 
+                    {mapVisible && (
+                      <PropertyMap
+                        apiKey={GOOGLE_MAPS_API_KEY}
+                        locations={mappedProperties.map(p => ({
+                          id: p.id,
+                          address: `${p.address}, ${p.city}`,
+                          price: p.price,
+                          title: p.title,
+                          imageUrl: (typeof p.images?.[0] === 'string') ? (p.images[0] as string) : (((p.images?.[0] as any)?.url) || ((p.images?.[0] as any)?.image) || ''),
+                          zone: p.city,
+                          propertyType: p.property_type,
+                          latitude: p.latitude!,
+                          longitude: p.longitude!,
+                        }))}
+                      />
+                    )}
+                  </React.Suspense>
                 </div>
               </div>
             </div>

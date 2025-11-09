@@ -34,3 +34,25 @@ export async function listProperties() {
   const { data } = await api.get('properties/');
   return data.results ?? data;
 }
+
+// Normalize backend payload to frontend Property shape
+export function normalizeProperty(data: any) {
+  return {
+    ...data,
+    id: String(data.id),
+    squareFeet: data.square_feet ?? data.squareFeet,
+    yearBuilt: data.year_built ?? data.yearBuilt,
+    zipCode: data.zip_code ?? data.zipCode,
+    features: Array.isArray(data.features)
+      ? data.features.map((f: any) => (typeof f === 'string' ? f : f.name))
+      : [],
+    images: Array.isArray(data.images)
+      ? data.images.map((img: any) => (typeof img === 'string' ? img : (img.url || img.image)))
+      : [],
+  };
+}
+
+export async function fetchPropertyById(id: string | number) {
+  const { data } = await api.get(`properties/${id}/`);
+  return normalizeProperty(data);
+}

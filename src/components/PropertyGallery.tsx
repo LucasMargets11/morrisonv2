@@ -57,7 +57,8 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
             alt={`${title} - Image ${currentIndex + 1}`}
             width={1600}
             height={1000}
-            lazy={true}
+            lazy={false}
+            priority={true}
             sizes="(max-width: 768px) 100vw, 1600px"
             srcSet={undefined}
             className="w-full h-full rounded-lg"
