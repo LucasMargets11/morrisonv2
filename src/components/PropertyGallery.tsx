@@ -48,7 +48,7 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
   };
 
   return (
-  <div className="relative cv-auto">
+  <div className="relative cv-auto gallery-sizer">
       {/* Main Gallery */}
       <div className="relative h-[500px]">
         {total > 0 ? (
@@ -82,7 +82,7 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
         {total > 1 && (
         <button
           onClick={prev} 
-          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-2 hover:bg-white transition-colors duration-200"
+          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-3 w-10 h-10 flex items-center justify-center hover:bg-white transition-colors duration-200"
           aria-label="Previous image"
         >
           <ChevronLeft size={20} className="text-gray-700" />
@@ -92,7 +92,7 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
         {total > 1 && (
         <button
           onClick={next} 
-          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-2 hover:bg-white transition-colors duration-200"
+          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-3 w-10 h-10 flex items-center justify-center hover:bg-white transition-colors duration-200"
           aria-label="Next image"
         >
           <ChevronRight size={20} className="text-gray-700" />
@@ -109,6 +109,8 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
             className={`flex-shrink-0 w-20 h-20 rounded-md overflow-hidden transition-all ${
               index === currentIndex ? 'ring-2 ring-blue-500' : 'opacity-70 hover:opacity-100'
             }`}
+            aria-pressed={index === currentIndex}
+            aria-label={`Ver imagen ${index + 1} de ${total}`}
           >
             <ResponsiveImage
               src={image}

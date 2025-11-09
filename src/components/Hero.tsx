@@ -126,7 +126,10 @@ const Hero: React.FC = () => {
         <LazyVideo
           className="absolute inset-0 w-full h-full object-cover object-center md:object-[50%_40%]"
           objectFitCover
+          /* Temporary poster fallback until optimized fpv1-poster.webp is added */
+          poster={'/building.svg'}
           sources={[
+            // Order efficient-first if available (optional: AV1/WEBM/MP4)
             { src: '/videos/fpv1.mp4', type: 'video/mp4' }
           ]}
           controls={false}
@@ -142,7 +145,7 @@ const Hero: React.FC = () => {
       {/* Main content centered */}
       <div className="relative z-10 grid place-items-center px-6">
         <div className="w-full max-w-5xl text-center">
-          <h1 className="text-3xl md:text-5xl font-bold leading-tight drop-shadow-md text-white mb-2">
+          <h1 className="text-3xl md:text-5xl font-bold leading-tight drop-shadow-md text-white mb-2 max-w-[65ch] mx-auto">
             {t('hero.title')}
           </h1>
           <p className="text-white/90 mb-6 md:mb-6 max-w-2xl mx-auto">

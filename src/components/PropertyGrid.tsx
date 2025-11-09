@@ -14,7 +14,7 @@ const PropertyGrid: React.FC<PropertyGridProps> = ({
   subtitle 
 }) => {
   return (
-  <div className="mb-12 cv-auto">
+  <div className="mb-12 cv-auto section-sizer">
       {title && (
         <div className="mb-6 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">{title}</h2>

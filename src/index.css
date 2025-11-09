@@ -1,6 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -12,6 +9,9 @@
   --z-header: 50;
   --z-dropdown: 60;
   --z-modal: 9999;
+  /* Single font family with metric fallback to reduce CLS */
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  font-size-adjust: 0.525;
 }
 
 @media (min-width: 1024px) {
@@ -28,8 +28,8 @@
 }
 
 body {
-  font-family: 'Lato', sans-serif;
-  font-weight: 400; /* Regular weight por defecto */
+  font-family: inherit; /* Inter from :root */
+  font-weight: 400;
   line-height: 1.6;
   color: #333;
   -webkit-font-smoothing: antialiased;
@@ -61,32 +61,10 @@ img, video, svg, canvas, iframe {
 Array.from(document.querySelectorAll('*')).filter(el => el.scrollWidth > el.clientWidth).slice(0,20)
 */
 
-/* Header específicamente usa Lora Regular */
-header, 
-header * {
-  font-family: 'Lora', serif;
-  font-weight: 400; /* Regular weight */
-}
-
-/* Solo h1 usa Lora Regular */
-h1 {
-  font-family: 'Lora', serif;
-  font-weight: 400; /* Regular weight */
-  line-height: 1.2;
-  letter-spacing: 0;
-}
-
-/* El resto de headings usa Lato Regular */
-h2, h3, h4, h5, h6 {
-  font-family: 'Lato', sans-serif;
-  font-weight: 400; /* Regular weight para headings */
-  line-height: 1.2;
-}
-
-/* Todos los elementos de texto usan Lato Regular por defecto */
-p, span, div, label, button, input, select, textarea, a {
-  font-family: 'Lato', sans-serif;
-  font-weight: 400; /* Regular weight por defecto */
+/* Use single font everywhere to avoid multi-font swap CLS */
+h1, h2, h3, h4, h5, h6, p, span, div, label, button, input, select, textarea, a, header, header * {
+  font-family: inherit;
+  font-weight: 400;
 }
 
 /* Elementos que necesitan más peso */
@@ -125,55 +103,32 @@ p, span, div, label, button, input, select, textarea, a {
 }
 
 /* Utility classes */
-.font-cormorant {
-  font-family: 'Cormorant Garamond', serif;
-}
+/* Remove legacy specific font utilities now that only Inter is used */
+.font-cormorant { font-family: inherit; }
 
 /* Performance utilities */
-.cv-auto {
-  content-visibility: auto;
-  contain-intrinsic-size: 1000px 800px;
-}
+/* content-visibility without generic intrinsic size; real sizing handled by sizer classes */
+.cv-auto { content-visibility: auto; }
+
+/* Sizer classes provide realistic intrinsic height estimates to mitigate CLS */
+.section-sizer { contain-intrinsic-size: auto 1600px; }
+.gallery-sizer { contain-intrinsic-size: auto 900px; }
 
 /* Hero svh utilities para evitar saltos por barras de navegador móviles */
 .hero-minh { min-height: 65svh; }
 @media (min-width: 768px) { .hero-minh { min-height: 75svh; } }
 @media (min-width: 1024px) { .hero-minh { min-height: 85svh; } }
 
-.font-lato {
-  font-family: 'Lato', sans-serif;
-}
-
-.font-lato-regular {
-  font-family: 'Lato', sans-serif;
-  font-weight: 400;
-}
-
-.font-lora {
-  font-family: 'Lora', serif;
-}
+/* Legacy font utility aliases now map to Inter */
+.font-lato, .font-lato-regular, .font-lora { font-family: inherit; }
 
 /* Override any default system fonts */
-.text-sm, .text-base, .text-lg, .text-xl, .text-2xl, .text-3xl, .text-4xl, .text-5xl, .text-6xl {
-  font-family: 'Lato', sans-serif;
-  font-weight: 400; /* Regular por defecto */
-}
-
-/* Específicamente para h1 mantener Lora */
-h1.text-sm, h1.text-base, h1.text-lg, h1.text-xl, h1.text-2xl, h1.text-3xl, h1.text-4xl, h1.text-5xl, h1.text-6xl {
-  font-family: 'Lora', serif;
-  font-weight: 400;
-}
+/* Heading size utilities inherit Inter */
+.text-sm, .text-base, .text-lg, .text-xl, .text-2xl, .text-3xl, .text-4xl, .text-5xl, .text-6xl { font-family: inherit; font-weight: 400; }
 
 /* Ajustes específicos para mejor legibilidad con Lato Regular */
-h2 {
-  font-weight: 500; /* Medium para h2 para mejor jerarquía */
-  letter-spacing: -0.02em;
-}
-
-h3, h4 {
-  font-weight: 500; /* Medium para mejor jerarquía */
-}
+h2 { font-weight: 500; letter-spacing: -0.02em; }
+h3, h4 { font-weight: 500; }
 
 /* Texto pequeño mantiene peso regular */
 .text-xs, .text-sm {
@@ -202,10 +157,7 @@ a {
 }
 
 /* Navegación del header usa Lora */
-header nav a {
-  font-family: 'Lora', serif;
-  font-weight: 400;
-}
+header nav a { font-family: inherit; font-weight: 400; }
 
 /* Formularios */
 input, select, textarea {
@@ -218,7 +170,4 @@ label {
 }
 
 /* Para elementos del header que no son navegación, mantener Lato */
-header button, header input, header select {
-  font-family: 'Lato', sans-serif;
-  font-weight: 400;
-}
+header button, header input, header select { font-family: inherit; font-weight: 400; }

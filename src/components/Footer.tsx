@@ -56,7 +56,7 @@ const Footer: React.FC = () => {
                 />
                 <span className="ml-2 text-xl md:text-2xl font-bold">Grupo Bairen</span>
               </div>
-              <p className="text-gray-400 mb-6 leading-relaxed text-sm md:text-base">
+              <p className="text-white/80 mb-6 leading-relaxed text-sm md:text-base">
                 Calidad y experiencia aseguradas. Especialistas en alquiler temporal, vacacional y tradicional, administración, asesoramiento y tasaciones. Hospitalidad para el huésped; excelencia para el propietario.
               </p>
 
@@ -92,13 +92,13 @@ const Footer: React.FC = () => {
 
               {/* Social */}
               <div className="flex space-x-4">
-                <a href="https://facebook.com/grupobairen" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] focus:text-[#D4AF37] transition-colors" aria-label="Facebook">
+                <a href="https://facebook.com/grupobairen" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-[#D4AF37] focus:text-[#D4AF37] transition-colors" aria-label="Facebook">
                   <Facebook size={20} />
                 </a>
-                <a href="https://instagram.com/grupobairen" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] focus:text-[#D4AF37] transition-colors" aria-label="Instagram">
+                <a href="https://instagram.com/grupobairen" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-[#D4AF37] focus:text-[#D4AF37] transition-colors" aria-label="Instagram">
                   <Instagram size={20} />
                 </a>
-                <a href="https://linkedin.com/company/grupobairen" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#D4AF37] focus:text-[#D4AF37] transition-colors" aria-label="LinkedIn">
+                <a href="https://linkedin.com/company/grupobairen" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-[#D4AF37] focus:text-[#D4AF37] transition-colors" aria-label="LinkedIn">
                   <Linkedin size={20} />
                 </a>
               </div>

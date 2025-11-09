@@ -129,6 +129,7 @@ const Header: React.FC = () => {
             <button
               className="md:hidden"
               onClick={() => setMobileMenuOpen(open => !open)}
+              aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
             >
               {mobileMenuOpen ? (
                 <X size={24} className={isScrolled ? 'text-gray-900' : 'text-white'} />
