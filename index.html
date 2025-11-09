@@ -12,10 +12,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <!-- Consolidated Google Font (display swap to mitigate FOIT/CLS) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Critical minimal CSS to stabilize initial layout -->
-    <style>
+    <!-- Critical minimal CSS to stabilize initial layout (≤5KB) -->
+    <style data-critical>
+      :root { --nav-h: 72px; }
       .crit-hero { min-height: 60vh; }
-      img { shape-margin:0; border:0; }
+      .fixed-header { position: fixed; top: 0; left: 0; right: 0; z-index: 60; }
+      .hero-offset { padding-top: calc(var(--nav-h) + 50px); }
+      img { shape-margin:0; border:0; max-width:100%; height:auto; display:block; }
     </style>
     <!-- Non-blocking global stylesheet load -->
     <link rel="preload" as="style" href="/assets/index.css">
