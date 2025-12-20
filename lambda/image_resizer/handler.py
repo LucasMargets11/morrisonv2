@@ -1,95 +1,79 @@
-import boto3
 import os
-import io
-from PIL import Image
 import urllib.parse
+from io import BytesIO
 
-s3 = boto3.client('s3')
+import boto3
+from PIL import Image
+
+s3 = boto3.client("s3")
+
+SIZES = [480, 768]
+ALLOWED_EXT = (".jpg", ".jpeg", ".png", ".webp")  # originales pueden ser jpg/png
+
+def head_exists(bucket: str, key: str) -> bool:
+    try:
+        s3.head_object(Bucket=bucket, Key=key)
+        return True
+    except Exception:
+        return False
+
+def to_webp(image_bytes: bytes, target_width: int) -> bytes:
+    img = Image.open(BytesIO(image_bytes))
+    img = img.convert("RGB")  # webp sin alpha para fotos (si hay PNG con alpha, podemos mejorar)
+    w, h = img.size
+
+    if w > target_width:
+        new_h = int((target_width / w) * h)
+        img = img.resize((target_width, new_h), Image.LANCZOS)
+
+    out = BytesIO()
+    img.save(out, format="WEBP", quality=82, method=6)  # calidad razonable
+    return out.getvalue()
+
+def build_derived_key(original_key: str, size: int) -> str:
+    # original: properties/original/<propertyId>/<filename>.JPG
+    # derived:  properties/derived/<size>/<propertyId>/<filename>.webp
+    # Mantiene el mismo filename base, pero cambia extensión a .webp
+    derived_key = original_key.replace("properties/original/", f"properties/derived/{size}/", 1)
+    # Reemplazar extensión por .webp
+    lower = derived_key.lower()
+    for ext in [".jpeg", ".jpg", ".png", ".webp"]:
+        if lower.endswith(ext):
+            derived_key = derived_key[: -len(ext)] + ".webp"
+            break
+    return derived_key
 
 def lambda_handler(event, context):
-    """
-    AWS Lambda function to resize images triggered by S3 ObjectCreated.
-    Requires Pillow layer.
-    """
-    for record in event['Records']:
-        bucket = record['s3']['bucket']['name']
-        key = urllib.parse.unquote_plus(record['s3']['object']['key'])
-        
-        # Only process images in properties/original/
-        if 'properties/original/' not in key:
-            print(f"Skipping key {key}: not in properties/original/")
-            continue
-            
-        # Extract base path: properties/original/123/abc.jpg -> 123/abc
-        try:
-            relative_path = key.split('properties/original/', 1)[1]
-            base_name = relative_path.rsplit('.', 1)[0]
-        except IndexError:
-            print(f"Skipping key {key}: could not parse path")
+    for record in event.get("Records", []):
+        bucket = record["s3"]["bucket"]["name"]
+        key = urllib.parse.unquote_plus(record["s3"]["object"]["key"])
+
+        # Evitar loops y procesar solo originales
+        if not key.startswith("properties/original/"):
             continue
 
-        print(f"Processing {key}...")
-        
-        try:
-            # Download image
-            response = s3.get_object(Bucket=bucket, Key=key)
-            image_content = response['Body'].read()
-            
-            with Image.open(io.BytesIO(image_content)) as img:
-                # Fix orientation if needed (EXIF)
-                try:
-                    from PIL import ImageOps
-                    img = ImageOps.exif_transpose(img)
-                except Exception:
-                    pass
+        if not key.lower().endswith(ALLOWED_EXT):
+            continue
 
-                # Convert to RGB if necessary (e.g. RGBA to RGB for JPEG/WebP)
-                if img.mode in ('RGBA', 'LA'):
-                    background = Image.new('RGB', img.size, (255, 255, 255))
-                    background.paste(img, mask=img.split()[-1])
-                    img = background
-                elif img.mode != 'RGB':
-                    img = img.convert('RGB')
+        # Descargar original
+        obj = s3.get_object(Bucket=bucket, Key=key)
+        original_bytes = obj["Body"].read()
 
-                # Generate sizes
-                sizes = [
-                    (480, 'properties/derived/480'),
-                    (768, 'properties/derived/768'),
-                    # (1280, 'properties/derived/1280'), # Optional
-                ]
+        for size in SIZES:
+            derived_key = build_derived_key(key, size)
 
-                for width, prefix in sizes:
-                    # Calculate height maintaining aspect ratio
-                    # Only resize if original is larger than target
-                    if img.size[0] > width:
-                        w_percent = (width / float(img.size[0]))
-                        h_size = int((float(img.size[1]) * float(w_percent)))
-                        img_resized = img.resize((width, h_size), Image.Resampling.LANCZOS)
-                    else:
-                        img_resized = img
+            # Idempotencia: si ya existe, skip
+            if head_exists(bucket, derived_key):
+                continue
 
-                    # Save to buffer as WebP
-                    buffer = io.BytesIO()
-                    img_resized.save(buffer, format="WEBP", quality=80, method=6)
-                    buffer.seek(0)
-                    
-                    # Upload
-                    new_key = f"{prefix}/{base_name}.webp"
-                    print(f"Uploading to {new_key}")
-                    
-                    s3.put_object(
-                        Bucket=bucket,
-                        Key=new_key,
-                        Body=buffer,
-                        ContentType='image/webp',
-                        CacheControl='public, max-age=31536000, immutable'
-                    )
-                    
-        except Exception as e:
-            print(f"Error processing {key}: {str(e)}")
-            raise e
-            
-    return {
-        'statusCode': 200,
-        'body': 'Images processed successfully'
-    }
+            webp_bytes = to_webp(original_bytes, size)
+
+            s3.put_object(
+                Bucket=bucket,
+                Key=derived_key,
+                Body=webp_bytes,
+                ContentType="image/webp",
+                CacheControl="public, max-age=31536000, immutable",
+            )
+
+    return {"ok": True}
