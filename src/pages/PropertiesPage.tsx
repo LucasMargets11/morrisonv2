@@ -246,8 +246,13 @@ const PropertiesPage: React.FC = () => {
     } else {
       params.delete('search');
     }
-    window.history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
   };
+
+  // Sync searchInput with URL search param
+  useEffect(() => {
+    setSearchInput(search);
+  }, [search]);
 
   const handleSearchKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -338,7 +343,7 @@ const PropertiesPage: React.FC = () => {
                           setShowSuggestions(false);
                           const params = new URLSearchParams(location.search);
                           params.set('search', suggestion);
-                          window.history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
+                          navigate(`${location.pathname}?${params.toString()}`, { replace: true });
                         }}
                         className="w-full px-4 py-2 text-left hover:bg-blue-50 text-gray-700 first:rounded-t-lg last:rounded-b-lg"
                       >

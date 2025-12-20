@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status, parsers, serializers
+from rest_framework import viewsets, status, parsers, serializers, filters
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
@@ -25,6 +25,8 @@ class PropertyViewSet(viewsets.ModelViewSet):
     serializer_class = PropertySerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     parser_classes = [parsers.JSONParser, parsers.MultiPartParser, parsers.FormParser]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['title', 'description', 'address', 'city', 'state']
 
     def get_permissions(self):
         # Public read for list/retrieve; auth required for create/update/delete and media mutations
@@ -46,12 +48,12 @@ class PropertyViewSet(viewsets.ModelViewSet):
         babies = self.request.query_params.get('babies')      # (no usado aún)
         property_type = self.request.query_params.get('propertyType') or self.request.query_params.get('property_type')
 
-        # Filtro de búsqueda básica
-        if search:
-            queryset = queryset.filter(
-                Q(city__icontains=search) |
-                Q(address__icontains=search)
-            )
+        # Filtro de búsqueda básica (handled by SearchFilter now)
+        # if search:
+        #     queryset = queryset.filter(
+        #         Q(city__icontains=search) |
+        #         Q(address__icontains=search)
+        #     )
         # Filtro por cantidad mínima de dormitorios (usando 'adults' como aproximación)
         if adults:
             try:
