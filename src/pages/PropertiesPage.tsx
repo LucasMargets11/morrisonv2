@@ -345,7 +345,10 @@ const PropertiesPage: React.FC = () => {
                         {suggestion}
                       </button>
                     ))}
-                  </div>- Only for Vacacional */}
+                  </div>
+                )}
+              </div>
+              {/* Only for Vacacional */}
               <div className={`flex-1 flex items-center gap-2 px-2 py-2 border-r md:border-r border-gray-200 md:border-b-0 border-b ${propertyType !== 'vacacional' ? 'opacity-40 pointer-events-none bg-gray-50' : ''}`}>
                 <span className="text-blue-700">
                   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 8v8m0 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
@@ -376,28 +379,10 @@ const PropertiesPage: React.FC = () => {
                 >
                   {propertyType !== 'vacacional'
                     ? 'No aplica'
-                    : (totalGuests === 1 ? '1 Huésped' : `${totalGuests} Huéspedes`)
-                  onClick={openCalendar}
-                  className="w-full text-left bg-transparent text-gray-900 border-none focus:ring-0 text-base px-0 py-0"
-                >
-                  {start && end
-                    ? `${new Date(start).toLocaleDateString()} - ${new Date(end).toLocaleDateString()}`
-                    : 'Selecciona fechas'}
+                    : (totalGuests === 1 ? '1 Huésped' : `${totalGuests} Huéspedes`)}
                 </button>
               </div>
-              {/* Huéspedes (modal trigger) */}
-              <div className="flex-1 flex items-center gap-2 px-2 py-2 border-r md:border-r border-gray-200 md:border-b-0 border-b">
-                <span className="text-blue-700">
-                  <Users size={20} />
-                </span>
-                <button
-                  type="button"
-                  onClick={openGuests}
-                  className="w-full text-left bg-transparent text-gray-900 border-none focus:ring-0 text-base px-0 py-0"
-                >
-                  {totalGuests === 1 ? '1 Huésped' : `${totalGuests} Huéspedes`}
-                </button>
-              </div>
+
               {/* Botón buscar */}
               <div className="flex items-center px-2 py-2">
                 <Button
@@ -426,25 +411,38 @@ const PropertiesPage: React.FC = () => {
 
         {/* Main Content */}
         <div className="container mx-auto px-4 py-12">
-          {/* Filter Stats */}
-          <div className="flex flex-wrap items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                {propertyType === 'all' ? (
-                  <div className="col-span-2 py-16 text-center bg-white rounded-xl shadow-sm border border-gray-100">
-                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600" viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Selecciona un tipo de alquiler</h3>
-                    <p className="text-gray-500 max-w-md mx-auto mb-6">
-                      Para mostrarte las mejores opciones, por favor indica qué tipo de alquiler estás buscando.
-                    </p>
-                    <Button onClick={openTypeModal} className="bg-blue-600 hover:bg-blue-700 text-white">
-                      Seleccionar Tipo
-                    </Button>
-                  </div>
-                ) : (
-                  <>
+          {propertyType === 'all' ? (
+            <div className="col-span-2 py-16 text-center bg-white rounded-xl shadow-sm border border-gray-100">
+              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600" viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Selecciona un tipo de alquiler</h3>
+              <p className="text-gray-500 max-w-md mx-auto mb-6">
+                Para mostrarte las mejores opciones, por favor indica qué tipo de alquiler estás buscando.
+              </p>
+              <Button onClick={openTypeModal} className="bg-blue-600 hover:bg-blue-700 text-white">
+                Seleccionar Tipo
+              </Button>
+            </div>
+          ) : (
+            <>
+              {/* Filter Stats */}
+              <div className="flex flex-wrap items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {propertyType === 'vacacional' ? 'Alquiler Vacacional' : 'Alquiler Anual'}
+                  </h2>
+                  <p className="text-gray-500 mt-1">
+                    {mappedProperties.length} propiedades encontradas
+                  </p>
+                </div>
+              </div>
+
+              {/* Property Grid and Map */}
+              <div className="flex flex-col lg:flex-row gap-8">
+                {/* Property Grid */}
+                <div className="w-full lg:w-3/5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {isLoading && (
                       <div className="col-span-2 py-12 text-center text-gray-500">Cargando propiedades...</div>
                     )}
@@ -466,62 +464,37 @@ const PropertiesPage: React.FC = () => {
                         <p>Intenta ajustar tus criterios de búsqueda</p>
                       </div>
                     )}
-                  </
-          {/* Property Grid and Map */}
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Property Grid */}
-            <div className="w-full lg:w-3/5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {isLoading && (
-                  <div className="col-span-2 py-12 text-center text-gray-500">Cargando propiedades...</div>
-                )}
-                {isError && (
-                  <div className="col-span-2 py-12 text-center text-red-500">Error al cargar propiedades.</div>
-                )}
-                {!isLoading && !isError && mappedProperties.map((property) => (
-                  <div
-                    key={property.id}
-                    className="cursor-pointer transform transition-transform hover:scale-[1.02]"
-                  >
-                    <PropertyCard property={property} />
                   </div>
-                ))}
-                {!isLoading && !isError && mappedProperties.length === 0 && (
-                  <div className="col-span-2 py-12 text-center text-gray-500">
-                    <HomeIcon size={48} className="mx-auto mb-4 text-gray-400" />
-                    <p className="text-xl font-medium mb-2">Ninguna propiedad encontrada</p>
-                    <p>Intenta ajustar tus criterios de búsqueda</p>
-                  </div>
-                )}
-              </div>
-            </div>
+                </div>
 
-            {/* Map Section */}
-            <div className="w-full lg:w-2/5 lg:sticky lg:top-24 h-[calc(100vh-6rem)] cv-auto section-sizer">
-              <div className="bg-white rounded-lg shadow-md p-4 h-full">
-                <div className="relative w-full h-full min-h-[400px] rounded-lg overflow-hidden" id="map-anchor">
-                  <React.Suspense fallback={<div className="w-full h-full bg-gray-100" />}> 
-                    {mapVisible && (
-                      <PropertyMap
-                        apiKey={GOOGLE_MAPS_API_KEY}
-                        locations={mappedProperties.map(p => ({
-                          id: p.id,
-                          address: `${p.address}, ${p.city}`,
-                          price: p.price,
-                          title: p.title,
-                          imageUrl: (typeof p.images?.[0] === 'string') ? (p.images[0] as string) : (((p.images?.[0] as any)?.url) || ((p.images?.[0] as any)?.image) || ''),
-                          zone: p.city,
-                          propertyType: p.property_type,
-                          latitude: p.latitude!,
-                          longitude: p.longitude!,
-                        }))}
-                      />
-                    )}
-                  </React.Suspense>
+                {/* Map Section */}
+                <div className="w-full lg:w-2/5 lg:sticky lg:top-24 h-[calc(100vh-6rem)] cv-auto section-sizer">
+                  <div className="bg-white rounded-lg shadow-md p-4 h-full">
+                    <div className="relative w-full h-full min-h-[400px] rounded-lg overflow-hidden" id="map-anchor">
+                      <React.Suspense fallback={<div className="w-full h-full bg-gray-100" />}> 
+                        {mapVisible && (
+                          <PropertyMap
+                            apiKey={GOOGLE_MAPS_API_KEY}
+                            locations={mappedProperties.map(p => ({
+                              id: p.id,
+                              address: `${p.address}, ${p.city}`,
+                              price: p.price,
+                              title: p.title,
+                              imageUrl: (typeof p.images?.[0] === 'string') ? (p.images[0] as string) : (((p.images?.[0] as any)?.url) || ((p.images?.[0] as any)?.image) || ''),
+                              zone: p.city,
+                              propertyType: p.property_type,
+                              latitude: p.latitude!,
+                              longitude: p.longitude!,
+                            }))}
+                          />
+                        )}
+                      </React.Suspense>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
 
         {/* Modal de huéspedes */}
