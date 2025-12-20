@@ -40,6 +40,25 @@ class PropertyImageSerializer(serializers.ModelSerializer):
             bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '') or _os.environ.get('S3_MEDIA_BUCKET', '')
             if bucket:
                 data['url'] = f"https://{bucket}.s3.amazonaws.com/{data['s3_key']}"
+        
+        # Generate derived URLs if s3_key follows the pattern
+        s3_key = data.get('s3_key')
+        if s3_key and 'properties/original/' in s3_key:
+            try:
+                # Extract relative path: properties/original/123/abc.jpg -> 123/abc.jpg
+                relative_path = s3_key.split('properties/original/', 1)[1]
+                # Remove extension: 123/abc.jpg -> 123/abc
+                base_name = relative_path.rsplit('.', 1)[0]
+                
+                import os as _os
+                bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '') or _os.environ.get('S3_MEDIA_BUCKET', '')
+                if bucket:
+                    base_url = f"https://{bucket}.s3.amazonaws.com/properties/derived"
+                    data['derived480Url'] = f"{base_url}/480/{base_name}.webp"
+                    data['derived768Url'] = f"{base_url}/768/{base_name}.webp"
+            except IndexError:
+                pass
+
         return data
 
     def create(self, validated_data):

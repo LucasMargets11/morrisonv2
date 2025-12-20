@@ -3,38 +3,66 @@ import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Expand } from 'lucide-react';
 import { resolvePropertyImageUrl } from '../utils/imageUrl';
 import ResponsiveImage from './ResponsiveImage';
-// import { buildSrcSet } from '../utils/images'; // reserved for future srcset variants
+
+interface PropertyImageObj {
+  url?: string | null;
+  image?: string | null;
+  s3_key?: string | null;
+  derived480Url?: string;
+  derived768Url?: string;
+}
 
 interface PropertyGalleryProps {
-  // Accept plain URLs or objects with url/image/s3_key
-  images: Array<string | { url?: string | null; image?: string | null; s3_key?: string | null }>;
+  // Accept plain URLs or objects with url/image/s3_key/derived...
+  images: Array<string | PropertyImageObj>;
   title: string;
+}
+
+interface NormalizedImage {
+  original: string;
+  derived480?: string;
+  derived768?: string;
 }
 
 const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [hasNavigated, setHasNavigated] = useState(false);
 
-  // Normalize incoming images to simple URL strings
-  const normalizedImages = useMemo(() => {
+  // Normalize incoming images to object structure
+  const normalizedImages: NormalizedImage[] = useMemo(() => {
     return (images || [])
-      .map((img) =>
-        typeof img === 'string' ? img : (resolvePropertyImageUrl(img, { preferSigned: true }) || '')
-      )
-      .filter(Boolean);
+      .map((img) => {
+        if (typeof img === 'string') {
+          return { original: img };
+        }
+        const original = resolvePropertyImageUrl(img, { preferSigned: true }) || '';
+        if (!original) return null;
+        
+        return {
+          original,
+          derived480: img.derived480Url || undefined,
+          derived768: img.derived768Url || undefined
+        };
+      })
+      .filter((img): img is NormalizedImage => !!img);
   }, [images]);
 
   const total = normalizedImages.length;
-  // const fallbackSrc = '/building.svg'; // served from public/
+
+  const handleNavigation = (newIndex: number) => {
+    setCurrentIndex(newIndex);
+    setHasNavigated(true);
+  };
 
   const next = () => {
     if (!total) return;
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % total);
+    handleNavigation((currentIndex + 1) % total);
   };
 
   const prev = () => {
     if (!total) return;
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + total) % total);
+    handleNavigation((currentIndex - 1 + total) % total);
   };
 
   const openLightbox = () => {
@@ -47,20 +75,38 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
     document.body.style.overflow = '';
   };
 
+  // Prepare Hero Image Props
+  const currentImg = normalizedImages[currentIndex];
+  const heroSrc = currentImg ? (currentImg.derived768 || currentImg.derived480 || currentImg.original) : '';
+  
+  const heroSources = useMemo(() => {
+    if (!currentImg) return [];
+    const s = [];
+    // Prefer 768w for larger screens
+    if (currentImg.derived768) {
+      s.push({ srcSet: currentImg.derived768, type: 'image/webp', media: '(min-width: 480px)' });
+    }
+    // Use 480w for smaller screens
+    if (currentImg.derived480) {
+      s.push({ srcSet: currentImg.derived480, type: 'image/webp', media: '(max-width: 479px)' });
+    }
+    return s;
+  }, [currentImg]);
+
   return (
   <div className="relative cv-auto gallery-sizer">
       {/* Main Gallery */}
       <div className="relative h-[500px]">
-        {total > 0 ? (
+        {total > 0 && currentImg ? (
           <ResponsiveImage
-            src={normalizedImages[currentIndex]}
+            src={heroSrc}
+            sources={heroSources}
             alt={`${title} - Image ${currentIndex + 1}`}
             width={1600}
             height={1000}
-            lazy={false}
-            priority={true}
+            lazy={false} // Always eager for the hero
+            priority={currentIndex === 0 && !hasNavigated} // High priority only for the first load
             sizes="(max-width: 768px) 100vw, 1600px"
-            srcSet={undefined}
             className="w-full h-full rounded-lg"
             placeholderSrc={undefined}
           />
@@ -106,7 +152,7 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
         {normalizedImages.map((image, index) => (
           <button
             key={index}
-            onClick={() => setCurrentIndex(index)}
+            onClick={() => handleNavigation(index)}
             className={`flex-shrink-0 w-20 h-20 rounded-md overflow-hidden transition-all ${
               index === currentIndex ? 'ring-2 ring-blue-500' : 'opacity-70 hover:opacity-100'
             }`}
@@ -114,7 +160,7 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
             aria-label={`Ver imagen ${index + 1} de ${total}`}
           >
             <ResponsiveImage
-              src={image}
+              src={image.derived480 || image.original}
               alt={`${title} - Thumbnail ${index + 1}`}
               width={160}
               height={160}
@@ -131,7 +177,7 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
         <div className="fixed inset-0 z-[2000] bg-black/90 flex items-center justify-center backdrop-blur-sm" onClick={closeLightbox}>
           <div className="relative w-full max-w-4xl p-4" onClick={(e) => e.stopPropagation()}>
             <ResponsiveImage
-              src={normalizedImages[currentIndex]}
+              src={normalizedImages[currentIndex]?.original || ''}
               alt={`${title} - Full size image ${currentIndex + 1}`}
               width={1600}
               height={1000}
