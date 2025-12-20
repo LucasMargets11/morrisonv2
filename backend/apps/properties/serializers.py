@@ -90,8 +90,8 @@ class PropertyListItemSerializer(serializers.ModelSerializer):
             return None
 
         # Deterministic derived URLs generation
-        w480 = url
-        w768 = url
+        derived480 = None
+        derived768 = None
         
         # Only generate derived URLs if the key follows the new standard
         if s3_key and 'properties/original/' in s3_key:
@@ -104,15 +104,19 @@ class PropertyListItemSerializer(serializers.ModelSerializer):
                 bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '') or _os.environ.get('S3_MEDIA_BUCKET', '')
                 if bucket:
                     base_url = f"https://{bucket}.s3.amazonaws.com/properties/derived"
-                    w480 = f"{base_url}/480/{base_name}.webp"
-                    w768 = f"{base_url}/768/{base_name}.webp"
+                    derived480 = f"{base_url}/480/{base_name}.webp"
+                    derived768 = f"{base_url}/768/{base_name}.webp"
             except IndexError:
                 pass
 
+        # Prioritize derived768 if exists, else derived480, else original
+        cover_url = derived768 or derived480 or url
+
         return {
-            'url': url,
-            'w480': w480, 
-            'w768': w768
+            'originalUrl': url,
+            'derived480Url': derived480, 
+            'derived768Url': derived768,
+            'coverUrl': cover_url
         }
 
 class PropertySerializer(serializers.ModelSerializer):

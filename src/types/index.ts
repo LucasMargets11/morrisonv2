@@ -40,9 +40,10 @@ export interface PropertyListItem {
   square_feet: number;
   is_featured: boolean;
   cover?: {
-    url: string;
-    w480?: string;
-    w768?: string;
+    originalUrl: string;
+    derived480Url?: string;
+    derived768Url?: string;
+    coverUrl: string;
   };
   // Computed/Optional
   isForRent?: boolean;

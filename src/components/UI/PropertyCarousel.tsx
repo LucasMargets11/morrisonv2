@@ -190,24 +190,57 @@ const PropertyCarousel: React.FC<PropertyCarouselProps> = ({ properties }) => {
             <div className="bg-white rounded-xl overflow-hidden shadow-xl">
               <div className="relative aspect-[16/9]">
                 {(() => {
-                  let src: string | undefined;
+                  let coverUrl: string | undefined;
+                  let sources: any[] = [];
+                  
                   if ('cover' in property && (property as any).cover) {
-                      src = (property as any).cover.url;
+                      const cover = (property as any).cover;
+                      coverUrl = cover.coverUrl || cover.originalUrl || cover.url;
+                      const { derived480Url, derived768Url } = cover;
+                      
+                      if (derived480Url || derived768Url) {
+                          const webpSrcSet = [
+                              derived480Url ? `${derived480Url} 480w` : null,
+                              derived768Url ? `${derived768Url} 768w` : null
+                          ].filter(Boolean).join(', ');
+                          
+                          if (webpSrcSet) {
+                              sources.push({
+                                  srcSet: webpSrcSet,
+                                  type: 'image/webp',
+                                  sizes: "(max-width: 768px) 100vw, 33vw"
+                              });
+                          }
+                      }
                   } else {
                       const p = property as Property;
-                      src = (Array.isArray(p.images) && p.images.length > 0
-                        ? (typeof p.images[0] === 'string'
-                            ? (p.images[0] as string)
-                            : (((p.images[0] as any)?.url) || ((p.images[0] as any)?.image)))
-                        : undefined) as string | undefined;
+                      const coverObj: any | null = Array.isArray(p.images) && p.images.length
+                        ? (p.images as any[]).find((i: any) => i && (i as any).is_primary) ?? (p.images as any[])[0]
+                        : null;
+                      coverUrl = typeof coverObj === 'string'
+                        ? coverObj
+                        : (coverObj?.url || coverObj?.image || null);
                   }
-                  return src ? (
-                    <img src={src} alt={property.title} className="w-full h-full object-cover" loading="lazy" decoding="async" />
-                  ) : (
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-gray-500">Image unavailable</span>
-                    </div>
-                  );
+                  
+                  if (coverUrl) {
+                      if (sources.length > 0) {
+                          return (
+                              <picture>
+                                  {sources.map((s, i) => <source key={i} {...s} />)}
+                                  <img src={coverUrl} alt={property.title} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                              </picture>
+                          );
+                      }
+                      return (
+                        <img src={coverUrl} alt={property.title} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                      );
+                  } else {
+                    return (
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                          <span className="text-gray-500">Image unavailable</span>
+                        </div>
+                    );
+                  }
                 })()}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-4 left-4 right-4">

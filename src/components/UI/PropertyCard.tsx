@@ -12,9 +12,10 @@ import { prefetchProperty } from '../../hooks/useProperty';
 
 interface PropertyCardProps {
   property: Property | PropertyListItem;
+  priority?: boolean;
 }
 
-const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
+const PropertyCard: React.FC<PropertyCardProps> = ({ property, priority = false }) => {
   const queryClient = useQueryClient();
   const ref = useRef<HTMLDivElement>(null);
   const [imgError, setImgError] = useState(false);
@@ -51,12 +52,24 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
   // Cover logic
   let coverUrl: string | null = null;
   let srcSet: string | undefined = undefined;
+  let sources: Array<{ srcSet: string; type?: string; media?: string; sizes?: string }> | undefined = undefined;
   
   if (isListItem(property) && property.cover) {
-      coverUrl = property.cover.url;
-      if (property.cover.w480 && property.cover.w768 && !imgError) {
-          if (property.cover.w480 !== property.cover.url) {
-             srcSet = `${property.cover.w480} 480w, ${property.cover.w768} 768w`;
+      coverUrl = property.cover.coverUrl || property.cover.originalUrl;
+      const { derived480Url, derived768Url } = property.cover;
+      
+      if ((derived480Url || derived768Url) && !imgError) {
+          const webpSrcSet = [
+              derived480Url ? `${derived480Url} 480w` : null,
+              derived768Url ? `${derived768Url} 768w` : null
+          ].filter(Boolean).join(', ');
+          
+          if (webpSrcSet) {
+              sources = [{
+                  srcSet: webpSrcSet,
+                  type: 'image/webp',
+                  sizes: "(max-width: 768px) 100vw, 33vw"
+              }];
           }
       }
   } else if (!isListItem(property)) {
@@ -87,10 +100,12 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
             alt={property.title}
             width={1200}
             height={800}
-            lazy={true}
+            lazy={!priority}
+            priority={priority}
             decoding="async"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             srcSet={srcSet}
+            sources={sources}
             onError={() => setImgError(true)}
             className="h-64 w-full transition-transform duration-300 group-hover:scale-105 rounded-t-xl object-cover"
             placeholderSrc={undefined}
