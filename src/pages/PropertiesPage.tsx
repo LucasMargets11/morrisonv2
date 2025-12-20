@@ -4,6 +4,7 @@ import PropertyCard from '../components/UI/PropertyCard';
 import { Property, PropertyListItem } from '../types';
 import { Home as HomeIcon, Users, X } from 'lucide-react';
 import Button from '../components/UI/Button';
+import PropertyTypeSelector, { PropertyType } from '../components/PropertyTypeSelector';
 const PropertyMap = React.lazy(() => import('../components/UI/PropertyMap'));
 import { useLanguage } from '../contexts/LanguageContext';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -34,8 +35,8 @@ const PropertiesPage: React.FC = () => {
   const babies = params.get('babies') || '';
   const zone = params.get('zone') || '';
   const priceRange = params.get('priceRange') || 'all';
-  const initialPropertyType = params.get('propertyType') || 'all';
-  const [propertyType, setPropertyTypeState] = useState<string>(initialPropertyType);
+  // Use 'type' param, default to 'tradicional' (Annual)
+  const propertyType = params.get('type') || 'tradicional';
   const bedroomCount = params.get('bedroomCount') || 'all';
 
   // Fetch filtered properties from API
@@ -45,7 +46,8 @@ const PropertiesPage: React.FC = () => {
       search, start, end, adults, children, babies, zone, priceRange, propertyType, bedroomCount,
       status: 'published' // Explicitly filter by active status
     }),
-    enabled: propertyType !== 'all' // Only fetch if a type is selected
+    // Always enabled as we have a default type
+    enabled: true 
   });
 
   // Map API response to interface Property
@@ -133,13 +135,15 @@ const PropertiesPage: React.FC = () => {
   // Removed setZone & setPriceRange (replaced by rental type select)
 
   function setPropertyType(value: string): void {
-    setPropertyTypeState(value);
     const newParams = new URLSearchParams(location.search);
     
-    if (value && value !== 'all') {
-      newParams.set('propertyType', value);
+    // Reset page if exists
+    newParams.delete('page');
+
+    if (value) {
+      newParams.set('type', value);
     } else {
-      newParams.delete('propertyType');
+      newParams.delete('type');
     }
 
     // Clear dates and guests if switching to non-vacational
@@ -163,7 +167,6 @@ const PropertiesPage: React.FC = () => {
   const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isPropertyListOpen, setIsPropertyListOpen] = useState(false);
-  const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [tempAdultsCount, setTempAdultsCount] = useState(parseInt(adults) || 1);
   const [tempChildrenCount, setTempChildrenCount] = useState(parseInt(children) || 0);
@@ -280,14 +283,6 @@ const PropertiesPage: React.FC = () => {
     setIsPropertyListOpen(false);
     setModalOpen(false);
   };
-  const openTypeModal = () => {
-    setIsTypeModalOpen(true);
-    setModalOpen(true);
-  };
-  const closeTypeModal = () => {
-    setIsTypeModalOpen(false);
-    setModalOpen(false);
-  };
 
   const totalGuests = tempAdultsCount + tempChildrenCount + tempBabiesCount;
 
@@ -313,6 +308,11 @@ const PropertiesPage: React.FC = () => {
 
             {/* Modern Search Bar */}
             <div className="w-full bg-white/95 rounded-2xl shadow-2xl p-3 flex flex-col md:flex-row items-stretch gap-2 md:gap-0 mt-4 md:mt-8 mb-8 md:mb-0" style={{ filter: 'drop-shadow(0 15px 35px rgba(0, 0, 0, 0.2))' }}>
+              {/* Type Selector */}
+              <div className="flex items-center justify-center md:justify-start px-2 md:border-r border-gray-200">
+                 <PropertyTypeSelector value={propertyType} onChange={(val) => setPropertyType(val)} />
+              </div>
+
               {/* Búsqueda - Reemplaza la zona select */}
               <div className="flex-1 flex items-center gap-2 px-2 py-2 relative border-r md:border-r border-gray-200 md:border-b-0 border-b">
                 <span className="text-blue-700">
@@ -349,39 +349,37 @@ const PropertiesPage: React.FC = () => {
                 )}
               </div>
               {/* Only for Vacacional */}
-              <div className={`flex-1 flex items-center gap-2 px-2 py-2 border-r md:border-r border-gray-200 md:border-b-0 border-b ${propertyType !== 'vacacional' ? 'opacity-40 pointer-events-none bg-gray-50' : ''}`}>
-                <span className="text-blue-700">
-                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 8v8m0 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
-                </span>
-                <button
-                  type="button"
-                  onClick={openCalendar}
-                  disabled={propertyType !== 'vacacional'}
-                  className="w-full text-left bg-transparent text-gray-900 border-none focus:ring-0 text-base px-0 py-0 disabled:cursor-not-allowed"
-                >
-                  {propertyType !== 'vacacional' 
-                    ? 'No aplica' 
-                    : (start && end
-                      ? `${new Date(start).toLocaleDateString()} - ${new Date(end).toLocaleDateString()}`
-                      : 'Selecciona fechas')}
-                </button>
-              </div>
-              {/* Huéspedes (modal trigger) - Only for Vacacional */}
-              <div className={`flex-1 flex items-center gap-2 px-2 py-2 border-r md:border-r border-gray-200 md:border-b-0 border-b ${propertyType !== 'vacacional' ? 'opacity-40 pointer-events-none bg-gray-50' : ''}`}>
-                <span className="text-blue-700">
-                  <Users size={20} />
-                </span>
-                <button
-                  type="button"
-                  onClick={openGuests}
-                  disabled={propertyType !== 'vacacional'}
-                  className="w-full text-left bg-transparent text-gray-900 border-none focus:ring-0 text-base px-0 py-0 disabled:cursor-not-allowed"
-                >
-                  {propertyType !== 'vacacional'
-                    ? 'No aplica'
-                    : (totalGuests === 1 ? '1 Huésped' : `${totalGuests} Huéspedes`)}
-                </button>
-              </div>
+              {propertyType === 'vacacional' && (
+                <>
+                  <div className="flex-1 flex items-center gap-2 px-2 py-2 border-r md:border-r border-gray-200 md:border-b-0 border-b">
+                    <span className="text-blue-700">
+                      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 8v8m0 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={openCalendar}
+                      className="w-full text-left bg-transparent text-gray-900 border-none focus:ring-0 text-base px-0 py-0"
+                    >
+                      {start && end
+                        ? `${new Date(start).toLocaleDateString()} - ${new Date(end).toLocaleDateString()}`
+                        : 'Selecciona fechas'}
+                    </button>
+                  </div>
+                  {/* Huéspedes (modal trigger) - Only for Vacacional */}
+                  <div className="flex-1 flex items-center gap-2 px-2 py-2 border-r md:border-r border-gray-200 md:border-b-0 border-b">
+                    <span className="text-blue-700">
+                      <Users size={20} />
+                    </span>
+                    <button
+                      type="button"
+                      onClick={openGuests}
+                      className="w-full text-left bg-transparent text-gray-900 border-none focus:ring-0 text-base px-0 py-0"
+                    >
+                      {totalGuests === 1 ? '1 Huésped' : `${totalGuests} Huéspedes`}
+                    </button>
+                  </div>
+                </>
+              )}
 
               {/* Botón buscar */}
               <div className="flex items-center px-2 py-2">
@@ -395,42 +393,20 @@ const PropertiesPage: React.FC = () => {
                   Buscar
                 </Button>
               </div>
-              {/* Botón listar propiedades en modal */}
-              <div className="flex items-center px-2 py-2">
-                <Button
-                  variant="outline"
-                  className="px-4 py-3 rounded-xl shadow w-full md:w-auto"
-                  onClick={openPropertyList}
-                >
-                  Ver listado
-                </Button>
-              </div>
             </div>
           </div>
         </div>
 
         {/* Main Content */}
         <div className="container mx-auto px-4 py-12">
-          {propertyType === 'all' ? (
-            <div className="col-span-2 py-16 text-center bg-white rounded-xl shadow-sm border border-gray-100">
-              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600" viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Selecciona un tipo de alquiler</h3>
-              <p className="text-gray-500 max-w-md mx-auto mb-6">
-                Para mostrarte las mejores opciones, por favor indica qué tipo de alquiler estás buscando.
-              </p>
-              <Button onClick={openTypeModal} className="bg-blue-600 hover:bg-blue-700 text-white">
-                Seleccionar Tipo
-              </Button>
-            </div>
-          ) : (
-            <>
+
               {/* Filter Stats */}
               <div className="flex flex-wrap items-center justify-between mb-8">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">
-                    {propertyType === 'vacacional' ? 'Alquiler Vacacional' : 'Alquiler Anual'}
+                    {propertyType === 'vacacional' ? 'Alquiler Vacacional' : 
+                     propertyType === 'temporal' ? 'Alquiler Temporal' : 
+                     propertyType === 'tradicional' ? 'Alquiler Anual' : 'Propiedades'}
                   </h2>
                   <p className="text-gray-500 mt-1">
                     {mappedProperties.length} propiedades encontradas
@@ -493,8 +469,6 @@ const PropertiesPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </>
-          )}
         </div>
 
         {/* Modal de huéspedes */}
@@ -674,47 +648,7 @@ const PropertiesPage: React.FC = () => {
           </div>
         )}
 
-        {/* Modal tipo de alquiler */}
-        {isTypeModalOpen && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="relative w-full max-w-sm mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-500 text-white">
-                <h2 className="text-lg font-semibold">Tipo de alquiler</h2>
-                <button onClick={closeTypeModal} className="p-2 rounded-full hover:bg-white/20 transition-colors" aria-label="Cerrar">
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="p-4 divide-y divide-gray-100">
-                {[
-                  { value: 'all', label: 'Todos los tipos' },
-                  { value: 'temporal', label: 'Alquiler temporal' },
-                  { value: 'vacacional', label: 'Alquiler vacacional' },
-                  { value: 'tradicional', label: 'Alquiler tradicional' },
-                ].map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => {
-                      setPropertyType(opt.value);
-                      closeTypeModal();
-                    }}
-                    className={`w-full flex items-center justify-between px-3 py-3 text-sm font-medium rounded-md transition-colors ${
-                      propertyType === opt.value ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50 text-gray-700'
-                    }`}
-                  >
-                    <span>{opt.label}</span>
-                    {propertyType === opt.value && (
-                      <span className="text-blue-600 text-xs font-semibold">Seleccionado</span>
-                    )}
-                  </button>
-                ))}
-              </div>
-              <div className="p-4 border-t border-gray-200 flex justify-end bg-gray-50">
-                <Button onClick={closeTypeModal} variant="outline" className="mr-2">Cerrar</Button>
-                <Button onClick={closeTypeModal} className="bg-blue-600 hover:bg-blue-700 text-white">Aplicar</Button>
-              </div>
-            </div>
-          </div>
-        )}
+
       </div>
     </ModalContext.Provider>
   );

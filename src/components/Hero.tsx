@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import LazyVideo from './LazyVideo';
-import { Search, Users, X, ChevronDown } from 'lucide-react';
+import { Search, Users, X, ChevronDown, Check } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from '../translations';
 import { useNavigate } from 'react-router-dom';
@@ -24,6 +24,18 @@ const Hero: React.FC = () => {
   // Search state
   const [rentalType, setRentalType] = useState<string>('');
   const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Search suggestions state
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -145,22 +157,47 @@ const Hero: React.FC = () => {
           </p>
 
           {/* Desktop search bar */}
-          <div className="hidden md:flex items-stretch bg-white rounded-full shadow-lg overflow-hidden w-full max-w-4xl mx-auto">
+          <div className="hidden md:flex items-stretch bg-white rounded-full shadow-lg overflow-visible w-full max-w-4xl mx-auto relative z-20">
             {/* Rental Type Dropdown */}
-            <div className="relative border-r border-gray-200 min-w-[200px]">
-              <select
-                value={rentalType}
-                onChange={(e) => setRentalType(e.target.value)}
-                className="w-full h-full px-6 py-4 appearance-none bg-transparent focus:outline-none text-gray-700 cursor-pointer font-medium"
+            <div className="relative border-r border-gray-200 min-w-[240px]" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="w-full h-full px-6 py-4 flex items-center justify-between bg-transparent focus:outline-none cursor-pointer group hover:bg-gray-50 rounded-l-full transition-colors"
               >
-                <option value="" disabled>Tipo de Alquiler</option>
-                {RENTAL_TYPES.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                <div className="flex flex-col items-start">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-0.5">Tipo de Alquiler</span>
+                  <span className={`text-sm font-medium truncate ${!rentalType ? 'text-gray-400' : 'text-gray-900'}`}>
+                    {rentalType ? RENTAL_TYPES.find(t => t.value === rentalType)?.label : 'Seleccionar...'}
+                  </span>
+                </div>
+                <ChevronDown 
+                  size={16} 
+                  className={`text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''} group-hover:text-blue-600`} 
+                />
+              </button>
+
+              {isDropdownOpen && (
+                <div className="absolute top-[calc(100%+8px)] left-0 w-[280px] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden py-2 animate-in fade-in zoom-in-95 duration-200 origin-top-left">
+                  {RENTAL_TYPES.map((type) => (
+                    <button
+                      key={type.value}
+                      onClick={() => {
+                        setRentalType(type.value);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-5 py-3 hover:bg-blue-50 transition-colors flex items-center justify-between group ${
+                        rentalType === type.value ? 'bg-blue-50/50' : ''
+                      }`}
+                    >
+                      <span className={`text-sm ${rentalType === type.value ? 'text-blue-700 font-semibold' : 'text-gray-700 group-hover:text-gray-900'}`}>
+                        {type.label}
+                      </span>
+                      {rentalType === type.value && <Check size={16} className="text-blue-600" />}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Search input */}
@@ -219,13 +256,16 @@ const Hero: React.FC = () => {
             </button>
 
             {/* Search button */}
-            <button
-              className={`bg-blue-900 hover:bg-blue-700 text-white px-8 py-4 transition-colors ${!rentalType ? 'opacity-75 cursor-not-allowed' : ''}`}
-              onClick={handleSearch}
-              disabled={!rentalType}
-            >
-              {t('hero.filters.search')}
-            </button>
+            <div className="p-1.5">
+              <button
+                className={`h-full bg-blue-900 hover:bg-blue-800 text-white px-8 rounded-full transition-all shadow-md hover:shadow-lg flex items-center gap-2 font-medium ${!rentalType ? 'opacity-75 cursor-not-allowed' : ''}`}
+                onClick={handleSearch}
+                disabled={!rentalType}
+              >
+                <Search size={18} />
+                {t('hero.filters.search')}
+              </button>
+            </div>
           </div>
 
           {/* Mobile layout */}
