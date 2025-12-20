@@ -41,7 +41,11 @@ const PropertiesPage: React.FC = () => {
   // Fetch filtered properties from API
   const { data: properties = [], isLoading, isError } = useQuery({
     queryKey: ['properties', { search, start, end, adults, children, babies, zone, priceRange, propertyType, bedroomCount }],
-    queryFn: async () => (await import('../lib/admin')).adminApi.getProperties({ search, start, end, adults, children, babies, zone, priceRange, propertyType, bedroomCount }),
+    queryFn: async () => (await import('../lib/admin')).adminApi.getProperties({ 
+      search, start, end, adults, children, babies, zone, priceRange, propertyType, bedroomCount,
+      status: 'published' // Explicitly filter by active status
+    }),
+    enabled: propertyType !== 'all' // Only fetch if a type is selected
   });
 
   // Map API response to interface Property
@@ -131,7 +135,26 @@ const PropertiesPage: React.FC = () => {
   function setPropertyType(value: string): void {
     setPropertyTypeState(value);
     const newParams = new URLSearchParams(location.search);
-    if (value && value !== 'all') newParams.set('propertyType', value); else newParams.delete('propertyType');
+    
+    if (value && value !== 'all') {
+      newParams.set('propertyType', value);
+    } else {
+      newParams.delete('propertyType');
+    }
+
+    // Clear dates and guests if switching to non-vacational
+    if (value !== 'vacacional') {
+      newParams.delete('start');
+      newParams.delete('end');
+      newParams.delete('adults');
+      newParams.delete('children');
+      newParams.delete('babies');
+      setTempDates({ startDate: null, endDate: null });
+      setTempAdultsCount(1);
+      setTempChildrenCount(0);
+      setTempBabiesCount(0);
+    }
+
     navigate(`${location.pathname}?${newParams.toString()}`, { replace: true });
   }
 
@@ -322,32 +345,38 @@ const PropertiesPage: React.FC = () => {
                         {suggestion}
                       </button>
                     ))}
-                  </div>
-                )}
-              </div>
-              {/* Tipo de Alquiler (abre modal) */}
-              <div className="flex-1 flex items-center gap-2 px-2 py-2 border-r md:border-r border-gray-200 md:border-b-0 border-b">
-                <span className="text-blue-700">
-                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
-                </span>
-                <button
-                  type="button"
-                  onClick={openTypeModal}
-                  className="w-full text-left bg-transparent text-gray-900 border-none focus:ring-0 text-base px-0 py-0"
-                >
-                  {propertyType === 'all' ? 'Tipo de alquiler' :
-                    propertyType === 'temporal' ? 'Alquiler temporal' :
-                    propertyType === 'vacacional' ? 'Alquiler vacacional' :
-                    propertyType === 'tradicional' ? 'Alquiler tradicional' : propertyType}
-                </button>
-              </div>
-              {/* Fechas (modal trigger) */}
-              <div className="flex-1 flex items-center gap-2 px-2 py-2 border-r md:border-r border-gray-200 md:border-b-0 border-b">
+                  </div>- Only for Vacacional */}
+              <div className={`flex-1 flex items-center gap-2 px-2 py-2 border-r md:border-r border-gray-200 md:border-b-0 border-b ${propertyType !== 'vacacional' ? 'opacity-40 pointer-events-none bg-gray-50' : ''}`}>
                 <span className="text-blue-700">
                   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 8v8m0 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
                 </span>
                 <button
                   type="button"
+                  onClick={openCalendar}
+                  disabled={propertyType !== 'vacacional'}
+                  className="w-full text-left bg-transparent text-gray-900 border-none focus:ring-0 text-base px-0 py-0 disabled:cursor-not-allowed"
+                >
+                  {propertyType !== 'vacacional' 
+                    ? 'No aplica' 
+                    : (start && end
+                      ? `${new Date(start).toLocaleDateString()} - ${new Date(end).toLocaleDateString()}`
+                      : 'Selecciona fechas')}
+                </button>
+              </div>
+              {/* Huéspedes (modal trigger) - Only for Vacacional */}
+              <div className={`flex-1 flex items-center gap-2 px-2 py-2 border-r md:border-r border-gray-200 md:border-b-0 border-b ${propertyType !== 'vacacional' ? 'opacity-40 pointer-events-none bg-gray-50' : ''}`}>
+                <span className="text-blue-700">
+                  <Users size={20} />
+                </span>
+                <button
+                  type="button"
+                  onClick={openGuests}
+                  disabled={propertyType !== 'vacacional'}
+                  className="w-full text-left bg-transparent text-gray-900 border-none focus:ring-0 text-base px-0 py-0 disabled:cursor-not-allowed"
+                >
+                  {propertyType !== 'vacacional'
+                    ? 'No aplica'
+                    : (totalGuests === 1 ? '1 Huésped' : `${totalGuests} Huéspedes`)
                   onClick={openCalendar}
                   className="w-full text-left bg-transparent text-gray-900 border-none focus:ring-0 text-base px-0 py-0"
                 >
@@ -401,26 +430,43 @@ const PropertiesPage: React.FC = () => {
           <div className="flex flex-wrap items-center justify-between mb-8">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
-                {isLoading ? 'Cargando...' : `${mappedProperties.length} Propiedades disponibles`}
-              </h2>
-              <p className="text-gray-600 mt-1">
-                {search ? `Mostrando resultados para "${search}"` : 'Mostrando resultados para tu búsqueda'}
-              </p>
-            </div>
-
-            <div className="flex gap-4 mt-4 md:mt-0">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchInput('');
-                  window.history.replaceState({}, '', `${location.pathname}`);
-                }}
-              >
-                Clear Filters
-              </Button>
-            </div>
-          </div>
-
+                {propertyType === 'all' ? (
+                  <div className="col-span-2 py-16 text-center bg-white rounded-xl shadow-sm border border-gray-100">
+                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-600" viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">Selecciona un tipo de alquiler</h3>
+                    <p className="text-gray-500 max-w-md mx-auto mb-6">
+                      Para mostrarte las mejores opciones, por favor indica qué tipo de alquiler estás buscando.
+                    </p>
+                    <Button onClick={openTypeModal} className="bg-blue-600 hover:bg-blue-700 text-white">
+                      Seleccionar Tipo
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    {isLoading && (
+                      <div className="col-span-2 py-12 text-center text-gray-500">Cargando propiedades...</div>
+                    )}
+                    {isError && (
+                      <div className="col-span-2 py-12 text-center text-red-500">Error al cargar propiedades.</div>
+                    )}
+                    {!isLoading && !isError && mappedProperties.map((property) => (
+                      <div
+                        key={property.id}
+                        className="cursor-pointer transform transition-transform hover:scale-[1.02]"
+                      >
+                        <PropertyCard property={property} />
+                      </div>
+                    ))}
+                    {!isLoading && !isError && mappedProperties.length === 0 && (
+                      <div className="col-span-2 py-12 text-center text-gray-500">
+                        <HomeIcon size={48} className="mx-auto mb-4 text-gray-400" />
+                        <p className="text-xl font-medium mb-2">Ninguna propiedad encontrada</p>
+                        <p>Intenta ajustar tus criterios de búsqueda</p>
+                      </div>
+                    )}
+                  </
           {/* Property Grid and Map */}
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Property Grid */}

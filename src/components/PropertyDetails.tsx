@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import Calendar from './Calendar';
+import React, { useEffect, useState, Suspense } from 'react';
+// import Calendar from './Calendar'; // Lazy loaded below
 import { BedDouble, Bath, Ruler, Calendar as CalendarIcon, Home, Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
@@ -7,6 +7,8 @@ import { Property } from '../types';
 import { formatPrice, formatNumber } from '../utils/formatters';
 import Button from './UI/Button';
 import Badge from './UI/Badge';
+
+const Calendar = React.lazy(() => import('./Calendar'));
 
 interface PropertyDetailsProps {
   property: Property;
@@ -110,14 +112,22 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property }) => {
 
   const handleWhatsAppClick = () => {
     const phone = GENERIC_WHATSAPP_NUMBER;
-    const horarioIn = checkInSlot === '00-12' ? '00:00 a 12:00' : checkInSlot === '12-24' ? '12:00 a 00:00' : '';
-    const horarioOut = checkOutSlot === '00-12' ? '00:00 a 12:00' : checkOutSlot === '12-24' ? '12:00 a 00:00' : '';
-    const message = encodeURIComponent(
-      `Hola, estoy interesado en la propiedad "${property.title}" ubicada en ${property.address}. ` +
-      `Fechas seleccionadas: ${formatDateRange()}. ` +
-      `Check-in: ${horarioIn}. Check-out: ${horarioOut}. ¿Podría brindarme más información?`
-    );
-    if (phone) window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+    let message = `Hola, estoy interesado en la propiedad "${property.title}" ubicada en ${property.address}. `;
+    
+    if (property.property_type === 'vacacional') {
+      const horarioIn = checkInSlot === '00-12' ? '00:00 a 12:00' : checkInSlot === '12-24' ? '12:00 a 00:00' : '';
+      const horarioOut = checkOutSlot === '00-12' ? '00:00 a 12:00' : checkOutSlot === '12-24' ? '12:00 a 00:00' : '';
+      message += `Fechas seleccionadas: ${formatDateRange()}. `;
+      if (checkInSlot) message += `Check-in: ${horarioIn}. `;
+      if (checkOutSlot) message += `Check-out: ${horarioOut}. `;
+    } else {
+      message += `Tipo de alquiler: ${property.property_type}. `;
+    }
+    
+    message += `¿Podría brindarme más información?`;
+
+    const encodedMessage = encodeURIComponent(message);
+    if (phone) window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
     else alert('No hay número de WhatsApp disponible para esta propiedad.');
   };
 
@@ -197,100 +207,119 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property }) => {
 
       {/* Selección de fechas y precio */}
       <div className="mb-8">
-        <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Check-in */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Check-in</label>
-            <button
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-left bg-white"
-              onClick={openCalendar}
-              type="button"
-            >
-              {startDate ? startDate.toLocaleDateString() : 'Selecciona fecha de Check-in'}
-            </button>
-            <div className="mt-2 flex space-x-2">
-              <button
-                className={`px-3 py-1 rounded ${checkInSlot === '00-12' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
-                onClick={() => setCheckInSlot('00-12')}
-                type="button"
-              >
-                Mañana
-              </button>
-              <button
-                className={`px-3 py-1 rounded ${checkInSlot === '12-24' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
-                onClick={() => setCheckInSlot('12-24')}
-                type="button"
-              >
-                Tarde
-              </button>
+        {property.property_type === 'vacacional' ? (
+          <>
+            <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Check-in */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Check-in</label>
+                <button
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-left bg-white"
+                  onClick={openCalendar}
+                  type="button"
+                >
+                  {startDate ? startDate.toLocaleDateString() : 'Selecciona fecha de Check-in'}
+                </button>
+                <div className="mt-2 flex space-x-2">
+                  <button
+                    className={`px-3 py-1 rounded ${checkInSlot === '00-12' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                    onClick={() => setCheckInSlot('00-12')}
+                    type="button"
+                  >
+                    Mañana
+                  </button>
+                  <button
+                    className={`px-3 py-1 rounded ${checkInSlot === '12-24' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                    onClick={() => setCheckInSlot('12-24')}
+                    type="button"
+                  >
+                    Tarde
+                  </button>
+                </div>
+              </div>
+
+              {/* Check-out */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
+                <button
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-left bg-white"
+                  onClick={openCalendar}
+                  type="button"
+                >
+                  {endDate ? endDate.toLocaleDateString() : 'Selecciona fecha de Check-out'}
+                </button>
+                <div className="mt-2 flex space-x-2">
+                  <button
+                    className={`px-3 py-1 rounded ${checkOutSlot === '00-12' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                    onClick={() => setCheckOutSlot('00-12')}
+                    type="button"
+                  >
+                    Mañana
+                  </button>
+                  <button
+                    className={`px-3 py-1 rounded ${checkOutSlot === '12-24' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                    onClick={() => setCheckOutSlot('12-24')}
+                    type="button"
+                  >
+                    Tarde
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Check-out */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
-            <button
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-left bg-white"
-              onClick={openCalendar}
-              type="button"
-            >
-              {endDate ? endDate.toLocaleDateString() : 'Selecciona fecha de Check-out'}
-            </button>
-            <div className="mt-2 flex space-x-2">
+            {/* Modal calendario único (misma UI que el resto) */}
+            {isCalendarOpen && (
+              <Suspense fallback={<div className="p-4 text-center">Cargando calendario...</div>}>
+                <Calendar
+                  monthsToShow={typeof window !== 'undefined' && window.innerWidth < 640 ? 1 : 2}
+                  initialStartDate={startDate ?? undefined}
+                  initialEndDate={endDate ?? undefined}
+                  onDateSelect={handleCalendarSelect}
+                  blockedRanges={blockedRanges}
+                  basePrice={Number(property.price)}
+                  pricingRanges={pricings.map(p => ({ start_date: p.start_date, end_date: p.end_date, price: Number(p.price ?? p.amount) }))}
+                  onClose={() => setIsCalendarOpen(false)}
+                />
+              </Suspense>
+            )}
+
+            {(startDate || endDate) && (
               <button
-                className={`px-3 py-1 rounded ${checkOutSlot === '00-12' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
-                onClick={() => setCheckOutSlot('00-12')}
                 type="button"
+                onClick={() => {
+                  setDateRange([null, null]);
+                  setCheckInSlot(null);
+                  setCheckOutSlot(null);
+                }}
+                className="mb-2 px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
               >
-                Mañana
+                Resetear fechas
               </button>
-              <button
-                className={`px-3 py-1 rounded ${checkOutSlot === '12-24' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
-                onClick={() => setCheckOutSlot('12-24')}
-                type="button"
-              >
-                Tarde
-              </button>
+            )}
+
+            <div className="mt-2">
+              <span className="text-lg font-bold">
+                Precio: ${seasonalPrice !== null ? seasonalPrice : property.price}/noche
+              </span>
             </div>
-          </div>
-        </div>
-
-        {/* Modal calendario único (misma UI que el resto) */}
-        {isCalendarOpen && (
-          <Calendar
-            monthsToShow={typeof window !== 'undefined' && window.innerWidth < 640 ? 1 : 2}
-            initialStartDate={startDate ?? undefined}
-            initialEndDate={endDate ?? undefined}
-            onDateSelect={handleCalendarSelect}
-      blockedRanges={blockedRanges}
-      basePrice={Number(property.price)}
-      pricingRanges={pricings.map(p => ({ start_date: p.start_date, end_date: p.end_date, price: Number(p.price ?? p.amount) }))}
-            onClose={() => setIsCalendarOpen(false)}
-          />
-        )}
-
-        {(startDate || endDate) && (
-          <button
-            type="button"
-            onClick={() => {
-              setDateRange([null, null]);
-              setCheckInSlot(null);
-              setCheckOutSlot(null);
-            }}
-            className="mb-2 px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
-          >
-            Resetear fechas
-          </button>
-        )}
-
-        <div className="mt-2">
-          <span className="text-lg font-bold">
-            Precio: ${seasonalPrice !== null ? seasonalPrice : property.price}/noche
-          </span>
-        </div>
-        {startDate && endDate && (
-          <div className="mt-2 text-blue-700 font-semibold">
-            Total estadía: ${getTotalPrice()}
+            {startDate && endDate && (
+              <div className="mt-2 text-blue-700 font-semibold">
+                Total estadía: ${getTotalPrice()}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-lg font-bold text-gray-900">
+              Precio: {formatPrice(property.price)} {property.property_type === 'temporal' ? '/ mes' : ''}
+            </p>
+            <p className="text-gray-600 mt-1">
+              {property.property_type === 'temporal' 
+                ? 'Alquiler temporal (mínimo 3 meses)' 
+                : property.property_type === 'tradicional' 
+                  ? 'Alquiler tradicional (largo plazo)' 
+                  : 'Consultar condiciones'}
+            </p>
           </div>
         )}
       </div>

@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import LazyVideo from './LazyVideo';
-import { Search, Calendar as CalendarIcon, Users, X } from 'lucide-react';
+import { Search, Users, X, ChevronDown } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from '../translations';
-import Calendar from './Calendar';
-import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 
-interface DateRange {
-  startDate: Date | null;
-  endDate: Date | null;
-}
+const RENTAL_TYPES = [
+  { value: 'vacacional', label: 'Vacacional' },
+  { value: 'temporal', label: 'Temporal (3 meses)' },
+  { value: 'tradicional', label: 'Tradicional (largo plazo)' },
+];
 
 const Hero: React.FC = () => {
   const { language } = useLanguage();
@@ -22,9 +21,8 @@ const Hero: React.FC = () => {
   const [childrenCount, setChildrenCount] = useState(0);
   const [adultsCount, setAdultsCount] = useState(1); // at least 1 adult
 
-  // Date selection state
-  const [selectedDates, setSelectedDates] = useState<DateRange>({ startDate: null, endDate: null });
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  // Search state
+  const [rentalType, setRentalType] = useState<string>('');
   const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
 
   // Search suggestions state
@@ -79,40 +77,34 @@ const Hero: React.FC = () => {
     setShowSuggestions(false);
   };
 
-  const toggleCalendar = () => {
-    setIsCalendarOpen((open) => !open);
-    setIsGuestModalOpen(false);
-  };
   const toggleGuestModal = () => {
     setIsGuestModalOpen((open) => !open);
-    setIsCalendarOpen(false);
   };
 
-  const formatDateRange = () => {
-    if (!selectedDates.startDate) return t('hero.search.selectDates');
-    if (!selectedDates.endDate) return dayjs(selectedDates.startDate).format('MMM D');
-    return `${dayjs(selectedDates.startDate).format('MMM D')} - ${dayjs(
-      selectedDates.endDate
-    ).format('MMM D')}`;
-  };
-
-  const clearGuestsAndDates = () => {
+  const clearGuests = () => {
     setBabiesCount(0);
     setChildrenCount(0);
     setAdultsCount(1);
-    setSelectedDates({ startDate: null, endDate: null });
   };
 
   const handleSearch = () => {
+    if (!rentalType) {
+      // Optional: Show error or shake animation
+      alert('Por favor selecciona un tipo de alquiler');
+      return;
+    }
+
     const params = new URLSearchParams();
+    params.set('propertyType', rentalType);
     if (searchValue.trim()) params.set('search', searchValue.trim());
-    if (selectedDates.startDate)
-      params.set('start', dayjs(selectedDates.startDate).format('YYYY-MM-DD'));
-    if (selectedDates.endDate)
-      params.set('end', dayjs(selectedDates.endDate).format('YYYY-MM-DD'));
-    if (adultsCount > 0) params.set('adults', adultsCount.toString());
-    if (childrenCount > 0) params.set('children', childrenCount.toString());
-    if (babiesCount > 0) params.set('babies', babiesCount.toString());
+    
+    // Only add guest params if relevant (e.g. for vacacional)
+    if (rentalType === 'vacacional') {
+      if (adultsCount > 0) params.set('adults', adultsCount.toString());
+      if (childrenCount > 0) params.set('children', childrenCount.toString());
+      if (babiesCount > 0) params.set('babies', babiesCount.toString());
+    }
+    
     navigate(`/properties${params.toString() ? `?${params.toString()}` : ''}`);
   };
 
@@ -154,6 +146,23 @@ const Hero: React.FC = () => {
 
           {/* Desktop search bar */}
           <div className="hidden md:flex items-stretch bg-white rounded-full shadow-lg overflow-hidden w-full max-w-4xl mx-auto">
+            {/* Rental Type Dropdown */}
+            <div className="relative border-r border-gray-200 min-w-[200px]">
+              <select
+                value={rentalType}
+                onChange={(e) => setRentalType(e.target.value)}
+                className="w-full h-full px-6 py-4 appearance-none bg-transparent focus:outline-none text-gray-700 cursor-pointer font-medium"
+              >
+                <option value="" disabled>Tipo de Alquiler</option>
+                {RENTAL_TYPES.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            </div>
+
             {/* Search input */}
             <div className="flex-1 flex flex-col relative pl-6">
               <div className="flex items-center">
@@ -196,19 +205,14 @@ const Hero: React.FC = () => {
               )}
             </div>
 
-            {/* Date picker trigger */}
-            <button
-              onClick={toggleCalendar}
-              className="px-6 py-4 flex items-center gap-2 border-l border-gray-200 hover:bg-gray-50 transition-colors"
-            >
-              <CalendarIcon size={20} className="text-gray-400" />
-              <span className="text-gray-700">{formatDateRange()}</span>
-            </button>
-
-            {/* Guests trigger */}
+            {/* Guests trigger - Only show if Vacacional is selected or no type selected yet (optional, but user said "Calendar gating") */}
+            {/* Keeping it visible but maybe disabled or just generic? User didn't explicitly say to hide guests, but implied calendar gating. */}
+            {/* I'll keep it but maybe it only applies to Vacacional. */}
             <button
               onClick={toggleGuestModal}
-              className="px-6 py-4 flex items-center gap-2 border-l border-gray-200 hover:bg-gray-50 transition-colors"
+              className={`px-6 py-4 flex items-center gap-2 border-l border-gray-200 hover:bg-gray-50 transition-colors ${rentalType !== 'vacacional' && rentalType !== '' ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={rentalType !== 'vacacional' && rentalType !== ''}
+              title={rentalType !== 'vacacional' && rentalType !== '' ? 'Solo para alquiler vacacional' : ''}
             >
               <Users size={20} className="text-gray-400" />
               <span className="text-gray-700">{totalGuests === 1 ? '1 Huésped' : `${totalGuests} Huéspedes`}</span>
@@ -216,8 +220,9 @@ const Hero: React.FC = () => {
 
             {/* Search button */}
             <button
-              className="bg-blue-900 hover:bg-blue-700 text-white px-8 py-4 transition-colors"
+              className={`bg-blue-900 hover:bg-blue-700 text-white px-8 py-4 transition-colors ${!rentalType ? 'opacity-75 cursor-not-allowed' : ''}`}
               onClick={handleSearch}
+              disabled={!rentalType}
             >
               {t('hero.filters.search')}
             </button>
@@ -225,26 +230,37 @@ const Hero: React.FC = () => {
 
           {/* Mobile layout */}
           <div className="md:hidden w-full max-w-sm mx-auto space-y-4">
-            <div className="flex gap-3">
-              <button
-                onClick={toggleCalendar}
-                className="flex-1 bg-white rounded-xl shadow-lg px-4 py-4 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
-              >
-                <CalendarIcon size={20} className="text-gray-400" />
-                <span className="text-gray-700 text-sm font-medium">{formatDateRange()}</span>
-              </button>
-              <button
-                onClick={toggleGuestModal}
-                className="flex-1 bg-white rounded-xl shadow-lg px-4 py-4 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
-              >
-                <Users size={20} className="text-gray-400" />
-                <span className="text-gray-700 text-sm font-medium">{totalGuests === 1 ? '1 Huésped' : `${totalGuests} Huéspedes`}</span>
-              </button>
-            </div>
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden p-2">
+               <div className="relative border-b border-gray-100 mb-2">
+                  <select
+                    value={rentalType}
+                    onChange={(e) => setRentalType(e.target.value)}
+                    className="w-full px-4 py-3 appearance-none bg-transparent focus:outline-none text-gray-700 font-medium"
+                  >
+                    <option value="" disabled>Tipo de Alquiler</option>
+                    {RENTAL_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+               </div>
+
+               <div className="flex gap-2 mb-2">
+                  <button
+                    onClick={toggleGuestModal}
+                    className={`flex-1 bg-gray-50 rounded-lg px-3 py-3 flex items-center justify-center gap-2 ${rentalType !== 'vacacional' && rentalType !== '' ? 'opacity-50' : ''}`}
+                    disabled={rentalType !== 'vacacional' && rentalType !== ''}
+                  >
+                    <Users size={18} className="text-gray-400" />
+                    <span className="text-gray-700 text-sm">{totalGuests === 1 ? '1' : `${totalGuests}`}</span>
+                  </button>
+               </div>
+
               <div className="flex flex-col relative">
-                <div className="flex items-center px-4 py-4">
-                  <Search size={20} className="text-gray-400 mr-3" />
+                <div className="flex items-center px-2 py-2 border rounded-lg border-gray-200 mb-2">
+                  <Search size={20} className="text-gray-400 mr-2" />
                   <input
                     type="text"
                     list="search-options-mobile"
@@ -276,14 +292,10 @@ const Hero: React.FC = () => {
                     ))}
                   </ul>
                 )}
-                {loadingSuggestions && (
-                  <div className="absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-20 px-4 py-3 text-gray-500">
-                    Cargando sugerencias...
-                  </div>
-                )}
                 <button
-                  className="bg-blue-600 hover:bg-blue-700 text-white py-4 transition-colors font-medium"
+                  className={`bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors font-medium ${!rentalType ? 'opacity-75' : ''}`}
                   onClick={handleSearch}
+                  disabled={!rentalType}
                 >
                   {t('hero.filters.search')}
                 </button>
@@ -377,10 +389,10 @@ const Hero: React.FC = () => {
             </div>
             <div className="flex justify-between mt-6 space-x-2">
               <button
-                onClick={clearGuestsAndDates}
+                onClick={clearGuests}
                 className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
               >
-                Limpiar fechas
+                Limpiar
               </button>
               <div className="flex space-x-2">
                 <button
@@ -399,15 +411,6 @@ const Hero: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Calendar Modal */}
-      {isCalendarOpen && (
-        <Calendar
-          monthsToShow={window.innerWidth < 640 ? 1 : 2}
-          onClose={toggleCalendar}
-          onDateSelect={setSelectedDates}
-        />
       )}
     </section>
   );
