@@ -4,6 +4,7 @@ from urllib.parse import quote
 from django.conf import settings
 from rest_framework import serializers
 from .models import Property, PropertyImage, PropertyFeature, Pricing, Maintenance
+from .utils import extract_s3_key, build_derived_url
 
 class PropertyImageSerializer(serializers.ModelSerializer):
     # Protect .image access: avoid calling ImageField.url on missing files
@@ -44,23 +45,12 @@ class PropertyImageSerializer(serializers.ModelSerializer):
         # Ensure originalUrl is present
         data['originalUrl'] = data.get('url')
 
-        # Generate derived URLs if s3_key follows the pattern
-        s3_key = data.get('s3_key')
-        if s3_key and 'properties/original/' in s3_key:
-            try:
-                # Extract relative path: properties/original/123/abc.jpg -> 123/abc.jpg
-                relative_path = s3_key.split('properties/original/', 1)[1]
-                # Remove extension: 123/abc.jpg -> 123/abc
-                base_name = relative_path.rsplit('.', 1)[0]
-                
-                import os as _os
-                bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '') or _os.environ.get('S3_MEDIA_BUCKET', '')
-                if bucket:
-                    base_url = f"https://{bucket}.s3.amazonaws.com/properties/derived"
-                    data['derived480Url'] = f"{base_url}/480/{base_name}.webp"
-                    data['derived768Url'] = f"{base_url}/768/{base_name}.webp"
-            except IndexError:
-                pass
+        # Use helper to extract key (from s3_key or url)
+        s3_key = extract_s3_key(instance)
+        
+        # Generate derived URLs
+        data['derived480Url'] = build_derived_url(s3_key, 480)
+        data['derived768Url'] = build_derived_url(s3_key, 768)
 
         return data
 
@@ -111,25 +101,12 @@ class PropertyListItemSerializer(serializers.ModelSerializer):
         if not url:
             return None
 
-        # Deterministic derived URLs generation
-        derived480 = None
-        derived768 = None
+        # Use helper to extract key (from s3_key or url)
+        extracted_key = extract_s3_key(cover_img)
         
-        # Only generate derived URLs if the key follows the new standard
-        if s3_key and 'properties/original/' in s3_key:
-            try:
-                # Extract relative path: properties/original/123/abc.jpg -> 123/abc.jpg
-                relative_path = s3_key.split('properties/original/', 1)[1]
-                # Remove extension: 123/abc.jpg -> 123/abc
-                base_name = relative_path.rsplit('.', 1)[0]
-                
-                bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '') or _os.environ.get('S3_MEDIA_BUCKET', '')
-                if bucket:
-                    base_url = f"https://{bucket}.s3.amazonaws.com/properties/derived"
-                    derived480 = f"{base_url}/480/{base_name}.webp"
-                    derived768 = f"{base_url}/768/{base_name}.webp"
-            except IndexError:
-                pass
+        # Generate derived URLs
+        derived480 = build_derived_url(extracted_key, 480)
+        derived768 = build_derived_url(extracted_key, 768)
 
         # Prioritize derived768 if exists, else derived480, else original
         cover_url = derived768 or derived480 or url
