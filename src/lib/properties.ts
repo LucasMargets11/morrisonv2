@@ -47,7 +47,17 @@ export function normalizeProperty(data: any) {
       ? data.features.map((f: any) => (typeof f === 'string' ? f : f.name))
       : [],
     images: Array.isArray(data.images)
-      ? data.images.map((img: any) => (typeof img === 'string' ? img : (img.url || img.image)))
+      ? data.images.map((img: any) => {
+          if (typeof img === 'string') return img;
+          if (img.derived480Url || img.derived768Url) {
+            return {
+              ...img,
+              url: img.url || img.image,
+              originalUrl: img.url || img.image
+            };
+          }
+          return img.url || img.image;
+        })
       : [],
   };
 }

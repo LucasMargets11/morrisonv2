@@ -78,20 +78,24 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
 
   // Prepare Hero Image Props
   const currentImg = normalizedImages[currentIndex];
-  const heroSrc = currentImg ? (currentImg.derived768 || currentImg.derived480 || currentImg.original) : '';
+  const heroSrc = currentImg ? currentImg.original : '';
   
   const heroSources = useMemo(() => {
     if (!currentImg) return [];
-    const s = [];
-    // Prefer 768w for larger screens
-    if (currentImg.derived768) {
-      s.push({ srcSet: currentImg.derived768, type: 'image/webp', media: '(min-width: 480px)' });
+    
+    const webpSrcSet = [
+      currentImg.derived480 ? `${currentImg.derived480} 480w` : null,
+      currentImg.derived768 ? `${currentImg.derived768} 768w` : null
+    ].filter(Boolean).join(', ');
+
+    if (webpSrcSet) {
+      return [{
+        srcSet: webpSrcSet,
+        type: 'image/webp',
+        sizes: '(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px'
+      }];
     }
-    // Use 480w for smaller screens
-    if (currentImg.derived480) {
-      s.push({ srcSet: currentImg.derived480, type: 'image/webp', media: '(max-width: 479px)' });
-    }
-    return s;
+    return [];
   }, [currentImg]);
 
   return (
