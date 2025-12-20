@@ -1,7 +1,7 @@
 import React, { useMemo, useState, createContext, useContext, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import PropertyCard from '../components/UI/PropertyCard';
-import { Property } from '../types';
+import { Property, PropertyListItem } from '../types';
 import { Home as HomeIcon, Users, X } from 'lucide-react';
 import Button from '../components/UI/Button';
 const PropertyMap = React.lazy(() => import('../components/UI/PropertyMap'));
@@ -52,34 +52,59 @@ const PropertiesPage: React.FC = () => {
     address: string;
     city: string;
     state: string;
-    zip_code: string;
+    zip_code?: string;
     price: string | number;
     bedrooms: string | number;
     bathrooms: string | number;
     square_feet: string | number;
-    description: string;
-    features: string[];
-    images: (string | { image: string })[];
+    description?: string;
+    features?: string[];
+    images?: (string | { image: string })[];
+    cover?: { url: string; w480?: string; w768?: string };
     is_featured: boolean;
-    year_built: string | number;
+    year_built?: string | number;
     property_type: string;
     latitude?: number;
     longitude?: number;
   };
 
-  const mappedProperties: Property[] = useMemo(() =>
-    (properties as unknown as ApiProperty[]).map((p) => ({
+  const mappedProperties: (Property | PropertyListItem)[] = useMemo(() =>
+    (properties as unknown as ApiProperty[]).map((p) => {
+      // If it has cover, it's likely the optimized list item
+      if (p.cover) {
+         return {
+            id: String(p.id),
+            title: p.title,
+            price: typeof p.price === 'string' ? parseFloat(p.price) : p.price,
+            address: p.address,
+            city: p.city,
+            state: p.state,
+            zip_code: p.zip_code,
+            property_type: p.property_type,
+            bedrooms: typeof p.bedrooms === 'string' ? parseInt(p.bedrooms) : p.bedrooms,
+            bathrooms: typeof p.bathrooms === 'string' ? parseFloat(p.bathrooms) : p.bathrooms,
+            square_feet: typeof p.square_feet === 'string' ? parseInt(p.square_feet) : p.square_feet,
+            is_featured: !!p.is_featured,
+            cover: p.cover,
+            // Optional fields that might be used by filters or logic
+            isForRent: false, // Default
+            isForSale: true,  // Default
+         } as PropertyListItem;
+      }
+
+      // Fallback for full property object (if used elsewhere or mixed)
+      return {
       id: String(p.id),
       title: p.title,
       address: p.address,
       city: p.city,
       state: p.state,
-      zipCode: p.zip_code,
+      zipCode: p.zip_code || '',
       price: typeof p.price === 'string' ? parseFloat(p.price) : p.price,
       bedrooms: typeof p.bedrooms === 'string' ? parseInt(p.bedrooms) : p.bedrooms,
       bathrooms: typeof p.bathrooms === 'string' ? parseFloat(p.bathrooms) : p.bathrooms,
       squareFeet: typeof p.square_feet === 'string' ? parseInt(p.square_feet) : p.square_feet,
-      description: p.description,
+      description: p.description || '',
       features: Array.isArray(p.features) ? p.features : [],
       images: Array.isArray(p.images)
         ? p.images.map((img) => (typeof img === 'string' ? img : ((img as any).url || (img as any).image)))
@@ -89,12 +114,13 @@ const PropertiesPage: React.FC = () => {
       isForSale: true,
       isForRent: false,
       yearBuilt:
-        typeof p.year_built === 'string' ? parseInt(p.year_built) : p.year_built,
+        typeof p.year_built === 'string' ? parseInt(p.year_built) : (p.year_built || 0),
       location: { lat: 0, lng: 0 },
       property_type: p.property_type,
       latitude: p.latitude,
       longitude: p.longitude,
-    })),
+    } as Property;
+    }),
   [properties]);
 
   // Ciudades y tipos únicos para los selects

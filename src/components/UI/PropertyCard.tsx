@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Home, BedDouble, Bath, Ruler } from 'lucide-react';
-import { Property } from '../../types';
+import { Property, PropertyListItem } from '../../types';
 import { formatPrice } from '../../utils/formatters';
 import Badge from './Badge';
 import { resolvePropertyImageUrl } from '../../utils/imageUrl';
@@ -11,12 +11,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import { prefetchProperty } from '../../hooks/useProperty';
 
 interface PropertyCardProps {
-  property: Property;
+  property: Property | PropertyListItem;
 }
 
 const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
   const queryClient = useQueryClient();
   const ref = useRef<HTMLDivElement>(null);
+  const [imgError, setImgError] = useState(false);
   const id = property.id;
 
   const onPrefetch = () => {
@@ -40,19 +41,40 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
     return () => io.disconnect();
   }, []);
 
-  // Removed favorite/heart feature per request
+  // Helper to check if it's the optimized list item
+  const isListItem = (p: any): p is PropertyListItem => 'cover' in p || 'square_feet' in p;
 
-  // Choose primary image if present
-  const coverObj: any | null = Array.isArray(property.images) && property.images.length
-    ? (property.images as any[]).find((i: any) => i && (i as any).is_primary) ?? (property.images as any[])[0]
-    : null;
-  const coverUrl = typeof coverObj === 'string'
-    ? coverObj
-    : resolvePropertyImageUrl(coverObj, { preferSigned: true }) || (coverObj?.image || null);
+  // Normalize fields
+  const squareFeet = isListItem(property) ? property.square_feet : (property as Property).squareFeet;
+  const isFeatured = isListItem(property) ? property.is_featured : (property as Property).isFeatured;
+  
+  // Cover logic
+  let coverUrl: string | null = null;
+  let srcSet: string | undefined = undefined;
+  
+  if (isListItem(property) && property.cover) {
+      coverUrl = property.cover.url;
+      if (property.cover.w480 && property.cover.w768 && !imgError) {
+          if (property.cover.w480 !== property.cover.url) {
+             srcSet = `${property.cover.w480} 480w, ${property.cover.w768} 768w`;
+          }
+      }
+  } else if (!isListItem(property)) {
+      const p = property as Property;
+      const coverObj: any | null = Array.isArray(p.images) && p.images.length
+        ? (p.images as any[]).find((i: any) => i && (i as any).is_primary) ?? (p.images as any[])[0]
+        : null;
+      coverUrl = typeof coverObj === 'string'
+        ? coverObj
+        : resolvePropertyImageUrl(coverObj, { preferSigned: true }) || (coverObj?.image || null);
+  }
+
   const fallback = '/building.svg';
   const widths = [480, 800, 1200, 1600];
   const useStaticVariants = typeof coverUrl === 'string' && coverUrl.startsWith('/props/');
-  const srcSet = useStaticVariants && property?.id ? buildSrcSet(`/props/${property.id}/hero`, widths) : undefined;
+  if (useStaticVariants && property?.id && !srcSet) {
+      srcSet = buildSrcSet(`/props/${property.id}/hero`, widths);
+  }
 
   return (
     <div ref={ref} className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 group"
@@ -66,15 +88,17 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
             width={1200}
             height={800}
             lazy={true}
+            decoding="async"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             srcSet={srcSet}
-            className="h-64 w-full transition-transform duration-300 group-hover:scale-105 rounded-t-xl"
+            onError={() => setImgError(true)}
+            className="h-64 w-full transition-transform duration-300 group-hover:scale-105 rounded-t-xl object-cover"
             placeholderSrc={undefined}
           />
           {/* Heart button removed */}
-          {(property.isFeatured || ['temporal','vacacional','tradicional'].includes(property.property_type)) && (
+          {(isFeatured || ['temporal','vacacional','tradicional'].includes(property.property_type)) && (
             <div className="absolute top-3 left-3 flex flex-wrap gap-2 z-10 max-w-[70%]">
-              {property.isFeatured && (
+              {isFeatured && (
                 <Badge variant="primary" className="shadow-sm">Featured</Badge>
               )}
               {property.property_type === 'temporal' && (
@@ -113,7 +137,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
             </div>
             <div className="flex items-center">
               <Ruler size={18} className="mr-1" />
-              <span className="text-sm">{property.squareFeet} sq ft</span>
+              <span className="text-sm">{squareFeet} sq ft</span>
             </div>
           </div>
         </div>

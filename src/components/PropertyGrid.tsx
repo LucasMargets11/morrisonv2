@@ -1,9 +1,9 @@
 import React from 'react';
 import PropertyCard from './UI/PropertyCard';
-import { Property } from '../types';
+import { Property, PropertyListItem } from '../types';
 
 interface PropertyGridProps {
-  properties: Property[];
+  properties: (Property | PropertyListItem)[];
   title?: string;
   subtitle?: string;
 }

@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
 from django.db.models import Q
 from .models import Property, PropertyImage, Pricing, Maintenance
-from .serializers import PropertySerializer, PropertyImageSerializer, PricingSerializer, MaintenanceSerializer
+from .serializers import PropertySerializer, PropertyListItemSerializer, PropertyImageSerializer, PricingSerializer, MaintenanceSerializer
 from .permissions import IsOwnerOrAdmin
 from django.contrib import admin
 from rest_framework.views import APIView
@@ -72,10 +72,10 @@ class PropertyViewSet(viewsets.ModelViewSet):
 
             page = self.paginate_queryset(queryset)
             if page is not None:
-                serializer = self.get_serializer(page, many=True)
+                serializer = PropertyListItemSerializer(page, many=True, context=self.get_serializer_context())
                 return self.get_paginated_response(serializer.data)
 
-            serializer = self.get_serializer(queryset, many=True)
+            serializer = PropertyListItemSerializer(queryset, many=True, context=self.get_serializer_context())
             return Response(serializer.data)
         except Exception as e:
             logging.getLogger(__name__).exception("[properties.list] Unhandled error: %s", e)
@@ -250,7 +250,9 @@ def presign_upload(request):
         if ext not in ("jpg", "jpeg", "png", "webp"):
             # Normalize extension to match content_type
             ext = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}[content_type]
-        s3_key = f"properties/{prop.id}/foto-{uuid.uuid4()}.{ext}"
+        
+        # Store originals in properties/original/ to trigger Lambda resize
+        s3_key = f"properties/original/{prop.id}/foto-{uuid.uuid4()}.{ext}"
 
         s3 = boto3.client('s3', region_name=settings.AWS_S3_REGION_NAME)
         params = {

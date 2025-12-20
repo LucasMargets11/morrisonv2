@@ -12,6 +12,7 @@ export interface ResponsiveImageProps {
   lazy?: boolean;
   placeholderSrc?: string;
   blurClassName?: string; // tailwind blur class, default 'blur-sm'
+  onError?: React.ReactEventHandler<HTMLImageElement>;
 }
 
 const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
@@ -26,6 +27,7 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
   lazy = true,
   placeholderSrc,
   blurClassName = 'blur-sm',
+  onError,
 }) => {
   const [loaded, setLoaded] = React.useState(false);
   const hasObjectFit = /object-(cover|contain|fill|scale-down|none)/.test(className);
@@ -44,6 +46,7 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
         ...(placeholderSrc && !loaded ? { backgroundImage: `url(${placeholderSrc})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}),
       }}
       onLoad={() => setLoaded(true)}
+      onError={onError}
       loading={loading as any}
       decoding="async"
       {...(fetchpriority ? { fetchpriority } : {})}

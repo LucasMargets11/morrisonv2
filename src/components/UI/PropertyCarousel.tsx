@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, BedDouble, Bath, MapPin } from 'lucide-react';
-import { Property } from '../../types';
+import { Property, PropertyListItem } from '../../types';
 import { formatPrice } from '../../utils/formatters';
 import { useNavigate } from 'react-router-dom';
 
 interface PropertyCarouselProps {
-  properties: Property[];
+  properties: (Property | PropertyListItem)[];
 }
 
 const PropertyCarousel: React.FC<PropertyCarouselProps> = ({ properties }) => {
@@ -23,7 +23,7 @@ const PropertyCarousel: React.FC<PropertyCarouselProps> = ({ properties }) => {
 
   const normalizedProperties = properties.map(p => ({
     ...p,
-    isFeatured: p.is_featured ?? p.isFeatured ?? false,
+    isFeatured: (p as any).is_featured ?? (p as any).isFeatured ?? false,
   }));
   const featuredPropertiesFeatured = normalizedProperties.filter(p => p.isFeatured);
 
@@ -190,13 +190,19 @@ const PropertyCarousel: React.FC<PropertyCarouselProps> = ({ properties }) => {
             <div className="bg-white rounded-xl overflow-hidden shadow-xl">
               <div className="relative aspect-[16/9]">
                 {(() => {
-                  const src = (Array.isArray(property.images) && property.images.length > 0
-                    ? (typeof property.images[0] === 'string'
-                        ? (property.images[0] as string)
-                        : (((property.images[0] as any)?.url) || ((property.images[0] as any)?.image)))
-                    : undefined) as string | undefined;
+                  let src: string | undefined;
+                  if ('cover' in property && (property as any).cover) {
+                      src = (property as any).cover.url;
+                  } else {
+                      const p = property as Property;
+                      src = (Array.isArray(p.images) && p.images.length > 0
+                        ? (typeof p.images[0] === 'string'
+                            ? (p.images[0] as string)
+                            : (((p.images[0] as any)?.url) || ((p.images[0] as any)?.image)))
+                        : undefined) as string | undefined;
+                  }
                   return src ? (
-                    <img src={src} alt={property.title} className="w-full h-full object-cover" loading="lazy" />
+                    <img src={src} alt={property.title} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                   ) : (
                     <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                       <span className="text-gray-500">Image unavailable</span>

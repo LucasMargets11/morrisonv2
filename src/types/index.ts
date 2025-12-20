@@ -26,6 +26,29 @@ export interface Property {
   };
 }
 
+export interface PropertyListItem {
+  id: string;
+  title: string;
+  price: number;
+  address: string;
+  city: string;
+  state: string;
+  zip_code?: string;
+  property_type: string;
+  bedrooms: number;
+  bathrooms: number;
+  square_feet: number;
+  is_featured: boolean;
+  cover?: {
+    url: string;
+    w480?: string;
+    w768?: string;
+  };
+  // Computed/Optional
+  isForRent?: boolean;
+  isForSale?: boolean;
+}
+
 export interface PropertyFilter {
   minPrice?: number;
   maxPrice?: number;

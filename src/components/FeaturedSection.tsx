@@ -1,13 +1,13 @@
 import React from 'react';
 import PropertyCarousel from './UI/PropertyCarousel';
-import { Property } from '../types';
+import { Property, PropertyListItem } from '../types';
 import Button from './UI/Button';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from '../translations';
 
 interface FeaturedSectionProps {
-  properties: Property[];
+  properties: (Property | PropertyListItem)[];
 }
 
 const FeaturedSection: React.FC<FeaturedSectionProps> = ({ properties }) => {

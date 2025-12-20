@@ -58,6 +58,63 @@ class PropertyFeatureSerializer(serializers.ModelSerializer):
         model = PropertyFeature
         fields = ['id', 'name']
 
+class PropertyListItemSerializer(serializers.ModelSerializer):
+    cover = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Property
+        fields = [
+            'id', 'title', 'price', 'address', 'city', 'state', 'zip_code',
+            'property_type', 'bedrooms', 'bathrooms', 'square_feet',
+            'is_featured', 'cover'
+        ]
+
+    def get_cover(self, obj):
+        images = list(obj.images.all())
+        if not images:
+            return None
+        
+        cover_img = next((img for img in images if img.is_primary), images[0])
+        
+        url = getattr(cover_img, 'url', None)
+        s3_key = cover_img.s3_key
+
+        # Ensure we have a base URL
+        if not url and s3_key:
+            import os as _os
+            bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '') or _os.environ.get('S3_MEDIA_BUCKET', '')
+            if bucket:
+                url = f"https://{bucket}.s3.amazonaws.com/{s3_key}"
+        
+        if not url:
+            return None
+
+        # Deterministic derived URLs generation
+        w480 = url
+        w768 = url
+        
+        # Only generate derived URLs if the key follows the new standard
+        if s3_key and 'properties/original/' in s3_key:
+            try:
+                # Extract relative path: properties/original/123/abc.jpg -> 123/abc.jpg
+                relative_path = s3_key.split('properties/original/', 1)[1]
+                # Remove extension: 123/abc.jpg -> 123/abc
+                base_name = relative_path.rsplit('.', 1)[0]
+                
+                bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '') or _os.environ.get('S3_MEDIA_BUCKET', '')
+                if bucket:
+                    base_url = f"https://{bucket}.s3.amazonaws.com/properties/derived"
+                    w480 = f"{base_url}/480/{base_name}.webp"
+                    w768 = f"{base_url}/768/{base_name}.webp"
+            except IndexError:
+                pass
+
+        return {
+            'url': url,
+            'w480': w480, 
+            'w768': w768
+        }
+
 class PropertySerializer(serializers.ModelSerializer):
     images = PropertyImageSerializer(many=True, read_only=True)
     image_keys = serializers.ListField(
