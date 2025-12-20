@@ -41,6 +41,9 @@ class PropertyImageSerializer(serializers.ModelSerializer):
             if bucket:
                 data['url'] = f"https://{bucket}.s3.amazonaws.com/{data['s3_key']}"
         
+        # Ensure originalUrl is present
+        data['originalUrl'] = data.get('url')
+
         # Generate derived URLs if s3_key follows the pattern
         s3_key = data.get('s3_key')
         if s3_key and 'properties/original/' in s3_key:

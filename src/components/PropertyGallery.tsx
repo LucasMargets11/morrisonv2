@@ -6,6 +6,7 @@ import ResponsiveImage from './ResponsiveImage';
 
 interface PropertyImageObj {
   url?: string | null;
+  originalUrl?: string | null;
   image?: string | null;
   s3_key?: string | null;
   derived480Url?: string;

@@ -19,6 +19,7 @@ export interface Property {
     id?: string; 
     image?: string; 
     url?: string; 
+    originalUrl?: string;
     s3_key?: string; 
     is_primary?: boolean; 
     order?: number;
