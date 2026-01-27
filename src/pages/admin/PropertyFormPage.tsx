@@ -70,6 +70,7 @@ const PropertyFormPage: React.FC = () => {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [images, setImages] = useState<(string | PropertyImage)[]>([]);
+  const [removedImageIds, setRemovedImageIds] = useState<number[]>([]);
 
   const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm<PropertyFormData>();
   // Estado para features seleccionadas y campo "Otros"
@@ -231,6 +232,10 @@ const PropertyFormPage: React.FC = () => {
   };
 
   const handleRemoveImage = (idx: number) => {
+    const imgToRemove = images[idx];
+    if (typeof imgToRemove !== 'string' && (imgToRemove as any).id) {
+       setRemovedImageIds(prev => [...prev, Number((imgToRemove as any).id)]);
+    }
     const newImages = images.filter((_, i) => i !== idx);
     setImages(newImages);
     setValue('images', newImages.filter(img => typeof img !== 'string') as PropertyFormData['images']);
@@ -265,7 +270,15 @@ const PropertyFormPage: React.FC = () => {
         } else {
           return { ...img, is_primary: idx === 0, order: idx };
         }
-      });
+      })// En update, enviamos lista de IDs para borrar y nuevo orden
+        const updatePayload = { ...data, removed_image_ids: removedImageIds };
+        // Construir images_order solo con los IDs existentes (los nuevos van por upload aparte o logic de create)
+        const imagesOrder = images
+            .map(img => (typeof img !== 'string' ? (img as any).id : null))
+            .filter(Boolean);
+        (updatePayload as any).images_order = imagesOrder;
+
+        await updateMutation.mutateAsync(updatePayload
       data.images = orderedImages as any;
 
       if (id) {
@@ -787,28 +800,43 @@ const PropertyFormPage: React.FC = () => {
               {images && images.length > 0 && (
                 <div className="mt-8">
                   <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-sm font-medium text-gray-700">
-                      Galería actual ({images.length}/6)
-                    </h4>
-                    <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                      La primera imagen será la principal
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {images.slice(0, 6).map((img, idx) => (
+                    <h4 className="text-sm font-medium tex{
+                      const imgKey = (typeof img === 'string' ? img : (img as any).id) || `temp-${idx}`;
+                      const imgUrl = typeof img === 'string' ? img : ((img as any).url || (img as any).image);
+                      const isBroken = !imgUrl;
+
+                      return (
                       <div
-                        key={(typeof img === 'string' ? img : img.id) || idx}
+                        key={imgKey}
                         className={`relative border-2 rounded-xl overflow-hidden group transition-all ${
                           idx === 0 ? 'ring-2 ring-blue-500 border-blue-500' : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
-                        <img
-                          src={typeof img === 'string' ? img : ((img as any).url || (img as any).image)}
-                          alt={`Imagen ${idx + 1}`}
-                          className="w-full h-32 object-cover"
-                        />
+                         {/* Fallback para imagen rota o vacía */}
+                         {imgUrl ? (
+                            <img
+                              src={imgUrl}
+                              alt={`Imagen ${idx + 1}`}
+                              className="w-full h-32 object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=No+Image';
+                              }}
+                            />
+                         ) : (
+                            <div className="w-full h-32 bg-gray-200 flex items-center justify-center text-gray-400 text-xs">
+                                Sin imagen
+                            </div>
+                         )}
                         
                         {/* Badge de imagen principal */}
+                        {idx === 0 && (
+                          <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold shadow z-10">
+                            Principal
+                          </div>
+                        )}
+                        
+                        {/* Botones de control (siempre visibles si imagen rota, o en hover) */}
+                        <div className={`absolute inset-0 bg-black/40 flex items-center justify-center gap-2 transition-opacity ${isBroken ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
                         {idx === 0 && (
                           <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold shadow">
                             Principal
@@ -853,7 +881,7 @@ const PropertyFormPage: React.FC = () => {
                             </button>
                           )}
                           
-                          {/* Eliminar */}
+                          {/* Eliminar (Siempre disponible) */}
                           <button
                             type="button"
                             onClick={() => handleRemoveImage(idx)}
@@ -864,7 +892,8 @@ const PropertyFormPage: React.FC = () => {
                           </button>
                         </div>
                       </div>
-                    ))}
+                    );
+                    })}
                   </div>
                 </div>
               )}

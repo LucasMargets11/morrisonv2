@@ -130,6 +130,16 @@ class PropertySerializer(serializers.ModelSerializer):
         write_only=True,
         required=False
     )
+    removed_image_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False
+    )
+    images_order = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False
+    )
     full_address = serializers.SerializerMethodField()
 
     class Meta:
@@ -140,7 +150,7 @@ class PropertySerializer(serializers.ModelSerializer):
             'square_feet', 'year_built', 'price', 'is_featured',
             'status', 'created_by', 'created_at', 'updated_at',
             'images', 'features', 'feature_list', 'image_keys',
-            'latitude', 'longitude'
+            'latitude', 'longitude', 'removed_image_ids', 'images_order'
         ]
         read_only_fields = ['created_by', 'created_at', 'updated_at']
 
@@ -203,7 +213,11 @@ class PropertySerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
-        images_data = validated_data.pop('images', None)
+        # Campos extra para manejo manual
+        removed_ids = validated_data.pop('removed_image_ids', [])
+        images_order = validated_data.pop('images_order', [])
+        # images_data será None si el campo es read_only, pero lo dejamos por si acaso
+        _ = validated_data.pop('images', None)
 
         # Geocode solo si está activado y si cambió la dirección
         if getattr(settings, 'USE_GEOCODING', True) and any(
@@ -234,28 +248,30 @@ class PropertySerializer(serializers.ModelSerializer):
 
         instance = super().update(instance, validated_data)
 
-        if images_data is not None:
-            # 1. Elimina imágenes que ya no están
-            keep_ids = [img.get('id') for img in images_data if img.get('id')]
-            instance.images.exclude(id__in=keep_ids).delete()
+        # 1. Eliminar imágenes solicitadas
+        if removed_ids:
+            # Filtramos para asegurar que pertenecen a esta propiedad
+            PropertyImage.objects.filter(property=instance, id__in=removed_ids).delete()
 
-            # 2. Actualiza o crea imágenes
-            for idx, img_data in enumerate(images_data):
-                img_id = img_data.get('id')
-                defaults = {
-                    'is_primary': img_data.get('is_primary', False),
-                    'order': img_data.get('order', idx),
-                    'property': instance,
-                }
-                if 'image' in img_data:
-                    defaults['image'] = img_data['image']
-
-                if img_id:
-                    # Actualiza la imagen existente
-                    PropertyImage.objects.filter(id=img_id, property=instance).update(**defaults)
-                else:
-                    # Crea una nueva imagen
-                    PropertyImage.objects.create(**defaults)
+        # 2. Reordenar y marcar primaria
+        if images_order:
+            # images_order es una lista de IDs [id1, id2, id3]
+            # Validamos que los IDs existan y sean de esta property
+            valid_images = {
+                img.id: img 
+                for img in PropertyImage.objects.filter(property=instance, id__in=images_order)
+            }
+            
+            # Recorremos el orden enviado
+            for idx, img_id in enumerate(images_order):
+                if img_id in valid_images:
+                    img = valid_images[img_id]
+                    img.order = idx
+                    img.is_primary = (idx == 0) # El primero es principal
+                    img.save(update_fields=['order', 'is_primary'])
+            
+            # Asegurar que si quedan imágenes fuera del orden (ej: recién subidas y no incluidas en order), no queden "rotas"
+            # (Opcional: ponerlas al final)
 
         return instance
 
