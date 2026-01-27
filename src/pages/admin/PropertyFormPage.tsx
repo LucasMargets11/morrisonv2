@@ -270,7 +270,11 @@ const PropertyFormPage: React.FC = () => {
         } else {
           return { ...img, is_primary: idx === 0, order: idx };
         }
-      })// En update, enviamos lista de IDs para borrar y nuevo orden
+      });
+      data.images = orderedImages as any;
+
+      if (id) {
+        // En update, enviamos lista de IDs para borrar y nuevo orden
         const updatePayload = { ...data, removed_image_ids: removedImageIds };
         // Construir images_order solo con los IDs existentes (los nuevos van por upload aparte o logic de create)
         const imagesOrder = images
@@ -278,11 +282,7 @@ const PropertyFormPage: React.FC = () => {
             .filter(Boolean);
         (updatePayload as any).images_order = imagesOrder;
 
-        await updateMutation.mutateAsync(updatePayload
-      data.images = orderedImages as any;
-
-      if (id) {
-        await updateMutation.mutateAsync(data);
+        await updateMutation.mutateAsync(updatePayload);
       } else {
         await createMutation.mutateAsync(data);
       }
@@ -800,7 +800,11 @@ const PropertyFormPage: React.FC = () => {
               {images && images.length > 0 && (
                 <div className="mt-8">
                   <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-sm font-medium tex{
+                    <h4 className="text-sm font-medium text-gray-700">Imágenes añadidas ({images.length})</h4>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {images.map((img, idx) => {
                       const imgKey = (typeof img === 'string' ? img : (img as any).id) || `temp-${idx}`;
                       const imgUrl = typeof img === 'string' ? img : ((img as any).url || (img as any).image);
                       const isBroken = !imgUrl;
@@ -835,16 +839,8 @@ const PropertyFormPage: React.FC = () => {
                           </div>
                         )}
                         
-                        {/* Botones de control (siempre visibles si imagen rota, o en hover) */}
-                        <div className={`absolute inset-0 bg-black/40 flex items-center justify-center gap-2 transition-opacity ${isBroken ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
-                        {idx === 0 && (
-                          <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold shadow">
-                            Principal
-                          </div>
-                        )}
-                        
                         {/* Botones de control */}
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <div className={`absolute inset-0 bg-black/50 flex items-center justify-center gap-2 transition-opacity ${isBroken ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                           {/* Mover izquierda */}
                           {idx > 0 && (
                             <button
