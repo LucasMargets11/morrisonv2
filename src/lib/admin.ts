@@ -64,18 +64,40 @@ export const adminApi = {
   },
 
   async updateProperty(id: string, property: Partial<Property>, files?: File[]): Promise<Property> {
-    const formData = new FormData();
-    Object.entries(property).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        formData.append(key, String(value));
-      }
-    });
-    // Si tienes archivos para actualizar, agrégalos aquí (opcional)
+    // Si hay archivos "files" (legacy), usamos FormData
     if (files && files.length > 0) {
+      const formData = new FormData();
+      Object.entries(property).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          // Filtrar campos complejos read-only en FormData stringify (evitar [object Object])
+          if (key === 'features' || key === 'maintenance_events' || key === 'images') return;
+
+          if (typeof value === 'object') {
+             formData.append(key, JSON.stringify(value));
+          } else {
+             formData.append(key, String(value));
+          }
+        }
+      });
       files.forEach((file) => formData.append('media', file));
-    }
-    const response = await api.put(`/properties/${id}/`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      const response = await api.put(`/properties/${id}/`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data;
+    } 
+    
+    // JSON Payload
+    // Copiamos para no mutar original y filtramos read-only problemáticos
+    const payload: Record<string, any> = { ...property };
+    delete payload['features']; // Usar feature_list
+    delete payload['maintenance_events'];
+    // IMPORTANTE: 'images' en Property es Array<Object>, pero en update a veces se envía para reordenar
+    // Si la API acepta 'images' (con orden/is_primary), lo dejamos. Si solo acepta upload nuevos, habría que borrarlo.
+    // Asumimos que si Admin envía prepared 'images' con {id, order}, el backend lo procesa (reordering).
+    // Si es read-only, el backend lo ignorará. Lo dejamos por si acaso.
+
+    const response = await api.put(`/properties/${id}/`, payload, {
+      headers: { 'Content-Type': 'application/json' },
     });
     return response.data;
   },

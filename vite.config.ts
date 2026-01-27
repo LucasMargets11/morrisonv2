@@ -8,6 +8,10 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  esbuild: {
+    // Drop console.log, debug, info, warn in production, but keep error
+    pure: ['console.log', 'console.debug', 'console.info', 'console.warn'],
+  },
   build: {
     outDir: 'dist',
     assetsDir: 'assets',

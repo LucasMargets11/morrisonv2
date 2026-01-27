@@ -1,7 +1,9 @@
 import api from './api';
+import { logger } from './logger';
 
 export type PresignPayload = {
   property_id: number | string;
+
   filename: string;
   content_type: string;
 };
@@ -13,15 +15,15 @@ export type PresignResult = {
 };
 
 export async function presignUpload(payload: PresignPayload): Promise<PresignResult> {
-  console.group('S3 upload');
-  console.log('presign.request', payload);
+  // console.group('S3 upload');
+  logger.debug('presign.request', payload);
   const { data } = await api.post<PresignResult>('/uploads/presign/', payload);
-  console.log('presign.response', data);
+  logger.debug('presign.response', data);
   return data;
 }
 
 export async function putToS3(url: string, file: File, headers: Record<string, string>, onProgress?: (p: number) => void): Promise<number> {
-  console.log('put.headers', headers);
+  logger.debug('put.headers', headers);
   try {
     const axios = (await import('axios')).default;
     const res = await axios.put(url, file, {
@@ -36,13 +38,13 @@ export async function putToS3(url: string, file: File, headers: Record<string, s
       // avoid axios baseURL interfering
       transformRequest: [(data) => data],
     });
-    console.log('put.status', res.status);
+    logger.debug('put.status', res.status);
     return res.status;
   } catch (err: any) {
-    console.error('put.error', err?.response || err);
+    logger.error('put.error', err?.response || err);
     // helpful hint for expired/signature mismatch
     if (err?.response?.status === 403) {
-      console.warn('S3 403 (SignatureDoesNotMatch/Expired). Try requesting a new presigned URL and retry.');
+      logger.warn('S3 403 (SignatureDoesNotMatch/Expired). Try requesting a new presigned URL and retry.');
     }
     throw err;
   } finally {

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Linkedin, Mail, Phone, MapPin, Building2, Send, Clock } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from '../translations';
+import { logger } from '../lib/logger';
 
 const Footer: React.FC = () => {
   const { language } = useLanguage();
@@ -12,7 +13,7 @@ const Footer: React.FC = () => {
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Newsletter subscription:', email);
+    logger.debug('Newsletter subscription:', email);
     setEmail('');
   };
 

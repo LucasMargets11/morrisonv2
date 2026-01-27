@@ -6,6 +6,7 @@ import LanguageSwitcher from './LanguageSwitcher';
 import { useAuth } from '../hooks/useAuth';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from '../translations';
+import { logger } from '../lib/logger';
 
 const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -16,10 +17,10 @@ const Header: React.FC = () => {
   const t = useTranslation(language);
   const navigate = useNavigate();
 
-  console.log('Header - User:', user);
-  console.log('Header - Loading:', loading);
-  console.log('Header - Is Staff:', user?.is_staff);
-  console.log('Header - Role:', user?.role);
+  logger.debug('Header - User:', user);
+  logger.debug('Header - Loading:', loading);
+  logger.debug('Header - Is Staff:', user?.is_staff);
+  logger.debug('Header - Role:', user?.role);
 
   // Detectar scroll para cambiar estilo
   useEffect(() => {

@@ -158,8 +158,10 @@ const PropertyFormPage: React.FC = () => {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Invalidar cache de admin y público
       queryClient.invalidateQueries({ queryKey: ['admin', 'properties'] });
+      queryClient.invalidateQueries({ queryKey: ['properties'] }); // Web pública (listados)
       navigate('/admin/properties');
     },
     onError: (error: any) => {
@@ -193,8 +195,16 @@ const PropertyFormPage: React.FC = () => {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Invalidar listados admin
       queryClient.invalidateQueries({ queryKey: ['admin', 'properties'] });
+      // Invalidar detalle admin
+      if (data && data.id) {
+         queryClient.invalidateQueries({ queryKey: ['admin', 'property', String(data.id)] });
+         // Invalidar detalle PÚBLICO (esta es la clave del bug)
+         queryClient.invalidateQueries({ queryKey: ['property', String(data.id)] });
+         queryClient.invalidateQueries({ queryKey: ['property', Number(data.id)] });
+      }
       navigate('/admin/properties');
     },
     onError: (error: any) => {

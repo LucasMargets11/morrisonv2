@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { logger } from '../lib/logger';
 import { 
   Briefcase, 
   Users, 
@@ -131,7 +132,7 @@ const CareersPage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Aquí iría la lógica para enviar el formulario
-    console.log('Aplicación enviada:', formData);
+    logger.debug('Aplicación enviada:', formData);
     alert('¡Aplicación enviada exitosamente! Te contactaremos pronto.');
   };
 
