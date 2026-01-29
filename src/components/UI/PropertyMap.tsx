@@ -89,10 +89,10 @@ const PropertyMap: React.FC<PropertyMapProps> = ({ locations, apiKey }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#555',
+        color: '#e5e7eb',
         borderRadius: 8
       }}>
-        <span>Mapa desactivado en desarrollo</span>
+        
       </div>
     );
   }

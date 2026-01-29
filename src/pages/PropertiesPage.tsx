@@ -35,8 +35,8 @@ const PropertiesPage: React.FC = () => {
   const babies = params.get('babies') || '';
   const zone = params.get('zone') || '';
   const priceRange = params.get('priceRange') || 'all';
-  // Use 'type' param, default to 'tradicional' (Annual)
-  const propertyType = params.get('type') || 'tradicional';
+  // Use 'type' param, default to 'all' to show all properties initially
+  const propertyType = params.get('type') || 'all';
   const bedroomCount = params.get('bedroomCount') || 'all';
 
   // Fetch filtered properties from API

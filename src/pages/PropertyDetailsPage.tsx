@@ -48,7 +48,7 @@ const PropertyDetailsPage: React.FC = () => {
   // Previous pricing/date logic now handled inside child component
 
   if (isLoading || !property) {
-    return <div className="container mx-auto px-4 py-24">Loading...</div>;
+    return <div className="container mx-auto px-4 py-24">Cargando...</div>;
   }
   if (isError) {
     return <div className="container mx-auto px-4 py-24 text-red-600">Error al cargar la propiedad.</div>;
@@ -63,7 +63,7 @@ const PropertyDetailsPage: React.FC = () => {
         onClick={() => navigate(-1)}
       >
         <ArrowLeft size={18} className="mr-1" />
-        Back to listings
+        Volver a la lista
       </Button>
 
       {/* Gallery + Sidebar (title/info/calendar/price/actions) */}
@@ -76,13 +76,13 @@ const PropertyDetailsPage: React.FC = () => {
 
           {/* Description & Features (moved below gallery) */}
           <section id="description" className="pt-4 border-t border-gray-200">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900">Description</h2>
+            <h2 className="text-2xl font-bold mb-4 text-gray-900">Descripción</h2>
             <p className="text-gray-700 leading-relaxed whitespace-pre-line">{property.description}</p>
           </section>
 
           {property.features && property.features.length > 0 && (
             <section id="features" className="pt-6 border-t border-gray-200">
-              <h2 className="text-2xl font-bold mb-4 text-gray-900">Features</h2>
+              <h2 className="text-2xl font-bold mb-4 text-gray-900">Características</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-y-3 gap-x-6">
   {property.features.map((feature: any, idx: number) => (
                   <div key={idx} className="flex items-start gap-2 text-gray-700">
@@ -110,8 +110,8 @@ const PropertyDetailsPage: React.FC = () => {
         <div className="mt-16">
           <PropertyGrid
             properties={similarProperties}
-            title="Similar Properties"
-            subtitle="You might also be interested in these properties"
+            title="Propiedades Similares"
+            subtitle="También podría interesarte estas propiedades"
           />
         </div>
       )}
