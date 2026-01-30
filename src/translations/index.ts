@@ -162,7 +162,7 @@ const translations: Record<Language, Translations> = {
     'properties.filters.bedrooms': 'Habitaciones',
     'properties.filters.clear': 'Limpiar Filtros',
     'properties.noResults': 'No se encontraron propiedades',
-    'properties.featured': 'Destacada',
+    'properties.featured': 'Destacado',
     'properties.forSale': 'En Venta',
     'properties.forRent': 'En Alquiler',
     'properties.viewDetails': 'Ver Detalles',

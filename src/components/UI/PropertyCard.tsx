@@ -9,6 +9,8 @@ import ResponsiveImage from '../ResponsiveImage';
 import { buildSrcSet } from '../../utils/images.ts'; // helper for generating srcset (bundler resolution)
 import { useQueryClient } from '@tanstack/react-query';
 import { prefetchProperty } from '../../hooks/useProperty';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { useTranslation } from '../../translations';
 
 interface PropertyCardProps {
   property: Property | PropertyListItem;
@@ -16,6 +18,8 @@ interface PropertyCardProps {
 }
 
 const PropertyCard: React.FC<PropertyCardProps> = ({ property, priority = false }) => {
+  const { language } = useLanguage();
+  const t = useTranslation(language);
   const queryClient = useQueryClient();
   const ref = useRef<HTMLDivElement>(null);
   const [imgError, setImgError] = useState(false);
@@ -114,7 +118,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, priority = false 
           {(isFeatured || ['temporal','vacacional','tradicional'].includes(property.property_type)) && (
             <div className="absolute top-3 left-3 flex flex-wrap gap-2 z-10 max-w-[70%]">
               {isFeatured && (
-                <Badge variant="primary" className="shadow-sm">Featured</Badge>
+                <Badge variant="primary" className="shadow-sm">{t('properties.featured')}</Badge>
               )}
               {property.property_type === 'temporal' && (
                 <Badge variant="success" className="shadow-sm">Temporal</Badge>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Building, Calendar, Briefcase } from 'lucide-react';
+import { RENTAL_TYPES_OPTIONS } from '../constants/property-types';
 
 export type PropertyType = 'tradicional' | 'temporal' | 'vacacional' | 'all';
 
@@ -9,8 +10,8 @@ interface PropertyTypeSelectorProps {
 }
 
 const PROPERTY_TYPES: { value: PropertyType; label: string; icon: React.ElementType }[] = [
-  { value: 'tradicional', label: 'Anual', icon: Building },
-  { value: 'temporal', label: 'Temporal', icon: Briefcase },
+  { value: 'tradicional', label: RENTAL_TYPES_OPTIONS.find(o => o.value === 'tradicional')?.label || 'Tradicional', icon: Building },
+  { value: 'temporal', label: RENTAL_TYPES_OPTIONS.find(o => o.value === 'temporal')?.label || 'Temporal', icon: Briefcase },
   /* { value: 'vacacional', label: 'Vacacional', icon: Calendar }, */
 ];
 

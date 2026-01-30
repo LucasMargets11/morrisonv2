@@ -406,10 +406,10 @@ const PropertiesPage: React.FC = () => {
                   <h2 className="text-2xl font-bold text-gray-900">
                     {propertyType === 'vacacional' ? 'Alquiler Vacacional' : 
                      propertyType === 'temporal' ? 'Alquiler Temporal' : 
-                     propertyType === 'tradicional' ? 'Alquiler Anual' : 'Propiedades'}
+                     propertyType === 'tradicional' ? 'Alquiler Tradicional' : 'Propiedades'}
                   </h2>
                   <p className="text-gray-500 mt-1">
-                    {mappedProperties.length} propiedades encontradas
+                    {mappedProperties.length} propiedades disponibles
                   </p>
                 </div>
               </div>

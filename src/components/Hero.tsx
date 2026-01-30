@@ -4,12 +4,9 @@ import { Search, Users, X, ChevronDown, Check } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from '../translations';
 import { useNavigate } from 'react-router-dom';
+import { RENTAL_TYPES_OPTIONS } from '../constants/property-types';
 
-const RENTAL_TYPES = [
-  // { value: 'vacacional', label: 'Vacacional' },
-  { value: 'temporal', label: 'Temporal (3 meses)' },
-  { value: 'tradicional', label: 'Tradicional (largo plazo)' },
-];
+const RENTAL_TYPES = RENTAL_TYPES_OPTIONS;
 
 const Hero: React.FC = () => {
   const { language } = useLanguage();
@@ -100,14 +97,14 @@ const Hero: React.FC = () => {
   };
 
   const handleSearch = () => {
-    if (!rentalType) {
-      // Optional: Show error or shake animation
-      alert('Por favor selecciona un tipo de alquiler');
-      return;
-    }
+    // if (!rentalType) {
+    //   // Optional: Show error or shake animation
+    //   alert('Por favor selecciona un tipo de alquiler');
+    //   return;
+    // }
 
     const params = new URLSearchParams();
-    params.set('propertyType', rentalType);
+    if (rentalType) params.set('type', rentalType);
     if (searchValue.trim()) params.set('search', searchValue.trim());
     
     // Only add guest params if relevant (e.g. for vacacional)
@@ -242,9 +239,8 @@ const Hero: React.FC = () => {
               )}
             </div>
 
-            {/* Guests trigger - Only show if Vacacional is selected or no type selected yet (optional, but user said "Calendar gating") */}
-            {/* Keeping it visible but maybe disabled or just generic? User didn't explicitly say to hide guests, but implied calendar gating. */}
-            {/* I'll keep it but maybe it only applies to Vacacional. */}
+            {/* Guests trigger - Removed as per request */}
+            {/* 
             <button
               onClick={toggleGuestModal}
               className={`px-6 py-4 flex items-center gap-2 border-l border-gray-200 hover:bg-gray-50 transition-colors ${rentalType !== 'vacacional' && rentalType !== '' ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -253,14 +249,14 @@ const Hero: React.FC = () => {
             >
               <Users size={20} className="text-gray-400" />
               <span className="text-gray-700">{totalGuests === 1 ? '1 Huésped' : `${totalGuests} Huéspedes`}</span>
-            </button>
+            </button> 
+            */}
 
             {/* Search button */}
             <div className="p-1.5">
               <button
-                className={`h-full bg-blue-900 hover:bg-blue-800 text-white px-8 rounded-full transition-all shadow-md hover:shadow-lg flex items-center gap-2 font-medium ${!rentalType ? 'opacity-75 cursor-not-allowed' : ''}`}
+                className={`h-full bg-blue-900 hover:bg-blue-800 text-white px-8 rounded-full transition-all shadow-md hover:shadow-lg flex items-center gap-2 font-medium`}
                 onClick={handleSearch}
-                disabled={!rentalType}
               >
                 <Search size={18} />
                 {t('hero.filters.search')}
@@ -287,6 +283,7 @@ const Hero: React.FC = () => {
                   <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                </div>
 
+               {/* 
                <div className="flex gap-2 mb-2">
                   <button
                     onClick={toggleGuestModal}
@@ -296,7 +293,8 @@ const Hero: React.FC = () => {
                     <Users size={18} className="text-gray-400" />
                     <span className="text-gray-700 text-sm">{totalGuests === 1 ? '1' : `${totalGuests}`}</span>
                   </button>
-               </div>
+               </div> 
+               */}
 
               <div className="flex flex-col relative">
                 <div className="flex items-center px-2 py-2 border rounded-lg border-gray-200 mb-2">
@@ -333,9 +331,8 @@ const Hero: React.FC = () => {
                   </ul>
                 )}
                 <button
-                  className={`bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors font-medium ${!rentalType ? 'opacity-75' : ''}`}
+                  className={`bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors font-medium`}
                   onClick={handleSearch}
-                  disabled={!rentalType}
                 >
                   {t('hero.filters.search')}
                 </button>
