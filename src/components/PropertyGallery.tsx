@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Expand } from 'lucide-react';
 import { useSwipeable } from 'react-swipeable';
@@ -30,6 +30,8 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [hasNavigated, setHasNavigated] = useState(false);
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Normalize incoming images to object structure
   const normalizedImages: NormalizedImage[] = useMemo(() => {
@@ -67,6 +69,34 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
     handleNavigation((currentIndex - 1 + total) % total);
   };
 
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Do nothing if user is typing in a form
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
+
+      if (e.key === 'ArrowLeft') {
+          prev();
+      } else if (e.key === 'ArrowRight') {
+          next();
+      } else if (e.key === 'Escape' && isLightboxOpen) {
+          closeLightbox();
+      }
+    };
+
+    // Attach listener if lightbox is open OR if container is focused (managed via tabIndex logic typically, 
+    // but for desktop convenience, checking if gallery "active" or global listener for detail page is common.
+    // The requirement says "when viewport desktop AND carousel active (click/tap) OR lightbox".
+    
+    // For lightbox (global listener when open)
+    if (isLightboxOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {};
+  }, [isLightboxOpen, currentIndex, total]); // dependencies for prev/next access
+
   const openLightbox = () => {
     setIsLightboxOpen(true);
     document.body.style.overflow = 'hidden';
@@ -81,9 +111,9 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => next(),
     onSwipedRight: () => prev(),
-    preventScrollOnSwipe: true,
-    trackMouse: true, // Enables mouse drag on desktop
-    delta: 50, // Threshold in px
+    preventScrollOnSwipe: false, // Allow vertical scroll
+    trackMouse: true, 
+    delta: 50, 
   });
 
   // Prepare Hero Image Props
@@ -108,10 +138,28 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
     return [];
   }, [currentImg]);
 
+  const handleContainerKeyDown = (e: React.KeyboardEvent) => {
+     if (window.matchMedia('(min-width: 768px)').matches) {
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          prev();
+        }
+        if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          next();
+        }
+     }
+  };
+
   return (
-  <div className="relative cv-auto gallery-sizer">
+  <div className="relative cv-auto gallery-sizer outline-none" 
+       ref={containerRef}
+       tabIndex={0} 
+       onKeyDown={handleContainerKeyDown}
+       onClick={() => containerRef.current?.focus()}
+  >
       {/* Main Gallery */}
-      <div className="relative h-[500px]" {...swipeHandlers}>
+      <div className="relative h-[500px] touch-pan-y" {...swipeHandlers}>
         {total > 0 && currentImg ? (
           <ResponsiveImage
             src={heroSrc}
@@ -144,7 +192,7 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
         {total > 1 && (
         <button
           onClick={prev} 
-          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-3 w-10 h-10 flex items-center justify-center hover:bg-white transition-colors duration-200"
+          className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-3 w-10 h-10 items-center justify-center hover:bg-white transition-colors duration-200"
           aria-label="Previous image"
         >
           <ChevronLeft size={20} className="text-gray-700" />
@@ -154,7 +202,7 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
         {total > 1 && (
         <button
           onClick={next} 
-          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-3 w-10 h-10 flex items-center justify-center hover:bg-white transition-colors duration-200"
+          className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-3 w-10 h-10 items-center justify-center hover:bg-white transition-colors duration-200"
           aria-label="Next image"
         >
           <ChevronRight size={20} className="text-gray-700" />
@@ -204,7 +252,7 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
             {total > 1 && (
             <button
               onClick={prev} 
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm rounded-full p-3 hover:bg-white/40 transition-colors duration-200"
+              className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm rounded-full p-3 hover:bg-white/40 transition-colors duration-200"
               aria-label="Previous image"
             >
               <ChevronLeft size={24} className="text-white" />
@@ -214,7 +262,7 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
             {total > 1 && (
             <button
               onClick={next} 
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm rounded-full p-3 hover:bg-white/40 transition-colors duration-200"
+              className="hidden md:block absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm rounded-full p-3 hover:bg-white/40 transition-colors duration-200"
               aria-label="Next image"
             >
               <ChevronRight size={24} className="text-white" />
