@@ -78,7 +78,7 @@ class PropertyListItemSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'price', 'address', 'city', 'state', 'zip_code',
             'property_type', 'bedrooms', 'bathrooms', 'square_feet',
-            'is_featured', 'cover'
+            'is_featured', 'status', 'cover'
         ]
 
     def get_cover(self, obj):

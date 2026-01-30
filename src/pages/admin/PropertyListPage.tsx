@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Search, Filter, Trash2, Edit, Eye, Home, Star } from 'lucide-react';
 import { adminApi } from '../../lib/admin';
 import Button from '../../components/UI/Button';
@@ -9,9 +9,23 @@ import { Property, PropertyStatus } from '../../types/admin';
 
 const PropertyListPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<PropertyStatus | 'all'>('all');
+  
+  // Initialize status from URL or default to 'all'
+  const statusFilter = (searchParams.get('status') as PropertyStatus | 'all') || 'all';
+  
+  const setStatusFilter = (newStatus: PropertyStatus | 'all') => {
+    const newParams = new URLSearchParams(searchParams);
+    if (newStatus === 'all') {
+      newParams.delete('status');
+    } else {
+      newParams.set('status', newStatus);
+    }
+    setSearchParams(newParams);
+  };
+
   const [zoneFilter, setZoneFilter] = useState<string>('all');
   const [sortField, setSortField] = useState<keyof Property>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -21,9 +35,9 @@ const PropertyListPage: React.FC = () => {
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
 
   const { data: properties = [], isLoading } = useQuery<Property[]>({
-    queryKey: ['admin', 'properties'],
+    queryKey: ['admin', 'properties', statusFilter],
     queryFn: async () => {
-      return await adminApi.getProperties();
+      return await adminApi.getProperties({ status: statusFilter });
     },
   });
 
@@ -104,9 +118,9 @@ const PropertyListPage: React.FC = () => {
     const baseFiltered = properties
       .filter(p => {
         const matchesTitle = !searchTerm || p.title.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
+        // El filtrado por status ya se hace en el backend
         const matchesZone = zoneFilter === 'all' || p.city === zoneFilter;
-        return matchesTitle && matchesStatus && matchesZone;
+        return matchesTitle && matchesZone;
       });
 
     // Ordenar: destacadas primero, luego por el campo seleccionado
@@ -397,7 +411,11 @@ const PropertyListPage: React.FC = () => {
                   <Badge variant={
                     p.status === 'published' ? 'success' :
                     p.status === 'draft' ? 'warning' : 'secondary'
-                  }>{p.status}</Badge>
+                  }>
+                    {p.status === 'published' ? 'Publicado' : 
+                     p.status === 'draft' ? 'Borrador' : 
+                     p.status === 'archived' ? 'Archivado' : p.status}
+                  </Badge>
                 </td>
                 <td className="px-4 py-4 text-right">
                   <div className="flex justify-end gap-1">
