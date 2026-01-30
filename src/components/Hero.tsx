@@ -6,7 +6,7 @@ import { useTranslation } from '../translations';
 import { useNavigate } from 'react-router-dom';
 
 const RENTAL_TYPES = [
-  { value: 'vacacional', label: 'Vacacional' },
+  // { value: 'vacacional', label: 'Vacacional' },
   { value: 'temporal', label: 'Temporal (3 meses)' },
   { value: 'tradicional', label: 'Tradicional (largo plazo)' },
 ];

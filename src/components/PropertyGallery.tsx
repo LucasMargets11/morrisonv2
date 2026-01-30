@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Expand } from 'lucide-react';
+import { useSwipeable } from 'react-swipeable';
 import { resolvePropertyImageUrl } from '../utils/imageUrl';
 import ResponsiveImage from './ResponsiveImage';
 
@@ -76,6 +77,15 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
     document.body.style.overflow = '';
   };
 
+  // Swipe handlers
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => next(),
+    onSwipedRight: () => prev(),
+    preventScrollOnSwipe: true,
+    trackMouse: true, // Enables mouse drag on desktop
+    delta: 50, // Threshold in px
+  });
+
   // Prepare Hero Image Props
   const currentImg = normalizedImages[currentIndex];
   const heroSrc = currentImg ? currentImg.original : '';
@@ -101,7 +111,7 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
   return (
   <div className="relative cv-auto gallery-sizer">
       {/* Main Gallery */}
-      <div className="relative h-[500px]">
+      <div className="relative h-[500px]" {...swipeHandlers}>
         {total > 0 && currentImg ? (
           <ResponsiveImage
             src={heroSrc}
@@ -180,7 +190,7 @@ const PropertyGallery: React.FC<PropertyGalleryProps> = ({ images, title }) => {
       {/* Lightbox (portal to ensure highest stacking, z > header) */}
       {isLightboxOpen && createPortal((
         <div className="fixed inset-0 z-[2000] bg-black/90 flex items-center justify-center backdrop-blur-sm" onClick={closeLightbox}>
-          <div className="relative w-full max-w-4xl p-4" onClick={(e) => e.stopPropagation()}>
+          <div className="relative w-full max-w-4xl p-4" onClick={(e) => e.stopPropagation()} {...swipeHandlers}>
             <ResponsiveImage
               src={normalizedImages[currentIndex]?.original || ''}
               alt={`${title} - Full size image ${currentIndex + 1}`}

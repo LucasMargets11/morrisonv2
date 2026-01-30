@@ -40,6 +40,19 @@ class PropertyViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        user = self.request.user
+        
+        # 1. Public Visibility Rule (Draft/Archived hidden for guests)
+        if not user.is_authenticated:
+            queryset = queryset.filter(status='published')
+        else:
+            # 2. Admin/Authenticated Filtering
+            # Allow filtering by specific status if requested (e.g. ?status=draft)
+            # If 'all' or not provided, return everything (Admin view)
+            status_param = self.request.query_params.get('status')
+            if status_param and status_param != 'all':
+                queryset = queryset.filter(status=status_param)
+
         search = self.request.query_params.get('search')
         start = self.request.query_params.get('start')  # (reservado para futura lógica de disponibilidad)
         end = self.request.query_params.get('end')      # (reservado)

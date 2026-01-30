@@ -72,7 +72,13 @@ const PropertyFormPage: React.FC = () => {
   const [images, setImages] = useState<(string | PropertyImage)[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<number[]>([]);
 
-  const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm<PropertyFormData>();
+  const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm<PropertyFormData>({
+    defaultValues: {
+      status: 'draft',
+      is_featured: false,
+      property_type: 'house'
+    }
+  });
   // Estado para features seleccionadas y campo "Otros"
   const [selectedFeatures, setSelectedFeatures] = useState<Set<string>>(new Set());
   const [otrosInput, setOtrosInput] = useState('');

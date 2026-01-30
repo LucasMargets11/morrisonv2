@@ -5,12 +5,9 @@ import { Property, PropertyListItem } from '../types';
 import { Home as HomeIcon, Users, X } from 'lucide-react';
 import Button from '../components/UI/Button';
 import PropertyTypeSelector, { PropertyType } from '../components/PropertyTypeSelector';
-const PropertyMap = React.lazy(() => import('../components/UI/PropertyMap'));
 import { useLanguage } from '../contexts/LanguageContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Calendar from '../components/Calendar';
-
-const GOOGLE_MAPS_API_KEY = 'AIzaSyAhKUEMZevObTmkKtml47NvHQFkDKyZt7o'; // pon tu key aquí
 
 // Modal context para controlar visibilidad global
 const ModalContext = createContext<{ modalOpen: boolean; setModalOpen: (open: boolean) => void }>({ modalOpen: false, setModalOpen: () => {} });
@@ -24,6 +21,22 @@ const PropertiesPage: React.FC = () => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const navigate = useNavigate();
+
+  // Redirect if someone tries to access with type=vacacional
+  useEffect(() => {
+    const currentType = params.get('type');
+    if (currentType === 'vacacional') {
+      const newParams = new URLSearchParams(location.search);
+      newParams.delete('type');
+      // Also clear vacacional-specific params
+      newParams.delete('start');
+      newParams.delete('end');
+      newParams.delete('adults');
+      newParams.delete('children');
+      newParams.delete('babies');
+      navigate(`${location.pathname}?${newParams.toString()}`, { replace: true });
+    }
+  }, [location.search, navigate]);
 
   // Removed unused selectedProperty state
 
@@ -178,7 +191,6 @@ const PropertiesPage: React.FC = () => {
   const [searchInput, setSearchInput] = useState(search);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [mapVisible, setMapVisible] = useState(false);
 
   // Prefetch hero images for first few properties during idle
   useEffect(() => {
@@ -199,23 +211,6 @@ const PropertiesPage: React.FC = () => {
     });
     return () => cancelIdle(idl);
   }, [mappedProperties]);
-
-  // Toggle map visible when scrolled into view
-  useEffect(() => {
-    const el = document.getElementById('map-anchor');
-    if (!el || !('IntersectionObserver' in window)) {
-      setMapVisible(true);
-      return;
-    }
-    const io = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setMapVisible(true);
-        io.disconnect();
-      }
-    }, { rootMargin: '200px' });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
 
   // Load suggestions for search
   useEffect(() => {
@@ -420,15 +415,15 @@ const PropertiesPage: React.FC = () => {
               </div>
 
               {/* Property Grid and Map */}
-              <div className="flex flex-col lg:flex-row gap-8">
+              <div className="">
                 {/* Property Grid */}
-                <div className="w-full lg:w-3/5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="w-full">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {isLoading && (
-                      <div className="col-span-2 py-12 text-center text-gray-500">Cargando propiedades...</div>
+                      <div className="col-span-3 py-12 text-center text-gray-500">Cargando propiedades...</div>
                     )}
                     {isError && (
-                      <div className="col-span-2 py-12 text-center text-red-500">Error al cargar propiedades.</div>
+                      <div className="col-span-3 py-12 text-center text-red-500">Error al cargar propiedades.</div>
                     )}
                     {!isLoading && !isError && mappedProperties.map((property) => (
                       <div
@@ -439,38 +434,12 @@ const PropertiesPage: React.FC = () => {
                       </div>
                     ))}
                     {!isLoading && !isError && mappedProperties.length === 0 && (
-                      <div className="col-span-2 py-12 text-center text-gray-500">
+                      <div className="col-span-3 py-12 text-center text-gray-500">
                         <HomeIcon size={48} className="mx-auto mb-4 text-gray-400" />
                         <p className="text-xl font-medium mb-2">Ninguna propiedad encontrada</p>
                         <p>Intenta ajustar tus criterios de búsqueda</p>
                       </div>
                     )}
-                  </div>
-                </div>
-
-                {/* Map Section */}
-                <div className="w-full lg:w-2/5 lg:sticky lg:top-24 h-[calc(100vh-6rem)] cv-auto section-sizer">
-                  <div className="bg-white rounded-lg shadow-md p-4 h-full">
-                    <div className="relative w-full h-full min-h-[400px] rounded-lg overflow-hidden" id="map-anchor">
-                      <React.Suspense fallback={<div className="w-full h-full bg-gray-100" />}> 
-                        {mapVisible && (
-                          <PropertyMap
-                            apiKey={GOOGLE_MAPS_API_KEY}
-                            locations={mappedProperties.map(p => ({
-                              id: p.id,
-                              address: `${p.address}, ${p.city}`,
-                              price: p.price,
-                              title: p.title,
-                              imageUrl: (typeof p.images?.[0] === 'string') ? (p.images[0] as string) : (((p.images?.[0] as any)?.url) || ((p.images?.[0] as any)?.image) || ''),
-                              zone: p.city,
-                              propertyType: p.property_type,
-                              latitude: p.latitude!,
-                              longitude: p.longitude!,
-                            }))}
-                          />
-                        )}
-                      </React.Suspense>
-                    </div>
                   </div>
                 </div>
               </div>

@@ -11,7 +11,7 @@ interface PropertyTypeSelectorProps {
 const PROPERTY_TYPES: { value: PropertyType; label: string; icon: React.ElementType }[] = [
   { value: 'tradicional', label: 'Anual', icon: Building },
   { value: 'temporal', label: 'Temporal', icon: Briefcase },
-  { value: 'vacacional', label: 'Vacacional', icon: Calendar },
+  /* { value: 'vacacional', label: 'Vacacional', icon: Calendar }, */
 ];
 
 const PropertyTypeSelector: React.FC<PropertyTypeSelectorProps> = ({ value, onChange }) => {

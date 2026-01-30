@@ -120,11 +120,11 @@ const Footer: React.FC = () => {
                     Alquiler Temporal
                   </Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link to="/properties?propertyType=vacacional" className="text-gray-400 hover:text-white transition-colors font-semibold">
                     Alquiler Vacacional
                   </Link>
-                </li>
+                </li> */}
                 <li>
                   <Link to="/properties?propertyType=tradicional" className="text-gray-400 hover:text-white transition-colors font-semibold">
                     Alquiler Tradicional
