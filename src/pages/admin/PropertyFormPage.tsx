@@ -94,7 +94,20 @@ const PropertyFormPage: React.FC = () => {
     'Palermo': '1414',
     'Belgrano': '1426',
     'San Telmo': '1300',
-    'Microcentro': '1000'
+    'Microcentro': '1000',
+    'Nuñez': '1429',
+    'Cañitas': '1426',
+    'Caballito': '1406',
+    'Villa Crespo': '1414',
+    'Chacarita': '1427',
+    'Colegiales': '1426',
+    'Palermo soho': '1414',
+    'Palermo chico': '1425',
+    'Palermo viejo': '1414',
+    'Monserrat': '1081',
+    'San Nicolás': '1012',
+    'San Cristobal': '1255',
+    'Puerto Madero': '1107'
   };
 
   const { data: property, isLoading: isLoadingProperty } = useQuery({
@@ -480,9 +493,22 @@ const PropertyFormPage: React.FC = () => {
                     <option value="">Selecciona un barrio</option>
                     <option value="Recoleta">📍 Recoleta</option>
                     <option value="Palermo">🌳 Palermo</option>
+                    <option value="Palermo soho">🍸 Palermo soho</option>
+                    <option value="Palermo chico">🎨 Palermo chico</option>
+                    <option value="Palermo viejo">🏘️ Palermo viejo</option>
                     <option value="Belgrano">🏛️ Belgrano</option>
+                    <option value="Nuñez">⚽ Nuñez</option>
+                    <option value="Cañitas">🍷 Cañitas</option>
+                    <option value="Colegiales">🏘️ Colegiales</option>
                     <option value="San Telmo">🎭 San Telmo</option>
                     <option value="Microcentro">🏙️ Microcentro</option>
+                    <option value="Caballito">🐴 Caballito</option>
+                    <option value="Villa Crespo">🎪 Villa Crespo</option>
+                    <option value="Chacarita">🌿 Chacarita</option>
+                    <option value="Monserrat">🏛️ Monserrat</option>
+                    <option value="San Nicolás">📍 San Nicolás</option>
+                    <option value="San Cristobal">⛪ San Cristobal</option>
+                    <option value="Puerto Madero">🌉 Puerto Madero</option>
                   </select>
                   {errors.city && (
                     <p className="mt-1 text-sm text-red-600">{errors.city.message}</p>
