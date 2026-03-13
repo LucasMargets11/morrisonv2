@@ -59,6 +59,7 @@ class PropertyViewSet(viewsets.ModelViewSet):
         adults = self.request.query_params.get('adults')
         children = self.request.query_params.get('children')  # (no usado aún)
         babies = self.request.query_params.get('babies')      # (no usado aún)
+        zone = self.request.query_params.get('zone')
         property_type = self.request.query_params.get('propertyType') or self.request.query_params.get('property_type')
 
         # Filtro de búsqueda básica (handled by SearchFilter now)
@@ -67,6 +68,11 @@ class PropertyViewSet(viewsets.ModelViewSet):
         #         Q(city__icontains=search) |
         #         Q(address__icontains=search)
         #     )
+        
+        # Filtro por zona (Barrio)
+        if zone and zone != 'all':
+            queryset = queryset.filter(city__iexact=zone)
+
         # Filtro por cantidad mínima de dormitorios (usando 'adults' como aproximación)
         if adults:
             try:

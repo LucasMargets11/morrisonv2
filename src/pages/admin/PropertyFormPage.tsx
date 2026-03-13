@@ -107,7 +107,10 @@ const PropertyFormPage: React.FC = () => {
     'Monserrat': '1081',
     'San Nicolás': '1012',
     'San Cristobal': '1255',
-    'Puerto Madero': '1107'
+    'Puerto Madero': '1107',
+    'Almagro': '1181',
+    'San Isidro': '1642',
+    'Olivos': '1636'
   };
 
   const { data: property, isLoading: isLoadingProperty } = useQuery({
@@ -509,6 +512,9 @@ const PropertyFormPage: React.FC = () => {
                     <option value="San Nicolás">📍 San Nicolás</option>
                     <option value="San Cristobal">⛪ San Cristobal</option>
                     <option value="Puerto Madero">🌉 Puerto Madero</option>
+                    <option value="Almagro">🏘️ Almagro</option>
+                    <option value="San Isidro">🏛️ San Isidro</option>
+                    <option value="Olivos">⛵ Olivos</option>
                   </select>
                   {errors.city && (
                     <p className="mt-1 text-sm text-red-600">{errors.city.message}</p>

@@ -27,7 +27,7 @@ EXPOSE 5000
 # Healthcheck (HTTP level hitting /health)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \
     CMD python -c "import urllib.request,sys;\
-        u='http://127.0.0.1:' + str(${PORT}) + '/health';\
+        u='http://127.0.0.1:' + str(${PORT}) + '/health/';\
         req=urllib.request.Request(u);\
         with urllib.request.urlopen(req,timeout=4) as r:\
             sys.exit(0 if (200 <= r.getcode() < 300) else 1)" || exit 1
